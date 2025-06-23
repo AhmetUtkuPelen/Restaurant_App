@@ -1,7 +1,7 @@
 from fastapi import FastAPI, WebSocket, WebSocketDisconnect
 from fastapi.responses import HTMLResponse
-from typing import List
 import json
+from datetime import datetime
 
 # Import routers
 from Routes.User.UserRoutes import router as user_router
@@ -10,6 +10,9 @@ from Routes.FileUpload.FileUploadRoutes import router as file_router
 
 # Import database
 from database import create_tables
+
+# Import WebSocket manager
+from Services.WebSocketManager import manager
 
 app = FastAPI(title="Real-time Chat API", version="1.0.0")
 
@@ -23,57 +26,50 @@ app.include_router(user_router)
 app.include_router(message_router)
 app.include_router(file_router)
 
-class ConnectionManager:
-    def __init__(self):
-        self.active_connections: List[WebSocket] = []
-        self.user_connections: dict = {}
-
-    async def connect(self, websocket: WebSocket, user_id: str):
-        await websocket.accept()
-        self.active_connections.append(websocket)
-        self.user_connections[user_id] = websocket
-
-    def disconnect(self, websocket: WebSocket, user_id: str):
-        self.active_connections.remove(websocket)
-        if user_id in self.user_connections:
-            del self.user_connections[user_id]
-
-    async def send_personal_message(self, message: str, websocket: WebSocket):
-        await websocket.send_text(message)
-
-    async def broadcast(self, message: str, sender_id: str = None):
-        for connection in self.active_connections:
-            if sender_id and self.user_connections.get(sender_id) == connection:
-                continue  # Don't send back to sender
-            await connection.send_text(message)
-
-manager = ConnectionManager()
+# WebSocket manager is imported from Services.WebSocketManager
 
 @app.websocket("/ws/{user_id}")
 async def websocket_endpoint(websocket: WebSocket, user_id: str):
-    await manager.connect(websocket, user_id)
+    """WebSocket endpoint for real-time chat"""
+    # Extract user info from query parameters or use defaults
+    user_info = {
+        "id": user_id,
+        "username": user_id,
+        "display_name": user_id,
+        "connected_at": datetime.utcnow().isoformat()
+    }
+
+    await manager.connect(websocket, user_id, user_info)
+
     try:
         while True:
+            # Receive message from client
             data = await websocket.receive_text()
             message_data = json.loads(data)
-            
-            # Broadcast message to all connected clients
-            broadcast_message = {
-                "user_id": user_id,
-                "message": message_data.get("message"),
-                "timestamp": message_data.get("timestamp")
+
+            # Create message object
+            message = {
+                "id": f"msg_{datetime.utcnow().timestamp()}",
+                "sender_id": user_id,
+                "content": message_data.get("message", ""),
+                "created_at": message_data.get("timestamp", datetime.utcnow().isoformat()),
+                "attachments": message_data.get("attachments", []),
+                "is_edited": False,
+                "status": "sent"
             }
-            await manager.broadcast(json.dumps(broadcast_message))
-            
+
+            # Broadcast message to all connected users
+            await manager.broadcast_json(message, exclude_user=user_id)
+
+            # Send confirmation back to sender
+            confirmation = {
+                **message,
+                "status": "delivered"
+            }
+            await manager.send_personal_json(confirmation, user_id)
+
     except WebSocketDisconnect:
-        manager.disconnect(websocket, user_id)
-        # Notify others that user left
-        leave_message = {
-            "user_id": "system",
-            "message": f"{user_id} left the chat",
-            "timestamp": ""
-        }
-        await manager.broadcast(json.dumps(leave_message))
+        await manager.disconnect(user_id)
 
 @app.get("/")
 async def get():
