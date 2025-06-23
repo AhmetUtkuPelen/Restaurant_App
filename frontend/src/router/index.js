@@ -11,6 +11,9 @@ import Admin from '../pages/admin/admin.vue'
 // Import layout component
 import DefaultLayout from '../layouts/DefaultLayout.vue'
 
+// Import auth composable
+import { useAuth } from '../composables/useAuth'
+
 const routes = [
   {
     path: '/',
@@ -64,6 +67,15 @@ const routes = [
         }
       },
       {
+        path: '/profile',
+        name: 'Profile',
+        component: () => import('../pages/Profile.vue'),
+        meta: {
+          title: 'Profile',
+          requiresAuth: true
+        }
+      },
+      {
         path: '/admin',
         name: 'Admin',
         component: Admin,
@@ -106,24 +118,33 @@ router.beforeEach((to, from, next) => {
     document.title = to.meta.title
   }
 
-  // Check authentication (you'll need to implement this based on your auth system)
-  const isAuthenticated = checkAuthStatus() // You'll implement this function
-  const isAdmin = checkAdminStatus() // You'll implement this function
+  // Get auth state from composable
+  const { isAuthenticated, isAdmin, currentUser } = useAuth()
+
+  // Debug logging for admin route
+  if (to.path === '/admin') {
+    console.log('Accessing admin route:')
+    console.log('- isAuthenticated:', isAuthenticated.value)
+    console.log('- isAdmin:', isAdmin.value)
+    console.log('- currentUser:', currentUser.value)
+    console.log('- userRole from localStorage:', localStorage.getItem('userRole'))
+  }
 
   // Redirect authenticated users away from login/register pages
-  if (to.meta.hideForAuth && isAuthenticated) {
+  if (to.meta.hideForAuth && isAuthenticated.value) {
     next({ name: 'Chat' })
     return
   }
 
   // Check if route requires authentication
-  if (to.meta.requiresAuth && !isAuthenticated) {
+  if (to.meta.requiresAuth && !isAuthenticated.value) {
     next({ name: 'Login' })
     return
   }
 
   // Check if route requires admin privileges
-  if (to.meta.requiresAdmin && !isAdmin) {
+  if (to.meta.requiresAdmin && !isAdmin.value) {
+    console.log('Admin access denied - redirecting to chat')
     next({ name: 'Chat' }) // Redirect to chat if not admin
     return
   }
@@ -131,19 +152,7 @@ router.beforeEach((to, from, next) => {
   next()
 })
 
-// Helper functions (implement these based on your auth system)
-function checkAuthStatus() {
-  // Check if user is authenticated
-  // This could check localStorage, Pinia store, or make an API call
-  const token = localStorage.getItem('authToken')
-  return !!token
-}
-
-function checkAdminStatus() {
-  // Check if user has admin privileges
-  // This could check user role from localStorage, Pinia store, etc.
-  const userRole = localStorage.getItem('userRole')
-  return userRole === 'admin'
-}
+// Note: Auth checks are now handled by the useAuth composable
+// The helper functions below are kept for reference but not used
 
 export default router

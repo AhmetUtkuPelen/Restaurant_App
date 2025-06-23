@@ -112,6 +112,7 @@
 import { ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { useToast } from '../../composables/useToast'
+import { useAuth } from '../../composables/useAuth'
 
 export default {
   name: 'Register',
@@ -119,6 +120,7 @@ export default {
     const router = useRouter()
     const isLoading = ref(false)
     const { showSuccess, showError } = useToast()
+    const { login } = useAuth()
 
     const form = ref({
       firstName: '',
@@ -145,7 +147,10 @@ export default {
         // Simulate API call
         await new Promise(resolve => setTimeout(resolve, 1000))
 
-        // Mock successful registration
+        // Mock successful registration - store user info temporarily for login
+        localStorage.setItem('registeredUsername', form.value.username)
+        localStorage.setItem('registeredEmail', form.value.email)
+
         showSuccess('Account created successfully! Please log in with your credentials.', 'Registration Complete')
         router.push('/login')
       } catch (error) {

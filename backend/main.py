@@ -11,6 +11,7 @@ from Routes.Rooms.RoomRoutes import router as room_router
 from Routes.Search.SearchRoutes import router as search_router
 from Routes.Notifications.NotificationRoutes import router as notification_router
 from Routes.Calls.CallRoutes import router as call_router
+from Routes.Admin.AdminRoutes import router as admin_router
 
 # Import database from database.py
 from database import create_tables
@@ -39,6 +40,7 @@ app.include_router(room_router)
 app.include_router(search_router)
 app.include_router(notification_router)
 app.include_router(call_router)
+app.include_router(admin_router)
 
 
 @app.websocket("/ws/{user_id}")

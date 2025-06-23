@@ -59,10 +59,10 @@
           <!-- User Menu Dropdown -->
           <div class="user-menu" @click="toggleUserMenu">
             <div class="user-avatar">
-              <img :src="userAvatar" :alt="userName" v-if="userAvatar" />
+              <img :src="currentUser?.avatar" :alt="currentUser?.display_name" v-if="currentUser?.avatar" />
               <span v-else class="avatar-placeholder">{{ userInitials }}</span>
             </div>
-            <span class="user-name">{{ userName }}</span>
+            <span class="user-name">{{ currentUser?.display_name || currentUser?.username || 'User' }}</span>
             <div class="dropdown-menu" v-if="isUserMenuOpen">
               <router-link to="/profile" class="dropdown-item" @click="closeUserMenu">
                 Profile
@@ -86,27 +86,19 @@
 import { ref, computed, onMounted, onUnmounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { useToast } from '../../composables/useToast'
+import { useAuth } from '../../composables/useAuth'
 
 export default {
   name: 'Header',
   setup() {
     const router = useRouter()
     const { showSuccess, showInfo } = useToast()
+    const { isAuthenticated, isAdmin, currentUser, logout: authLogout, getUserInitials } = useAuth()
     const isMobileMenuOpen = ref(false)
     const isUserMenuOpen = ref(false)
 
-    // Mock user data (replace with your actual auth store/composable)
-    const isAuthenticated = ref(false)
-    const isAdmin = ref(false)
-    const userName = ref('John Doe')
-    const userAvatar = ref('')
-
     const userInitials = computed(() => {
-      return userName.value
-        .split(' ')
-        .map(name => name.charAt(0))
-        .join('')
-        .toUpperCase()
+      return getUserInitials()
     })
 
     const toggleMobileMenu = () => {
@@ -126,12 +118,8 @@ export default {
     }
 
     const handleLogout = () => {
-      // Implement logout logic here
-      console.log('Logging out...')
-      isAuthenticated.value = false
-      isAdmin.value = false
-      localStorage.removeItem('authToken')
-      localStorage.removeItem('userRole')
+      // Use the auth composable logout
+      authLogout()
       closeUserMenu()
 
       showInfo('You have been logged out successfully. See you next time!', 'Logged Out')
@@ -148,16 +136,7 @@ export default {
       }
     }
 
-    // Check auth status on mount (replace with your actual auth logic)
-    const checkAuthStatus = () => {
-      const token = localStorage.getItem('authToken')
-      const role = localStorage.getItem('userRole')
-      isAuthenticated.value = !!token
-      isAdmin.value = role === 'admin'
-    }
-
     onMounted(() => {
-      checkAuthStatus()
       document.addEventListener('click', handleClickOutside)
     })
 
@@ -170,8 +149,7 @@ export default {
       isUserMenuOpen,
       isAuthenticated,
       isAdmin,
-      userName,
-      userAvatar,
+      currentUser,
       userInitials,
       toggleMobileMenu,
       closeMobileMenu,

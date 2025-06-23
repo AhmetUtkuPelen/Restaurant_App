@@ -61,6 +61,7 @@
 import { ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { useToast } from '../../composables/useToast'
+import { useAuth } from '../../composables/useAuth'
 
 export default {
   name: 'Login',
@@ -68,6 +69,7 @@ export default {
     const router = useRouter()
     const isLoading = ref(false)
     const { showSuccess, showError } = useToast()
+    const { login } = useAuth()
 
     const form = ref({
       email: '',
@@ -85,11 +87,30 @@ export default {
         // Simulate API call
         await new Promise(resolve => setTimeout(resolve, 1000))
 
-        // Mock successful login
-        localStorage.setItem('authToken', 'mock-token')
-        localStorage.setItem('userRole', 'user')
+        // Mock successful login - determine if admin or regular user
+        const isAdminLogin = form.value.email === 'admin@example.com' ||
+                           form.value.email === 'admin' ||
+                           form.value.email.split('@')[0] === 'admin'
+        const role = isAdminLogin ? 'admin' : 'user'
 
-        showSuccess('Welcome back! You have been logged in successfully.', 'Login Successful')
+        console.log('Login form data:', form.value)
+        console.log('Is admin login:', isAdminLogin)
+        console.log('Assigned role:', role)
+
+        // Use the auth composable to properly set user info
+        const username = form.value.email.includes('@') ? form.value.email.split('@')[0] : form.value.email
+        const email = form.value.email.includes('@') ? form.value.email : `${form.value.email}@example.com`
+
+        const userData = login({
+          token: 'mock-token',
+          username: username,
+          email: email,
+          role: role
+        })
+
+        console.log('User data after login:', userData)
+
+        showSuccess(`Welcome back, ${userData.display_name}! You have been logged in successfully.`, 'Login Successful')
 
         // Redirect to chat
         router.push('/chat')

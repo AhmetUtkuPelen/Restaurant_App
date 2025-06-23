@@ -196,12 +196,16 @@
 <script>
 import { ref, reactive, onMounted, onUnmounted, nextTick, computed } from 'vue'
 import { useToast } from '../../composables/useToast'
+import { useAuth } from '../../composables/useAuth'
 
 export default {
   name: 'Chat',
   setup() {
     // Toast notifications
     const { showSuccess, showError, showInfo } = useToast()
+
+    // Authentication
+    const { currentUser, currentUserId, isAuthenticated } = useAuth()
 
     // Reactive data
     const messages = ref([])
@@ -223,24 +227,16 @@ export default {
     // WebSocket connection
     let websocket = null
 
-    // Current user (mock data - replace with actual auth)
-    const currentUser = reactive({
-      id: localStorage.getItem('userId') || 'user_' + Math.random().toString(36).substr(2, 9),
-      username: localStorage.getItem('username') || 'Anonymous',
-      display_name: localStorage.getItem('displayName') || 'Anonymous User'
-    })
-
-    // Store user ID for future sessions
-    if (!localStorage.getItem('userId')) {
-      localStorage.setItem('userId', currentUser.id)
-      localStorage.setItem('username', currentUser.username)
-      localStorage.setItem('displayName', currentUser.display_name)
+    // Redirect to login if not authenticated
+    if (!isAuthenticated.value || !currentUser.value) {
+      window.location.href = '/login'
+      return
     }
 
     // WebSocket functions
     const connectWebSocket = () => {
       try {
-        websocket = new WebSocket(`ws://localhost:8000/ws/${currentUser.id}`)
+        websocket = new WebSocket(`ws://localhost:8000/ws/${currentUser.value.id}`)
 
         websocket.onopen = () => {
           isConnected.value = true
@@ -248,8 +244,8 @@ export default {
           showSuccess('Connected to chat server', 'Connection Established')
 
           // Add current user to online users if not already there
-          if (!onlineUsers.value.find(u => u.id === currentUser.id)) {
-            onlineUsers.value.push({ ...currentUser })
+          if (!onlineUsers.value.find(u => u.id === currentUser.value.id)) {
+            onlineUsers.value.push({ ...currentUser.value })
           }
         }
 
@@ -290,7 +286,7 @@ export default {
           showInfo('Disconnected from chat server. Attempting to reconnect...', 'Connection Lost')
 
           // Remove current user from online users
-          onlineUsers.value = onlineUsers.value.filter(u => u.id !== currentUser.id)
+          onlineUsers.value = onlineUsers.value.filter(u => u.id !== currentUser.value.id)
 
           // Attempt to reconnect after 3 seconds
           setTimeout(connectWebSocket, 3000)
@@ -447,7 +443,7 @@ export default {
 
     // Utility functions
     const getSenderName = (senderId) => {
-      if (senderId === currentUser.id) return 'You'
+      if (senderId === currentUser.value.id) return 'You'
       const user = onlineUsers.value.find(u => u.id === senderId)
       return user ? (user.display_name || user.username) : 'Unknown User'
     }
@@ -508,6 +504,7 @@ export default {
       showImageModal,
       selectedImage,
       currentUser,
+      currentUserId,
 
       // Refs
       messagesContainer,
