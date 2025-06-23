@@ -2,7 +2,7 @@ from datetime import datetime
 from typing import Optional
 from pydantic import BaseModel, EmailStr, Field
 from enum import Enum
-from backend.Models.User.UserModel import UserStatus, UserRole
+from Models.User.UserModel import UserStatus, UserRole
 
 class UserCreate(BaseModel):
     username: str = Field(..., min_length=3, max_length=50)

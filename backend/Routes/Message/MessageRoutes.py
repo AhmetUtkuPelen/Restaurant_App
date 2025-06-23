@@ -1,11 +1,11 @@
 from fastapi import APIRouter, status, Query, Depends
 from typing import List
 from sqlalchemy.orm import Session
-from backend.Controllers.Message.MessageController import MessageController
-from backend.Schemas.Message.MessageSchemas import (
+from Controllers.Message.MessageController import MessageController
+from Schemas.Message.MessageSchemas import (
     MessageCreate, MessageUpdate, MessageResponse
 )
-from backend.database import get_db
+from database import get_db
 
 # Create router
 router = APIRouter(prefix="/messages", tags=["messages"])

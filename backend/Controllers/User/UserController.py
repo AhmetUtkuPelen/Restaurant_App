@@ -1,8 +1,8 @@
 from sqlalchemy.orm import Session
 from typing import List
-from backend.Services.UserService import UserService
-from backend.Models.User.UserModel import UserStatus
-from backend.Schemas.User.UserSchemas import UserCreate, UserUpdate, UserResponse, UserLogin, UserPublic
+from Services.UserService import UserService
+from Models.User.UserModel import UserStatus
+from Schemas.User.UserSchemas import UserCreate, UserUpdate, UserResponse, UserLogin, UserPublic
 
 class UserController:
     def __init__(self):

@@ -1,9 +1,9 @@
 from sqlalchemy import Column, String, Boolean, DateTime, Text, Integer, ForeignKey, JSON, Enum as SQLEnum
 from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func
-from backend.database import Base
-from backend.Models.User.UserModel import UserStatus, UserRole
-from backend.Models.Message.MessageModel import MessageType, MessageStatus, AttachmentType
+from database import Base
+from Models.User.UserModel import UserStatus, UserRole
+from Models.Message.MessageModel import MessageType, MessageStatus, AttachmentType
 import uuid
 
 def generate_uuid():
@@ -84,7 +84,7 @@ class MessageDB(Base):
     updated_at = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now())
     delivered_at = Column(DateTime(timezone=True))
     read_at = Column(DateTime(timezone=True))
-    metadata = Column(JSON, default=dict)  # For additional data
+    message_metadata = Column(JSON, default=dict)  # For additional data
     
     # Relationships
     sender = relationship("UserDB", foreign_keys=[sender_id], back_populates="sent_messages")

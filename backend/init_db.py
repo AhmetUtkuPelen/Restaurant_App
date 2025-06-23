@@ -3,10 +3,10 @@ Database initialization script
 Run this to create the database tables and add sample data
 """
 
-from backend.database import create_tables, drop_tables, SessionLocal
-from backend.Models.database_models import UserDB, MessageDB, ChatRoomDB
-from backend.Models.User.UserModel import UserStatus, UserRole
-from backend.Models.Message.MessageModel import MessageType, MessageStatus
+from database import create_tables, drop_tables, SessionLocal
+from Models.database_models import UserDB, MessageDB, ChatRoomDB
+from Models.User.UserModel import UserStatus, UserRole
+from Models.Message.MessageModel import MessageType, MessageStatus
 import hashlib
 from datetime import datetime
 

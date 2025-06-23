@@ -3,9 +3,9 @@ from sqlalchemy import or_
 from fastapi import HTTPException, status
 from typing import List, Optional
 import hashlib
-from backend.Models.database_models import UserDB
-from backend.Models.User.UserModel import UserStatus
-from backend.Schemas.User.UserSchemas import UserCreate, UserUpdate, UserResponse, UserLogin, UserPublic
+from Models.database_models import UserDB
+from Models.User.UserModel import UserStatus
+from Schemas.User.UserSchemas import UserCreate, UserUpdate, UserResponse, UserLogin, UserPublic
 from datetime import datetime
 
 class UserService:

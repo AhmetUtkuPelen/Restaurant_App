@@ -2,9 +2,9 @@ from sqlalchemy.orm import Session
 from sqlalchemy import or_, and_
 from fastapi import HTTPException, status
 from typing import List, Optional
-from backend.Models.database_models import MessageDB, MessageReactionDB, UserDB
-from backend.Models.Message.MessageModel import MessageStatus
-from backend.Schemas.Message.MessageSchemas import MessageCreate, MessageUpdate, MessageResponse
+from Models.database_models import MessageDB, MessageReactionDB, UserDB
+from Models.Message.MessageModel import MessageStatus
+from Schemas.Message.MessageSchemas import MessageCreate, MessageUpdate, MessageResponse
 from datetime import datetime
 
 class MessageService:
@@ -66,7 +66,7 @@ class MessageService:
             content=message_data.content,
             message_type=message_data.message_type,
             reply_to_message_id=message_data.reply_to_message_id,
-            metadata=message_data.metadata
+            message_metadata=message_data.metadata
         )
         
         db.add(db_message)

@@ -4,11 +4,12 @@ from typing import List
 import json
 
 # Import routers
-from backend.Routes.User.UserRoutes import router as user_router
-from backend.Routes.Message.MessageRoutes import router as message_router
+from Routes.User.UserRoutes import router as user_router
+from Routes.Message.MessageRoutes import router as message_router
+from Routes.FileUpload.FileUploadRoutes import router as file_router
 
 # Import database
-from backend.database import create_tables
+from database import create_tables
 
 app = FastAPI(title="Real-time Chat API", version="1.0.0")
 
@@ -20,6 +21,7 @@ async def startup_event():
 # Include routers
 app.include_router(user_router)
 app.include_router(message_router)
+app.include_router(file_router)
 
 class ConnectionManager:
     def __init__(self):
@@ -76,6 +78,16 @@ async def websocket_endpoint(websocket: WebSocket, user_id: str):
 @app.get("/")
 async def get():
     return {"message": "Chat API is running"}
+
+@app.post("/seed-admin")
+async def seed_admin():
+    """Endpoint to seed admin user - for development only"""
+    try:
+        from seed_admin import seed_admin_user
+        seed_admin_user()
+        return {"message": "Admin user seeded successfully", "username": "admin", "password": "admin123"}
+    except Exception as e:
+        return {"error": f"Failed to seed admin user: {str(e)}"}
 
 # Optional: Add CORS middleware if needed
 from fastapi.middleware.cors import CORSMiddleware

@@ -2,7 +2,7 @@ from pydantic import BaseModel, Field
 from typing import Optional, List, Dict, Any
 from enum import Enum
 from datetime import datetime
-from backend.Models.Message.MessageModel import MessageType, Attachment, MessageReaction, MessageStatus
+from Models.Message.MessageModel import MessageType, Attachment, MessageReaction, MessageStatus
 
 
 

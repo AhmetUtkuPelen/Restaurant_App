@@ -1,7 +1,7 @@
 from sqlalchemy.orm import Session
 from typing import List
-from backend.Services.MessageService import MessageService
-from backend.Schemas.Message.MessageSchemas import MessageCreate, MessageUpdate, MessageResponse
+from Services.MessageService import MessageService
+from Schemas.Message.MessageSchemas import MessageCreate, MessageUpdate, MessageResponse
 
 class MessageController:
     def __init__(self):
