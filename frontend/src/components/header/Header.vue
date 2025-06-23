@@ -39,8 +39,8 @@
 
         <!-- Authenticated Navigation -->
         <template v-else>
-          <router-link to="/chat" class="nav-link" @click="closeMobileMenu">
-            Chat
+          <router-link to="/" class="nav-link" @click="closeMobileMenu">
+            Home
           </router-link>
           <router-link to="/about" class="nav-link" @click="closeMobileMenu">
             About
@@ -85,11 +85,13 @@
 <script>
 import { ref, computed, onMounted, onUnmounted } from 'vue'
 import { useRouter } from 'vue-router'
+import { useToast } from '../../composables/useToast'
 
 export default {
   name: 'Header',
   setup() {
     const router = useRouter()
+    const { showSuccess, showInfo } = useToast()
     const isMobileMenuOpen = ref(false)
     const isUserMenuOpen = ref(false)
 
@@ -131,6 +133,8 @@ export default {
       localStorage.removeItem('authToken')
       localStorage.removeItem('userRole')
       closeUserMenu()
+
+      showInfo('You have been logged out successfully. See you next time!', 'Logged Out')
       router.push('/')
     }
 

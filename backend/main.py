@@ -7,6 +7,11 @@ from datetime import datetime
 from Routes.User.UserRoutes import router as user_router
 from Routes.Message.MessageRoutes import router as message_router
 from Routes.FileUpload.FileUploadRoutes import router as file_router
+from Routes.Reactions.ReactionRoutes import router as reaction_router
+from Routes.Rooms.RoomRoutes import router as room_router
+from Routes.Search.SearchRoutes import router as search_router
+from Routes.Notifications.NotificationRoutes import router as notification_router
+from Routes.Calls.CallRoutes import router as call_router
 
 # Import database
 from database import create_tables
@@ -25,6 +30,11 @@ async def startup_event():
 app.include_router(user_router)
 app.include_router(message_router)
 app.include_router(file_router)
+app.include_router(reaction_router)
+app.include_router(room_router)
+app.include_router(search_router)
+app.include_router(notification_router)
+app.include_router(call_router)
 
 # WebSocket manager is imported from Services.WebSocketManager
 

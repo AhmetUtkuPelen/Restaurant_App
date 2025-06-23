@@ -76,6 +76,43 @@
           </div>
         </div>
 
+        <!-- Message Reactions -->
+        <div v-if="message.reactions && message.reactions.length > 0" class="message-reactions">
+          <button
+            v-for="reaction in message.reactions"
+            :key="reaction.emoji"
+            @click="toggleReaction(reaction.emoji)"
+            class="reaction-item"
+            :class="{ 'user-reacted': hasUserReacted(reaction) }"
+            :title="getReactionTooltip(reaction)"
+          >
+            <span class="reaction-emoji">{{ reaction.emoji }}</span>
+            <span class="reaction-count">{{ reaction.count }}</span>
+          </button>
+        </div>
+
+        <!-- Message Actions -->
+        <div class="message-actions" :class="{ visible: showActions }" @mouseenter="showActions = true" @mouseleave="showActions = false">
+          <button @click="toggleReactionPicker" class="action-btn reaction-btn" title="Add reaction">
+            😊
+          </button>
+          <button v-if="isOwnMessage" @click="editMessage" class="action-btn edit-btn" title="Edit message">
+            ✏️
+          </button>
+          <button v-if="isOwnMessage" @click="deleteMessage" class="action-btn delete-btn" title="Delete message">
+            🗑️
+          </button>
+        </div>
+
+        <!-- Emoji Picker -->
+        <div v-if="showEmojiPicker" class="emoji-picker-container">
+          <EmojiPicker
+            :isVisible="showEmojiPicker"
+            @select="addReaction"
+            @close="showEmojiPicker = false"
+          />
+        </div>
+
         <!-- Message Status -->
         <div class="message-status" v-if="isOwnMessage">
           <span class="status-indicator" :class="message.status?.toLowerCase()">
@@ -88,10 +125,14 @@
 </template>
 
 <script>
-import { computed } from 'vue'
+import { computed, ref } from 'vue'
+import EmojiPicker from '../../components/EmojiPicker.vue'
 
 export default {
   name: 'Message',
+  components: {
+    EmojiPicker
+  },
   props: {
     message: {
       type: Object,
@@ -106,8 +147,11 @@ export default {
       default: 'Unknown User'
     }
   },
-  emits: ['edit', 'delete', 'openImage'],
-  setup(props) {
+  emits: ['edit', 'delete', 'openImage', 'reaction-add', 'reaction-remove'],
+  setup(props, { emit }) {
+    const showActions = ref(false)
+    const showEmojiPicker = ref(false)
+
     const isOwnMessage = computed(() => {
       return props.message.sender_id === props.currentUserId
     })
@@ -168,6 +212,63 @@ export default {
       }
     }
 
+    // Reaction methods
+    const toggleReactionPicker = () => {
+      showEmojiPicker.value = !showEmojiPicker.value
+    }
+
+    const addReaction = (emoji) => {
+      emit('reaction-add', {
+        messageId: props.message.id,
+        emoji: emoji.emoji,
+        emojiName: emoji.name
+      })
+      showEmojiPicker.value = false
+    }
+
+    const toggleReaction = (emoji) => {
+      const reaction = props.message.reactions?.find(r => r.emoji === emoji)
+      if (reaction && hasUserReacted(reaction)) {
+        emit('reaction-remove', {
+          messageId: props.message.id,
+          emoji: emoji
+        })
+      } else {
+        emit('reaction-add', {
+          messageId: props.message.id,
+          emoji: emoji,
+          emojiName: emoji
+        })
+      }
+    }
+
+    const hasUserReacted = (reaction) => {
+      return reaction.users?.some(user => user.id === props.currentUserId)
+    }
+
+    const getReactionTooltip = (reaction) => {
+      const users = reaction.users || []
+      if (users.length === 0) return reaction.emoji
+
+      if (users.length === 1) {
+        return `${users[0].display_name || users[0].username} reacted with ${reaction.emoji}`
+      } else if (users.length <= 3) {
+        const names = users.map(u => u.display_name || u.username).join(', ')
+        return `${names} reacted with ${reaction.emoji}`
+      } else {
+        const firstTwo = users.slice(0, 2).map(u => u.display_name || u.username).join(', ')
+        return `${firstTwo} and ${users.length - 2} others reacted with ${reaction.emoji}`
+      }
+    }
+
+    const editMessage = () => {
+      emit('edit', props.message)
+    }
+
+    const deleteMessage = () => {
+      emit('delete', props.message.id)
+    }
+
     return {
       isOwnMessage,
       senderInitial,
@@ -175,7 +276,16 @@ export default {
       formatFileSize,
       getFileIcon,
       getFileType,
-      getStatusIcon
+      getStatusIcon,
+      showActions,
+      showEmojiPicker,
+      toggleReactionPicker,
+      addReaction,
+      toggleReaction,
+      hasUserReacted,
+      getReactionTooltip,
+      editMessage,
+      deleteMessage
     }
   }
 }
@@ -252,16 +362,74 @@ export default {
   color: rgba(255, 255, 255, 0.7);
 }
 
+/* Message Reactions */
+.message-reactions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.25rem;
+  margin-top: 0.5rem;
+}
+
+.reaction-item {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  background: rgba(0, 0, 0, 0.05);
+  border: 1px solid rgba(0, 0, 0, 0.1);
+  border-radius: 12px;
+  padding: 0.25rem 0.5rem;
+  cursor: pointer;
+  transition: all 0.2s;
+  font-size: 0.75rem;
+}
+
+.reaction-item:hover {
+  background: rgba(0, 0, 0, 0.1);
+  transform: scale(1.05);
+}
+
+.reaction-item.user-reacted {
+  background: #e3f2fd;
+  border-color: #2196f3;
+  color: #1976d2;
+}
+
+.own-message .reaction-item {
+  background: rgba(255, 255, 255, 0.2);
+  border-color: rgba(255, 255, 255, 0.3);
+  color: white;
+}
+
+.own-message .reaction-item.user-reacted {
+  background: rgba(255, 255, 255, 0.3);
+  border-color: rgba(255, 255, 255, 0.5);
+}
+
+.reaction-emoji {
+  font-size: 0.875rem;
+}
+
+.reaction-count {
+  font-weight: 600;
+  font-size: 0.75rem;
+}
+
 .message-actions {
   display: flex;
   gap: 0.25rem;
-  margin-left: auto;
+  margin-top: 0.5rem;
   opacity: 0;
   transition: opacity 0.2s;
 }
 
+.message-actions.visible,
 .message-item:hover .message-actions {
   opacity: 1;
+}
+
+.emoji-picker-container {
+  position: relative;
+  margin-top: 0.5rem;
 }
 
 .action-btn {

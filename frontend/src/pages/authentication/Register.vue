@@ -111,12 +111,14 @@
 <script>
 import { ref } from 'vue'
 import { useRouter } from 'vue-router'
+import { useToast } from '../../composables/useToast'
 
 export default {
   name: 'Register',
   setup() {
     const router = useRouter()
     const isLoading = ref(false)
+    const { showSuccess, showError } = useToast()
 
     const form = ref({
       firstName: '',
@@ -130,7 +132,7 @@ export default {
 
     const handleRegister = async () => {
       if (form.value.password !== form.value.confirmPassword) {
-        alert('Passwords do not match!')
+        showError('Passwords do not match!', 'Registration Error')
         return
       }
 
@@ -144,11 +146,11 @@ export default {
         await new Promise(resolve => setTimeout(resolve, 1000))
 
         // Mock successful registration
-        alert('Account created successfully!')
+        showSuccess('Account created successfully! Please log in with your credentials.', 'Registration Complete')
         router.push('/login')
       } catch (error) {
         console.error('Registration error:', error)
-        // TODO: Show error message
+        showError('Registration failed. Please try again.', 'Registration Error')
       } finally {
         isLoading.value = false
       }

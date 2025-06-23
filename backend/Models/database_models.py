@@ -56,13 +56,14 @@ class AttachmentDB(Base):
 
 class MessageReactionDB(Base):
     __tablename__ = "message_reactions"
-    
+
     id = Column(String, primary_key=True, default=generate_uuid)
     emoji = Column(String(10), nullable=False)
+    emoji_name = Column(String, nullable=True)  # Emoji name (e.g., "thumbs_up")
     user_id = Column(String, ForeignKey("users.id"), nullable=False)
     message_id = Column(String, ForeignKey("messages.id"), nullable=False)
     created_at = Column(DateTime(timezone=True), server_default=func.now())
-    
+
     # Relationships
     user = relationship("UserDB", back_populates="reactions")
     message = relationship("MessageDB", back_populates="reactions")
@@ -89,9 +90,10 @@ class MessageDB(Base):
     # Relationships
     sender = relationship("UserDB", foreign_keys=[sender_id], back_populates="sent_messages")
     recipient = relationship("UserDB", foreign_keys=[recipient_id], back_populates="received_messages")
+    room = relationship("ChatRoomDB", foreign_keys=[chat_id])
     attachments = relationship("AttachmentDB", back_populates="message", cascade="all, delete-orphan")
     reactions = relationship("MessageReactionDB", back_populates="message", cascade="all, delete-orphan")
-    
+
     # Self-referential relationship for replies
     reply_to = relationship("MessageDB", remote_side=[id])
 
@@ -123,4 +125,52 @@ class ChatMemberDB(Base):
     
     # Relationships
     chat = relationship("ChatRoomDB")
+    user = relationship("UserDB")
+
+
+
+class NotificationDB(Base):
+    __tablename__ = "notifications"
+
+    id = Column(String, primary_key=True, default=generate_uuid)
+    user_id = Column(String, ForeignKey("users.id"), nullable=False)
+    title = Column(String, nullable=False)
+    message = Column(Text, nullable=False)
+    notification_type = Column(String, nullable=False)  # message, mention, room_invite, etc.
+    data = Column(JSON, default=dict)  # Additional notification data
+    is_read = Column(Boolean, default=False)
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
+
+    # Relationships
+    user = relationship("UserDB")
+
+class CallSessionDB(Base):
+    __tablename__ = "call_sessions"
+
+    id = Column(String, primary_key=True, default=generate_uuid)
+    room_id = Column(String, ForeignKey("chat_rooms.id"), nullable=True)
+    caller_id = Column(String, ForeignKey("users.id"), nullable=False)
+    call_type = Column(String, nullable=False)  # audio, video
+    status = Column(String, default="initiated")  # initiated, ringing, active, ended
+    started_at = Column(DateTime(timezone=True), server_default=func.now())
+    ended_at = Column(DateTime(timezone=True), nullable=True)
+    duration = Column(Integer, default=0)  # in seconds
+
+    # Relationships
+    caller = relationship("UserDB", foreign_keys=[caller_id])
+    room = relationship("ChatRoomDB")
+    participants = relationship("CallParticipantDB", back_populates="call")
+
+class CallParticipantDB(Base):
+    __tablename__ = "call_participants"
+
+    id = Column(String, primary_key=True, default=generate_uuid)
+    call_id = Column(String, ForeignKey("call_sessions.id"), nullable=False)
+    user_id = Column(String, ForeignKey("users.id"), nullable=False)
+    joined_at = Column(DateTime(timezone=True), server_default=func.now())
+    left_at = Column(DateTime(timezone=True), nullable=True)
+    status = Column(String, default="invited")  # invited, joined, left, rejected
+
+    # Relationships
+    call = relationship("CallSessionDB", back_populates="participants")
     user = relationship("UserDB")

@@ -60,12 +60,14 @@
 <script>
 import { ref } from 'vue'
 import { useRouter } from 'vue-router'
+import { useToast } from '../../composables/useToast'
 
 export default {
   name: 'Login',
   setup() {
     const router = useRouter()
     const isLoading = ref(false)
+    const { showSuccess, showError } = useToast()
 
     const form = ref({
       email: '',
@@ -87,11 +89,13 @@ export default {
         localStorage.setItem('authToken', 'mock-token')
         localStorage.setItem('userRole', 'user')
 
+        showSuccess('Welcome back! You have been logged in successfully.', 'Login Successful')
+
         // Redirect to chat
         router.push('/chat')
       } catch (error) {
         console.error('Login error:', error)
-        // TODO: Show error message
+        showError('Login failed. Please check your credentials and try again.', 'Login Error')
       } finally {
         isLoading.value = false
       }

@@ -195,10 +195,14 @@
 
 <script>
 import { ref, reactive, onMounted, onUnmounted, nextTick, computed } from 'vue'
+import { useToast } from '../../composables/useToast'
 
 export default {
   name: 'Chat',
   setup() {
+    // Toast notifications
+    const { showSuccess, showError, showInfo } = useToast()
+
     // Reactive data
     const messages = ref([])
     const newMessage = ref('')
@@ -241,6 +245,7 @@ export default {
         websocket.onopen = () => {
           isConnected.value = true
           console.log('Connected to chat server')
+          showSuccess('Connected to chat server', 'Connection Established')
 
           // Add current user to online users if not already there
           if (!onlineUsers.value.find(u => u.id === currentUser.id)) {
@@ -282,6 +287,7 @@ export default {
         websocket.onclose = () => {
           isConnected.value = false
           console.log('Disconnected from chat server')
+          showInfo('Disconnected from chat server. Attempting to reconnect...', 'Connection Lost')
 
           // Remove current user from online users
           onlineUsers.value = onlineUsers.value.filter(u => u.id !== currentUser.id)
@@ -293,6 +299,7 @@ export default {
         websocket.onerror = (error) => {
           console.error('WebSocket error:', error)
           isConnected.value = false
+          showError('Connection error occurred. Please check your internet connection.', 'Connection Error')
         }
 
       } catch (error) {
@@ -334,6 +341,12 @@ export default {
 
         if (websocket && websocket.readyState === WebSocket.OPEN) {
           websocket.send(JSON.stringify(messageData))
+
+          if (attachments.length > 0) {
+            showSuccess(`Message sent with ${attachments.length} file(s)`)
+          }
+        } else {
+          showError('Unable to send message. Connection lost.', 'Connection Error')
         }
 
         // Clear input
@@ -347,7 +360,7 @@ export default {
 
       } catch (error) {
         console.error('Failed to send message:', error)
-        alert('Failed to send message. Please try again.')
+        showError('Failed to send message. Please try again.', 'Send Error')
       }
     }
 
@@ -370,12 +383,14 @@ export default {
         // Cancel edit mode
         cancelEdit()
 
+        showSuccess('Message updated successfully')
+
         // In a real app, you would send this to the server
         // await updateMessage(editingMessageId.value, editContent.value)
 
       } catch (error) {
         console.error('Failed to edit message:', error)
-        alert('Failed to edit message. Please try again.')
+        showError('Failed to edit message. Please try again.', 'Edit Error')
       }
     }
 
@@ -391,12 +406,14 @@ export default {
         // Remove message locally
         messages.value = messages.value.filter(m => m.id !== messageId)
 
+        showInfo('Message deleted successfully')
+
         // In a real app, you would send this to the server
         // await deleteMessageFromServer(messageId)
 
       } catch (error) {
         console.error('Failed to delete message:', error)
-        alert('Failed to delete message. Please try again.')
+        showError('Failed to delete message. Please try again.', 'Delete Error')
       }
     }
 

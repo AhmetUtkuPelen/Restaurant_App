@@ -29,6 +29,11 @@ def get_db():
 
 # Create all tables
 def create_tables():
+    # Import all models to ensure they are registered with Base
+    from Models.database_models import (
+        UserDB, MessageDB, AttachmentDB, MessageReactionDB,
+        ChatRoomDB, ChatMemberDB, NotificationDB, CallSessionDB, CallParticipantDB
+    )
     Base.metadata.create_all(bind=engine)
 
 # Drop all tables (for development)
