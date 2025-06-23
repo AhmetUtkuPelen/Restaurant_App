@@ -5,7 +5,7 @@ from Schemas.Message.MessageSchemas import MessageCreate, MessageUpdate, Message
 
 class MessageController:
     def __init__(self):
-        self.message_service = MessageService()
+        pass
 
     async def create_message(self, db: Session, sender_id: str, message_data: MessageCreate) -> MessageResponse:
         """Create a new message"""

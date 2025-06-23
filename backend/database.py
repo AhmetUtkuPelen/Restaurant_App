@@ -9,14 +9,15 @@ DATABASE_URL = "sqlite:///./chat_app.db"
 # Create engine
 engine = create_engine(
     DATABASE_URL, 
-    connect_args={"check_same_thread": False},  # Needed for SQLite
-    echo=True  # Set to False in production
+    connect_args={"check_same_thread": False},  # For SQLite
+    echo=True
 )
 
-# Create SessionLocal class
+
+# Create SessionLocal class for database session
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
-# Create Base class
+# Create Base class for declarative models
 Base = declarative_base()
 
 # Dependency to get database session
@@ -29,12 +30,13 @@ def get_db():
 
 # Create all tables
 def create_tables():
-    # Import all models to ensure they are registered with Base
+    # Import all models to make sure they are registered with Base
     from Models.database_models import (
         UserDB, MessageDB, AttachmentDB, MessageReactionDB,
         ChatRoomDB, ChatMemberDB, NotificationDB, CallSessionDB, CallParticipantDB
     )
     Base.metadata.create_all(bind=engine)
+
 
 # Drop all tables (for development)
 def drop_tables():

@@ -2,8 +2,7 @@ from fastapi import FastAPI, WebSocket, WebSocketDisconnect
 from fastapi.responses import HTMLResponse
 import json
 from datetime import datetime
-
-# Import routers
+# Import routers from respective files
 from Routes.User.UserRoutes import router as user_router
 from Routes.Message.MessageRoutes import router as message_router
 from Routes.FileUpload.FileUploadRoutes import router as file_router
@@ -13,20 +12,25 @@ from Routes.Search.SearchRoutes import router as search_router
 from Routes.Notifications.NotificationRoutes import router as notification_router
 from Routes.Calls.CallRoutes import router as call_router
 
-# Import database
+# Import database from database.py
 from database import create_tables
 
 # Import WebSocket manager
 from Services.WebSocketManager import manager
 
-app = FastAPI(title="Real-time Chat API", version="1.0.0")
+# Add CORS middleware for front end communication
+from fastapi.middleware.cors import CORSMiddleware
+
+# Create FastAPI instance
+app = FastAPI(title="Chat API", version="1.0.0")
+
 
 # Create database tables on startup
 @app.on_event("startup")
 async def startup_event():
     create_tables()
 
-# Include routers
+# Import Routers
 app.include_router(user_router)
 app.include_router(message_router)
 app.include_router(file_router)
@@ -36,7 +40,6 @@ app.include_router(search_router)
 app.include_router(notification_router)
 app.include_router(call_router)
 
-# WebSocket manager is imported from Services.WebSocketManager
 
 @app.websocket("/ws/{user_id}")
 async def websocket_endpoint(websocket: WebSocket, user_id: str):
@@ -81,10 +84,12 @@ async def websocket_endpoint(websocket: WebSocket, user_id: str):
     except WebSocketDisconnect:
         await manager.disconnect(user_id)
 
+# backend landing page for testing
 @app.get("/")
 async def get():
     return {"message": "Chat API is running"}
 
+# Endpoint to seed admin user
 @app.post("/seed-admin")
 async def seed_admin():
     """Endpoint to seed admin user - for development only"""
@@ -95,12 +100,13 @@ async def seed_admin():
     except Exception as e:
         return {"error": f"Failed to seed admin user: {str(e)}"}
 
-# Optional: Add CORS middleware if needed
-from fastapi.middleware.cors import CORSMiddleware
 
+
+
+# Add CORS middleware
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # Configure this properly for production
+    allow_origins=["http://localhost:3000", "http://localhost:5173" , "https://your-frontend-domain.com"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],

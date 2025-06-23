@@ -1,6 +1,5 @@
 """
-Admin user seeding script
-Run this to create an admin user for the chat application
+Admin user seeding script to this to create an admin user for the chat application
 """
 
 from database import SessionLocal, create_tables
@@ -9,10 +8,12 @@ from Models.User.UserModel import UserStatus, UserRole
 import hashlib
 from datetime import datetime
 
+# Function to hash passwords
 def hash_password(password: str) -> str:
     """Simple password hashing - use proper hashing in production"""
     return hashlib.sha256(password.encode()).hexdigest()
 
+# Function to seed admin user
 def seed_admin_user():
     """Create an admin user"""
     # Create database tables if they don't exist
@@ -21,7 +22,7 @@ def seed_admin_user():
     db = SessionLocal()
     
     try:
-        # Check if admin user already exists
+        # Check if admin user already exists or not
         existing_admin = db.query(UserDB).filter(
             UserDB.username == "admin"
         ).first()
@@ -33,10 +34,11 @@ def seed_admin_user():
             print(f"   Role: {existing_admin.role}")
             return
         
-        # Create admin user
-        admin_password = "admin123"  # Change this to a secure password
+        # Create admin user if it doesn't exist
+        admin_password = "admin123"
         hashed_password = hash_password(admin_password)
         
+        # Create admin user
         admin_user = UserDB(
             username="admin",
             email="admin@chatapp.com",
@@ -50,17 +52,18 @@ def seed_admin_user():
             last_seen=datetime.utcnow()
         )
         
+        # Add admin user to the database
         db.add(admin_user)
         db.commit()
         db.refresh(admin_user)
         
-        print("✅ Admin user created successfully!")
+        # print admin user details
+        print(" Admin user created successfully!")
         print(f"   Username: {admin_user.username}")
         print(f"   Email: {admin_user.email}")
         print(f"   Password: {admin_password}")
         print(f"   Role: {admin_user.role}")
         print(f"   User ID: {admin_user.id}")
-        print("\n⚠️  IMPORTANT: Change the default password after first login!")
         
     except Exception as e:
         print(f"❌ Error creating admin user: {e}")
@@ -68,6 +71,7 @@ def seed_admin_user():
     finally:
         db.close()
 
+# create sample users
 def create_sample_users():
     """Create some sample regular users for testing"""
     db = SessionLocal()
@@ -97,6 +101,7 @@ def create_sample_users():
             }
         ]
         
+
         created_count = 0
         for user_data in sample_users:
             # Check if user already exists
@@ -124,31 +129,34 @@ def create_sample_users():
         
         if created_count > 0:
             db.commit()
-            print(f"✅ Created {created_count} sample users!")
+            print(f" Created {created_count} sample users!")
         else:
-            print("ℹ️  Sample users already exist.")
+            print("ℹ Sample users already exist.")
             
     except Exception as e:
-        print(f"❌ Error creating sample users: {e}")
+        print(f" Error creating sample users: {e}")
         db.rollback()
     finally:
         db.close()
 
+# Main execution
 if __name__ == "__main__":
-    print("🚀 Starting admin user seeding...")
+    print(" Starting admin user seeding...")
     print("=" * 50)
     
     # Create admin user
     seed_admin_user()
     
     print("\n" + "=" * 50)
-    print("🔧 Creating sample users...")
+    print(" Creating sample users...")
     
     # Create sample users
     create_sample_users()
     
+    # Completion message
     print("\n" + "=" * 50)
-    print("✅ Seeding completed!")
+    print(" Admin user seeding complete!")
+    print("Seeding completed!")
     print("\nYou can now:")
     print("1. Login as admin with username: admin, password: admin123")
     print("2. Access admin dashboard at /admin")

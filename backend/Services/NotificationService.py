@@ -14,7 +14,7 @@ import json
 class NotificationService:
     
     @staticmethod
-    def create_notification(
+    async def create_notification(
         db: Session, 
         user_id: str, 
         title: str, 
@@ -43,7 +43,7 @@ class NotificationService:
         return notification
     
     @staticmethod
-    def send_realtime_notification(notification: NotificationDB):
+    async def send_realtime_notification(notification: NotificationDB):
         """Send real-time notification via WebSocket"""
         
         if manager.is_user_online(notification.user_id):
@@ -65,7 +65,7 @@ class NotificationService:
             )
     
     @staticmethod
-    def get_user_notifications(
+    async def get_user_notifications(
         db: Session, 
         user_id: str, 
         unread_only: bool = False,
@@ -96,7 +96,7 @@ class NotificationService:
         ]
     
     @staticmethod
-    def mark_as_read(db: Session, notification_id: str, user_id: str) -> bool:
+    async def mark_as_read(db: Session, notification_id: str, user_id: str) -> bool:
         """Mark a notification as read"""
         
         notification = db.query(NotificationDB).filter(
@@ -112,7 +112,7 @@ class NotificationService:
         return False
     
     @staticmethod
-    def mark_all_as_read(db: Session, user_id: str) -> int:
+    async def mark_all_as_read(db: Session, user_id: str) -> int:
         """Mark all notifications as read for a user"""
         
         updated_count = db.query(NotificationDB).filter(
@@ -124,7 +124,7 @@ class NotificationService:
         return updated_count
     
     @staticmethod
-    def get_unread_count(db: Session, user_id: str) -> int:
+    async def get_unread_count(db: Session, user_id: str) -> int:
         """Get count of unread notifications for a user"""
         
         return db.query(NotificationDB).filter(
@@ -133,7 +133,7 @@ class NotificationService:
         ).count()
     
     @staticmethod
-    def delete_notification(db: Session, notification_id: str, user_id: str) -> bool:
+    async def delete_notification(db: Session, notification_id: str, user_id: str) -> bool:
         """Delete a notification"""
         
         notification = db.query(NotificationDB).filter(
@@ -149,7 +149,7 @@ class NotificationService:
         return False
     
     @staticmethod
-    def send_message_notification(
+    async def send_message_notification(
         db: Session,
         recipient_id: str,
         sender_name: str,
@@ -179,7 +179,7 @@ class NotificationService:
         )
     
     @staticmethod
-    def send_mention_notification(
+    async def send_mention_notification(
         db: Session,
         mentioned_user_id: str,
         sender_name: str,
@@ -208,7 +208,7 @@ class NotificationService:
         )
     
     @staticmethod
-    def send_room_invite_notification(
+    async def send_room_invite_notification(
         db: Session,
         invited_user_id: str,
         inviter_name: str,
@@ -234,7 +234,7 @@ class NotificationService:
         )
     
     @staticmethod
-    def send_call_notification(
+    async def send_call_notification(
         db: Session,
         recipient_id: str,
         caller_name: str,
@@ -260,7 +260,7 @@ class NotificationService:
         )
     
     @staticmethod
-    def send_reaction_notification(
+    async def send_reaction_notification(
         db: Session,
         message_author_id: str,
         reactor_name: str,
@@ -286,7 +286,7 @@ class NotificationService:
         )
     
     @staticmethod
-    def cleanup_old_notifications(db: Session, days_old: int = 30) -> int:
+    async def cleanup_old_notifications(db: Session, days_old: int = 30) -> int:
         """Clean up old notifications"""
         
         from datetime import timedelta
@@ -300,7 +300,7 @@ class NotificationService:
         return deleted_count
     
     @staticmethod
-    def get_notification_stats(db: Session, user_id: str) -> Dict:
+    async def get_notification_stats(db: Session, user_id: str) -> Dict:
         """Get notification statistics for a user"""
         
         total_notifications = db.query(NotificationDB).filter(

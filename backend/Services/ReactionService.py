@@ -1,6 +1,5 @@
 """
-Message Reaction Service
-Handles emoji reactions to messages
+Message Reaction Service for Handling emoji reactions to messages
 """
 
 from sqlalchemy.orm import Session
@@ -13,7 +12,7 @@ import uuid
 class ReactionService:
     
     @staticmethod
-    def add_reaction(db: Session, message_id: str, user_id: str, emoji: str, emoji_name: str = None) -> MessageReactionDB:
+    async def add_reaction(db: Session, message_id: str, user_id: str, emoji: str, emoji_name: str = None) -> MessageReactionDB:
         """Add a reaction to a message"""
         
         # Check if user already reacted with this emoji
@@ -47,7 +46,7 @@ class ReactionService:
         return reaction
     
     @staticmethod
-    def remove_reaction(db: Session, message_id: str, user_id: str, emoji: str) -> bool:
+    async def remove_reaction(db: Session, message_id: str, user_id: str, emoji: str) -> bool:
         """Remove a specific reaction from a message"""
         
         reaction = db.query(MessageReactionDB).filter(
@@ -66,7 +65,7 @@ class ReactionService:
         return False
     
     @staticmethod
-    def get_message_reactions(db: Session, message_id: str) -> List[Dict]:
+    async def get_message_reactions(db: Session, message_id: str) -> List[Dict]:
         """Get all reactions for a message, grouped by emoji"""
         
         reactions = db.query(MessageReactionDB).filter(
@@ -100,7 +99,7 @@ class ReactionService:
         return list(reaction_groups.values())
     
     @staticmethod
-    def get_user_reactions_for_message(db: Session, message_id: str, user_id: str) -> List[str]:
+    async def get_user_reactions_for_message(db: Session, message_id: str, user_id: str) -> List[str]:
         """Get all emojis that a user has reacted with for a specific message"""
         
         reactions = db.query(MessageReactionDB).filter(
@@ -113,7 +112,7 @@ class ReactionService:
         return [reaction.emoji for reaction in reactions]
     
     @staticmethod
-    def get_popular_reactions(db: Session, limit: int = 10) -> List[Dict]:
+    async def get_popular_reactions(db: Session, limit: int = 10) -> List[Dict]:
         """Get most popular reactions across all messages"""
         
         from sqlalchemy import func
@@ -139,7 +138,7 @@ class ReactionService:
         ]
     
     @staticmethod
-    def get_message_reaction_summary(db: Session, message_id: str) -> Dict:
+    async def get_message_reaction_summary(db: Session, message_id: str) -> Dict:
         """Get a summary of reactions for a message"""
         
         reactions = ReactionService.get_message_reactions(db, message_id)
@@ -157,7 +156,7 @@ class ReactionService:
         }
     
     @staticmethod
-    def bulk_add_reactions(db: Session, reactions_data: List[Dict]) -> List[MessageReactionDB]:
+    async def bulk_add_reactions(db: Session, reactions_data: List[Dict]) -> List[MessageReactionDB]:
         """Add multiple reactions at once"""
         
         reactions = []
@@ -180,7 +179,7 @@ class ReactionService:
         return reactions
     
     @staticmethod
-    def remove_all_reactions_from_message(db: Session, message_id: str) -> int:
+    async def remove_all_reactions_from_message(db: Session, message_id: str) -> int:
         """Remove all reactions from a message"""
         
         deleted_count = db.query(MessageReactionDB).filter(
@@ -191,7 +190,7 @@ class ReactionService:
         return deleted_count
     
     @staticmethod
-    def get_user_reaction_history(db: Session, user_id: str, limit: int = 50) -> List[Dict]:
+    async def get_user_reaction_history(db: Session, user_id: str, limit: int = 50) -> List[Dict]:
         """Get a user's reaction history"""
         
         reactions = db.query(MessageReactionDB).filter(

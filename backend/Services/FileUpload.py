@@ -19,7 +19,7 @@ class FileHandler:
             "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
         }
         
-        # Create upload directories
+        # Create upload directories if they don't exist
         os.makedirs(f"{upload_dir}/images", exist_ok=True)
         os.makedirs(f"{upload_dir}/files", exist_ok=True)
         os.makedirs(f"{upload_dir}/thumbnails", exist_ok=True)
@@ -30,7 +30,7 @@ class FileHandler:
         file_size = 0
         content = await file.read()
         file_size = len(content)
-        await file.seek(0)  # Reset file pointer
+        await file.seek(0)  # Reset file pointer after reading content
         
         if file_size > self.max_file_size:
             return False, "File size exceeds maximum limit"
@@ -48,7 +48,8 @@ class FileHandler:
         
         return True, "Valid file"
 
-    def generate_filename(self, original_filename: str) -> str:
+    # Generate unique filename based on timestamp and UUID
+    async def generate_filename(self, original_filename: str) -> str:
         """Generate unique filename"""
         file_extension = os.path.splitext(original_filename)[1]
         unique_id = str(uuid.uuid4())
@@ -98,7 +99,7 @@ class FileHandler:
             print(f"Error creating thumbnail: {e}")
             return None
 
-    def get_image_dimensions(self, image_path: str) -> Tuple[Optional[int], Optional[int]]:
+    async def get_image_dimensions(self, image_path: str) -> Tuple[Optional[int], Optional[int]]:
         """Get image dimensions"""
         try:
             with Image.open(image_path) as img:
@@ -106,7 +107,7 @@ class FileHandler:
         except Exception:
             return None, None
 
-    def get_file_hash(self, filepath: str) -> str:
+    async def get_file_hash(self, filepath: str) -> str:
         """Generate file hash for duplicate detection"""
         hash_md5 = hashlib.md5()
         with open(filepath, "rb") as f:
@@ -114,7 +115,7 @@ class FileHandler:
                 hash_md5.update(chunk)
         return hash_md5.hexdigest()
 
-    def delete_file(self, filepath: str) -> bool:
+    async def delete_file(self, filepath: str) -> bool:
         """Delete file from filesystem"""
         try:
             if os.path.exists(filepath):

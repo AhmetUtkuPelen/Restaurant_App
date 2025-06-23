@@ -1,6 +1,5 @@
 """
-Database initialization script
-Run this to create the database tables and add sample data
+Database initialization scriptfor creating the database tables and add sample data
 """
 
 from database import create_tables, drop_tables, SessionLocal
@@ -10,10 +9,12 @@ from Models.Message.MessageModel import MessageType, MessageStatus
 import hashlib
 from datetime import datetime
 
+# Function to hash passwords
 def hash_password(password: str) -> str:
     """Simple password hashing - use proper hashing in production"""
     return hashlib.sha256(password.encode()).hexdigest()
 
+# Function to create sample data
 def create_sample_data():
     """Create sample users and messages for testing"""
     db = SessionLocal()
@@ -76,6 +77,7 @@ def create_sample_data():
             admins=[admin_user.id]
         )
         
+        # Add chat room to database
         db.add(general_chat)
         db.commit()
         db.refresh(general_chat)
@@ -115,33 +117,35 @@ def create_sample_data():
         db.add_all(messages)
         db.commit()
         
-        print("✅ Sample data created successfully!")
-        print(f"👤 Admin user: admin / admin123")
-        print(f"👤 Test users: alice, bob, charlie / password123")
-        print(f"💬 Chat room: {general_chat.name}")
-        print(f"📝 Created {len(messages)} sample messages")
+        print(" Sample data created successfully!")
+        print(f" Admin user: admin / admin123")
+        print(f" Test users: alice, bob, charlie / password123")
+        print(f" Chat room: {general_chat.name}")
+        print(f" Created {len(messages)} sample messages")
         
     except Exception as e:
-        print(f"❌ Error creating sample data: {e}")
+        print(f" Error creating sample data: {e}")
         db.rollback()
     finally:
         db.close()
 
+# Main function
 def main():
     """Initialize database"""
-    print("🚀 Initializing database...")
+    print(" Initializing database...")
     
     # Create tables
-    print("📋 Creating tables...")
+    print(" Creating tables...")
     create_tables()
-    print("✅ Tables created successfully!")
+    print(" Tables created successfully!")
     
     # Create sample data
-    print("📝 Creating sample data...")
+    print(" Creating sample data...")
     create_sample_data()
     
-    print("🎉 Database initialization complete!")
+    print(" Database initialization complete!")
     print("\nYou can now start the server with: uvicorn main:app --reload")
 
+# Run main function
 if __name__ == "__main__":
     main()

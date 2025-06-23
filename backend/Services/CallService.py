@@ -1,6 +1,5 @@
 """
-Call Service
-Handles voice and video calling functionality
+Call Service for handling voice and video calling functionality
 """
 
 from sqlalchemy.orm import Session
@@ -12,10 +11,11 @@ from datetime import datetime, timedelta
 import uuid
 import json
 
+
 class CallService:
     
     @staticmethod
-    def initiate_call(
+    async def initiate_call(
         db: Session,
         caller_id: str,
         call_type: str,  # "audio" or "video"
@@ -32,6 +32,7 @@ class CallService:
             status="initiated"
         )
         
+        # Add call to database
         db.add(call)
         db.commit()
         db.refresh(call)
@@ -63,10 +64,11 @@ class CallService:
         CallService.send_call_invitations(db, call)
         
         return call
-    
+
+
     @staticmethod
-    def send_call_invitations(db: Session, call: CallSessionDB):
-        """Send call invitations to participants"""
+    async def send_call_invitations(db: Session, call: CallSessionDB):
+        """Send call invitations to users"""
         
         # Get caller info
         caller = db.query(UserDB).filter(UserDB.id == call.caller_id).first()
@@ -79,7 +81,7 @@ class CallService:
         ).all()
         
         for participant in participants:
-            # Send WebSocket notification
+            # Send WebSocket notification to user
             if manager.is_user_online(participant.user_id):
                 call_data = {
                     "type": "call_invitation",
@@ -106,7 +108,7 @@ class CallService:
             )
     
     @staticmethod
-    def join_call(db: Session, call_id: str, user_id: str) -> bool:
+    async def join_call(db: Session, call_id: str, user_id: str) -> bool:
         """Join an existing call"""
         
         # Check if call exists and is active
@@ -115,6 +117,7 @@ class CallService:
             CallSessionDB.status.in_(["initiated", "ringing", "active"])
         ).first()
         
+        # Check if call exists and is active
         if not call:
             return False
         
@@ -145,8 +148,9 @@ class CallService:
         
         return True
     
+
     @staticmethod
-    def leave_call(db: Session, call_id: str, user_id: str) -> bool:
+    async def leave_call(db: Session, call_id: str, user_id: str) -> bool:
         """Leave a call"""
         
         participant = db.query(CallParticipantDB).filter(
@@ -189,7 +193,7 @@ class CallService:
         return True
     
     @staticmethod
-    def reject_call(db: Session, call_id: str, user_id: str) -> bool:
+    async def reject_call(db: Session, call_id: str, user_id: str) -> bool:
         """Reject a call invitation"""
         
         participant = db.query(CallParticipantDB).filter(
@@ -222,7 +226,7 @@ class CallService:
         return True
     
     @staticmethod
-    def end_call(db: Session, call_id: str, user_id: str) -> bool:
+    async def end_call(db: Session, call_id: str, user_id: str) -> bool:
         """End a call (only caller or admin can end)"""
         
         call = db.query(CallSessionDB).filter(CallSessionDB.id == call_id).first()
@@ -273,7 +277,7 @@ class CallService:
         return True
     
     @staticmethod
-    def notify_call_participants(db: Session, call_id: str, event_type: str, data: Dict):
+    async def notify_call_participants(db: Session, call_id: str, event_type: str, data: Dict):
         """Send notifications to all call participants"""
         
         participants = db.query(CallParticipantDB).filter(
@@ -295,7 +299,7 @@ class CallService:
                 )
     
     @staticmethod
-    def get_active_calls(db: Session, user_id: str) -> List[Dict]:
+    async def get_active_calls(db: Session, user_id: str) -> List[Dict]:
         """Get active calls for a user"""
         
         calls = db.query(CallSessionDB).join(CallParticipantDB).filter(
@@ -349,7 +353,7 @@ class CallService:
         return result
     
     @staticmethod
-    def get_call_history(db: Session, user_id: str, limit: int = 50) -> List[Dict]:
+    async def get_call_history(db: Session, user_id: str, limit: int = 50) -> List[Dict]:
         """Get call history for a user"""
         
         calls = db.query(CallSessionDB).join(CallParticipantDB).filter(

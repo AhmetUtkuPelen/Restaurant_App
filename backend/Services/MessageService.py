@@ -6,12 +6,13 @@ from Models.database_models import MessageDB, MessageReactionDB, UserDB
 from Models.Message.MessageModel import MessageStatus
 from Schemas.Message.MessageSchemas import MessageCreate, MessageUpdate, MessageResponse
 from datetime import datetime
+from Services.ReactionService import ReactionService
 
 class MessageService:
-    def __init__(self):
-        pass
+    async def __init__(self):
+        self.reaction_service = ReactionService()
     
-    def _message_to_response(self, message: MessageDB) -> MessageResponse:
+    async def _message_to_response(self, message: MessageDB) -> MessageResponse:
         """Convert MessageDB to MessageResponse"""
         return MessageResponse(
             id=message.id,
