@@ -73,7 +73,7 @@ class MessageDB(Base):
     
     id = Column(String, primary_key=True, default=generate_uuid)
     sender_id = Column(String, ForeignKey("users.id"), nullable=False)
-    chat_id = Column(String, index=True)  # For group chats
+    chat_id = Column(String, ForeignKey("chat_rooms.id"), index=True)  # For group chats
     recipient_id = Column(String, ForeignKey("users.id"))  # For direct messages
     content = Column(Text)
     message_type = Column(SQLEnum(MessageType), default=MessageType.TEXT)

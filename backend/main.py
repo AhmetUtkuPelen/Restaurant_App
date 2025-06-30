@@ -25,6 +25,14 @@ from fastapi.middleware.cors import CORSMiddleware
 # Create FastAPI instance
 app = FastAPI(title="Chat API", version="1.0.0")
 
+# Add CORS middleware FIRST (before routes)
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["http://localhost:3000", "http://localhost:5173" , "https://your-frontend-domain.com"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 # Create database tables on startup
 @app.on_event("startup")
@@ -91,6 +99,24 @@ async def websocket_endpoint(websocket: WebSocket, user_id: str):
 async def get():
     return {"message": "Chat API is running"}
 
+# Test endpoint for debugging
+@app.get("/test-db")
+async def test_db():
+    try:
+        from database import get_db
+        from Models.database_models import UserDB
+        from sqlalchemy.orm import Session
+
+        # Get a database session
+        db_gen = get_db()
+        db = next(db_gen)
+
+        # Try to query users
+        users = db.query(UserDB).all()
+        return {"message": "Database connection successful", "user_count": len(users)}
+    except Exception as e:
+        return {"error": f"Database error: {str(e)}"}
+
 # Endpoint to seed admin user
 @app.post("/seed-admin")
 async def seed_admin():
@@ -105,11 +131,4 @@ async def seed_admin():
 
 
 
-# Add CORS middleware
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=["http://localhost:3000", "http://localhost:5173" , "https://your-frontend-domain.com"],
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
-)
+

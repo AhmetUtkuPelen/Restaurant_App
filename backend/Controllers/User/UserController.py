@@ -2,17 +2,17 @@ from sqlalchemy.orm import Session
 from typing import List
 from Services.UserService import UserService
 from Models.User.UserModel import UserStatus
-from Schemas.User.UserSchemas import UserCreate, UserUpdate, UserResponse, UserLogin, UserPublic
+from Schemas.User.UserSchemas import UserCreate, UserUpdate, UserResponse, UserLogin, UserPublic, LoginResponse
 
 class UserController:
     def __init__(self):
         self.user_service = UserService()
 
-    async def create_user(self, db: Session, user_data: UserCreate) -> UserResponse:
+    async def create_user(self, db: Session, user_data: UserCreate) -> LoginResponse:
         """Create a new user"""
         return await self.user_service.create_user(db, user_data)
 
-    async def login_user(self, db: Session, login_data: UserLogin) -> UserResponse:
+    async def login_user(self, db: Session, login_data: UserLogin) -> LoginResponse:
         """Authenticate user login"""
         return await self.user_service.login_user(db, login_data)
 

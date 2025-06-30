@@ -34,6 +34,11 @@ class UserLogin(BaseModel):
     username_or_email: str
     password: str
 
+class LoginResponse(BaseModel):
+    user: 'UserResponse'
+    token: str
+    message: str
+
 class UserPublic(BaseModel):
     """Public user info for chat display"""
     id: str
@@ -42,3 +47,6 @@ class UserPublic(BaseModel):
     avatar_url: Optional[str]
     status: UserStatus
     last_seen: Optional[datetime]
+
+# Resolve forward references
+LoginResponse.model_rebuild()

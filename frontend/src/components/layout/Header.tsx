@@ -27,20 +27,20 @@ export default function Header() {
             <li>
               <Link href="/chat" className="flex items-center gap-2">
                 <MessageCircle size={18} />
-                Chat
+                CHAT
               </Link>
             </li>
             <li>
               <Link href="/users" className="flex items-center gap-2">
                 <Users size={18} />
-                Users
+                USERS
               </Link>
             </li>
             {user?.role === 'ADMIN' && (
               <li>
                 <Link href="/admin" className="flex items-center gap-2">
                   <Shield size={18} />
-                  Admin
+                  ADMIN
                 </Link>
               </li>
             )}
@@ -82,7 +82,7 @@ export default function Header() {
               <li>
                 <Link href="/profile" className="flex items-center gap-2">
                   <User size={16} />
-                  Profile
+                  PROFILE
                 </Link>
               </li>
               <li>
@@ -95,7 +95,7 @@ export default function Header() {
               <li>
                 <button onClick={handleLogout} className="flex items-center gap-2 text-error">
                   <LogOut size={16} />
-                  Logout
+                  LOGOUT
                 </button>
               </li>
             </ul>
@@ -103,10 +103,10 @@ export default function Header() {
         ) : (
           <div className="flex gap-2">
             <Link href="/login" className="btn btn-info text-white">
-              Login
+              LOGIN
             </Link>
             <Link href="/register" className="btn btn-info text-white">
-              Sign Up
+              REGISTER
             </Link>
           </div>
         )}

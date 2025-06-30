@@ -5,8 +5,9 @@ from typing import List, Optional
 import hashlib
 from Models.database_models import UserDB
 from Models.User.UserModel import UserStatus
-from Schemas.User.UserSchemas import UserCreate, UserUpdate, UserResponse, UserLogin, UserPublic
+from Schemas.User.UserSchemas import UserCreate, UserUpdate, UserResponse, UserLogin, UserPublic, LoginResponse
 from datetime import datetime
+from Services.AuthService import AuthService
 
 class UserService:
     def __init__(self):
@@ -48,14 +49,14 @@ class UserService:
             last_seen=user.last_seen
         )
     
-    async def create_user(self, db: Session, user_data: UserCreate) -> UserResponse:
+    async def create_user(self, db: Session, user_data: UserCreate) -> LoginResponse:
         """Create a new user"""
         # Check if username or email already exists
         existing_user = db.query(UserDB).filter(
             or_(UserDB.username == user_data.username.lower(),
                 UserDB.email == str(user_data.email).lower())
         ).first()
-        
+
         if existing_user:
             if existing_user.username == user_data.username.lower():
                 raise HTTPException(
@@ -67,50 +68,64 @@ class UserService:
                     status_code=status.HTTP_400_BAD_REQUEST,
                     detail="Email already exists"
                 )
-        
+
         # Create new user
         hashed_password = self._hash_password(user_data.password)
-        
+
         db_user = UserDB(
             username=user_data.username.lower(),
             email=str(user_data.email).lower(),
             password_hash=hashed_password,
             display_name=user_data.display_name or user_data.username
         )
-        
+
         db.add(db_user)
         db.commit()
         db.refresh(db_user)
-        
-        return self._user_to_response(db_user)
+
+        # Generate JWT token
+        token = AuthService.create_access_token(data={"sub": db_user.id})
+
+        return LoginResponse(
+            user=self._user_to_response(db_user),
+            token=token,
+            message="User registered successfully"
+        )
     
-    async def login_user(self, db: Session, login_data: UserLogin) -> UserResponse:
+    async def login_user(self, db: Session, login_data: UserLogin) -> LoginResponse:
         """Authenticate user login"""
         # Find user by username or email
         user = db.query(UserDB).filter(
             or_(UserDB.username == login_data.username_or_email.lower(),
                 UserDB.email == login_data.username_or_email.lower())
         ).first()
-        
+
         if not user:
             raise HTTPException(
                 status_code=status.HTTP_401_UNAUTHORIZED,
                 detail="Invalid credentials"
             )
-        
+
         # Verify password
         if not self._verify_password(login_data.password, user.password_hash):
             raise HTTPException(
                 status_code=status.HTTP_401_UNAUTHORIZED,
                 detail="Invalid credentials"
             )
-        
+
         # Update last seen and status
         user.last_seen = datetime.utcnow()
         user.status = UserStatus.ONLINE
         db.commit()
-        
-        return self._user_to_response(user)
+
+        # Generate JWT token
+        token = AuthService.create_access_token(data={"sub": user.id})
+
+        return LoginResponse(
+            user=self._user_to_response(user),
+            token=token,
+            message="Login successful"
+        )
     
     async def get_user_by_id(self, db: Session, user_id: str) -> UserResponse:
         """Get user by ID"""

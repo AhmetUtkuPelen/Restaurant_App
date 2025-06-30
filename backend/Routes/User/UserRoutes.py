@@ -3,7 +3,7 @@ from typing import List
 from sqlalchemy.orm import Session
 from Controllers.User.UserController import UserController
 from Schemas.User.UserSchemas import (
-    UserCreate, UserUpdate, UserResponse, UserLogin, UserPublic
+    UserCreate, UserUpdate, UserResponse, UserLogin, UserPublic, LoginResponse
 )
 from Models.User.UserModel import UserStatus
 from database import get_db
@@ -19,12 +19,12 @@ async def get_current_user_id() -> str:
     # This is a placeholder - implement proper authentication
     return "current_user_id"
 
-@router.post("/register", response_model=UserResponse, status_code=status.HTTP_201_CREATED)
+@router.post("/register", response_model=LoginResponse, status_code=status.HTTP_201_CREATED)
 async def register_user(user_data: UserCreate, db: Session = Depends(get_db)):
     """Register a new user"""
     return await user_controller.create_user(db, user_data)
 
-@router.post("/login", response_model=UserResponse)
+@router.post("/login", response_model=LoginResponse)
 async def login_user(login_data: UserLogin, db: Session = Depends(get_db)):
     """Login user"""
     return await user_controller.login_user(db, login_data)
