@@ -1,12 +1,12 @@
-import { io, Socket } from 'socket.io-client';
 import { Message, User, WebSocketMessage } from '@/types';
 
 class WebSocketManager {
-  private socket: Socket | null = null;
+  private socket: WebSocket | null = null;
   private reconnectAttempts = 0;
   private maxReconnectAttempts = 5;
   private reconnectDelay = 1000;
   private isConnecting = false;
+  private userId: string | null = null;
 
   // Event listeners
   private messageListeners: ((message: Message) => void)[] = [];
@@ -18,7 +18,7 @@ class WebSocketManager {
 
   connect(userId: string, userInfo: User): Promise<void> {
     return new Promise((resolve, reject) => {
-      if (this.socket?.connected) {
+      if (this.socket?.readyState === WebSocket.OPEN) {
         resolve();
         return;
       }
@@ -28,80 +28,74 @@ class WebSocketManager {
       }
 
       this.isConnecting = true;
-      const token = localStorage.getItem('token');
-      
-      if (!token) {
+      this.userId = userId;
+
+      const wsUrl = process.env.NEXT_PUBLIC_WS_URL || 'ws://localhost:8000';
+      const wsEndpoint = `${wsUrl}/ws/${userId}`;
+
+      try {
+        this.socket = new WebSocket(wsEndpoint);
+      } catch (error) {
         this.isConnecting = false;
-        reject(new Error('No authentication token found'));
+        reject(error);
         return;
       }
 
-      const wsUrl = process.env.NEXT_PUBLIC_WS_URL || 'ws://localhost:8000';
-      
-      this.socket = io(wsUrl, {
-        auth: {
-          token,
-          user_id: userId,
-          user_info: userInfo,
-        },
-        transports: ['websocket'],
-        upgrade: false,
-      });
-
-      this.socket.on('connect', () => {
+      this.socket.onopen = () => {
         console.log('WebSocket connected');
         this.isConnecting = false;
         this.reconnectAttempts = 0;
         this.notifyConnectionListeners(true);
         resolve();
-      });
+      };
 
-      this.socket.on('disconnect', (reason) => {
-        console.log('WebSocket disconnected:', reason);
+      this.socket.onclose = (event) => {
+        console.log('WebSocket disconnected:', event.code, event.reason);
         this.notifyConnectionListeners(false);
-        
-        if (reason === 'io server disconnect') {
-          // Server disconnected, try to reconnect
+
+        // Try to reconnect unless it was a clean close
+        if (event.code !== 1000) {
           this.handleReconnect(userId, userInfo);
         }
-      });
+      };
 
-      this.socket.on('connect_error', (error) => {
+      this.socket.onerror = (error) => {
         console.error('WebSocket connection error:', error);
         this.isConnecting = false;
         this.notifyConnectionListeners(false);
-        
+
         if (this.reconnectAttempts < this.maxReconnectAttempts) {
           this.handleReconnect(userId, userInfo);
         } else {
           reject(error);
         }
-      });
+      };
 
-      // Message events
-      this.socket.on('message', (data: Message) => {
-        this.notifyMessageListeners(data);
-      });
+      this.socket.onmessage = (event) => {
+        try {
+          const data = JSON.parse(event.data);
 
-      this.socket.on('user_joined', (data: User) => {
-        this.notifyUserJoinedListeners(data);
-      });
-
-      this.socket.on('user_left', (data: { user_id: string }) => {
-        this.notifyUserLeftListeners(data.user_id);
-      });
-
-      this.socket.on('typing', (data: { user_id: string }) => {
-        this.notifyTypingListeners(data.user_id, true);
-      });
-
-      this.socket.on('stop_typing', (data: { user_id: string }) => {
-        this.notifyTypingListeners(data.user_id, false);
-      });
-
-      this.socket.on('reaction', (data: any) => {
-        this.notifyReactionListeners(data);
-      });
+          // Handle different message types based on the data structure
+          if (data.type === 'message' || data.content) {
+            this.notifyMessageListeners(data);
+          } else if (data.type === 'user_joined') {
+            this.notifyUserJoinedListeners(data.user);
+          } else if (data.type === 'user_left') {
+            this.notifyUserLeftListeners(data.user_id);
+          } else if (data.type === 'typing') {
+            this.notifyTypingListeners(data.user_id, true);
+          } else if (data.type === 'stop_typing') {
+            this.notifyTypingListeners(data.user_id, false);
+          } else if (data.type === 'reaction') {
+            this.notifyReactionListeners(data);
+          } else {
+            // Default to treating as message
+            this.notifyMessageListeners(data);
+          }
+        } catch (error) {
+          console.error('Error parsing WebSocket message:', error);
+        }
+      };
 
       // Set connection timeout
       setTimeout(() => {
@@ -133,7 +127,7 @@ class WebSocketManager {
 
   disconnect() {
     if (this.socket) {
-      this.socket.disconnect();
+      this.socket.close(1000, 'Client disconnect');
       this.socket = null;
     }
     this.isConnecting = false;
@@ -142,35 +136,52 @@ class WebSocketManager {
   }
 
   sendMessage(message: string, chatId?: string, recipientId?: string) {
-    if (!this.socket?.connected) {
+    if (!this.socket || this.socket.readyState !== WebSocket.OPEN) {
       throw new Error('WebSocket not connected');
     }
 
-    this.socket.emit('message', {
+    const messageData = {
       message,
       chat_id: chatId,
       recipient_id: recipientId,
       timestamp: new Date().toISOString(),
-    });
+    };
+
+    this.socket.send(JSON.stringify(messageData));
   }
 
   sendTyping(isTyping: boolean, chatId?: string, recipientId?: string) {
-    if (!this.socket?.connected) return;
+    if (!this.socket || this.socket.readyState !== WebSocket.OPEN) return;
 
-    this.socket.emit(isTyping ? 'typing' : 'stop_typing', {
+    const typingData = {
+      type: isTyping ? 'typing' : 'stop_typing',
       chat_id: chatId,
       recipient_id: recipientId,
-    });
+    };
+
+    this.socket.send(JSON.stringify(typingData));
   }
 
   joinRoom(roomId: string) {
-    if (!this.socket?.connected) return;
-    this.socket.emit('join_room', { room_id: roomId });
+    if (!this.socket || this.socket.readyState !== WebSocket.OPEN) return;
+
+    const joinData = {
+      type: 'join_room',
+      room_id: roomId
+    };
+
+    this.socket.send(JSON.stringify(joinData));
   }
 
   leaveRoom(roomId: string) {
-    if (!this.socket?.connected) return;
-    this.socket.emit('leave_room', { room_id: roomId });
+    if (!this.socket || this.socket.readyState !== WebSocket.OPEN) return;
+
+    const leaveData = {
+      type: 'leave_room',
+      room_id: roomId
+    };
+
+    this.socket.send(JSON.stringify(leaveData));
   }
 
   // Event listener management

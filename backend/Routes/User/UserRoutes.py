@@ -1,4 +1,5 @@
-from fastapi import APIRouter, status, Query, Depends
+from fastapi import APIRouter, status, Query, Depends, HTTPException
+from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from typing import List
 from sqlalchemy.orm import Session
 from Controllers.User.UserController import UserController
@@ -7,6 +8,7 @@ from Schemas.User.UserSchemas import (
 )
 from Models.User.UserModel import UserStatus
 from database import get_db
+from Services.AuthService import AuthService
 
 # Create router
 router = APIRouter(prefix="/users", tags=["users"])
@@ -14,10 +16,28 @@ router = APIRouter(prefix="/users", tags=["users"])
 # Initialize controller
 user_controller = UserController()
 
-# Dependency to get current user (simplified - in real app use JWT)
-async def get_current_user_id() -> str:
-    # This is a placeholder - implement proper authentication
-    return "current_user_id"
+# Security scheme
+security = HTTPBearer()
+
+# Dependency to get current user from JWT token
+async def get_current_user_id(
+    credentials: HTTPAuthorizationCredentials = Depends(security),
+    db: Session = Depends(get_db)
+) -> str:
+    """Get current user ID from JWT token"""
+    try:
+        token = credentials.credentials
+        user_id = AuthService.get_user_id_from_token(token)
+
+        # Verify user exists in database
+        user = await user_controller.get_user_by_id(db, user_id)
+        return user_id
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Invalid authentication credentials",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
 
 @router.post("/register", response_model=LoginResponse, status_code=status.HTTP_201_CREATED)
 async def register_user(user_data: UserCreate, db: Session = Depends(get_db)):
@@ -28,6 +48,14 @@ async def register_user(user_data: UserCreate, db: Session = Depends(get_db)):
 async def login_user(login_data: UserLogin, db: Session = Depends(get_db)):
     """Login user"""
     return await user_controller.login_user(db, login_data)
+
+@router.get("/me", response_model=UserResponse)
+async def get_current_user(
+    current_user_id: str = Depends(get_current_user_id),
+    db: Session = Depends(get_db)
+):
+    """Get current user information"""
+    return await user_controller.get_user_by_id(db, current_user_id)
 
 @router.get("/me", response_model=UserResponse)
 async def get_current_user(
