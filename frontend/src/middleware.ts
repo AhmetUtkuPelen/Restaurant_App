@@ -10,9 +10,16 @@ const authRoutes = ['/login', '/register'];
 export function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
   
-  // Get token from cookies or headers
-  const token = request.cookies.get('token')?.value || 
-                request.headers.get('authorization')?.replace('Bearer ', '');
+  // Get token from cookies, headers, or localStorage
+  const cookieToken = request.cookies.get('token')?.value;
+  const headerToken = request.headers.get('authorization')?.replace('Bearer ', '');
+  
+  // For client-side navigation, we need to check localStorage
+  // This is a workaround since middleware runs on the server
+  // In a real app, you might want to sync localStorage with cookies
+  const localStorageToken = request.headers.get('x-auth-token');
+  
+  const token = cookieToken || headerToken || localStorageToken;
 
   // Check if the current path is a protected route
   const isProtectedRoute = protectedRoutes.some(route => 

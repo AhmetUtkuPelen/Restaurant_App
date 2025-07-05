@@ -29,19 +29,30 @@ export default function LoginPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    console.log('Form submitted with data:', formData);
     setIsLoading(true);
     setError('');
 
     try {
-      await login(formData);
+      console.log('Attempting to login...');
+      const result = await login(formData);
+      console.log('Login response:', result);
       
       // Get redirect URL from query params or default to chat
       const urlParams = new URLSearchParams(window.location.search);
       const redirect = urlParams.get('redirect') || '/chat';
       
+      console.log('Redirecting to:', redirect);
       router.push(redirect);
     } catch (err: any) {
-      setError(err.message || 'Login failed. Please try again.');
+      console.error('Login error:', err);
+      console.error('Error details:', {
+        name: err.name,
+        message: err.message,
+        stack: err.stack,
+        response: err.response?.data,
+      });
+      setError(err.response?.data?.detail || err.message || 'Login failed. Please try again.');
     } finally {
       setIsLoading(false);
     }
@@ -141,7 +152,7 @@ export default function LoginPage() {
 
             <div className="text-center">
               <p className="text-sm text-base-content/70">
-                Don't have an account?{' '}
+                Dont have an account?{' '}
                 <Link href="/register" className="link link-primary">
                   Sign up here
                 </Link>

@@ -27,17 +27,52 @@ class ApiClient {
       ...options,
     };
 
+    console.log(`[API] ${options.method || 'GET'} ${url}`, {
+      config,
+      body: options.body ? JSON.parse(options.body as string) : undefined,
+    });
+
     try {
+      const startTime = Date.now();
       const response = await fetch(url, config);
+      const responseTime = Date.now() - startTime;
+      
+      console.log(`[API] Response (${response.status} in ${responseTime}ms)`, {
+        url,
+        status: response.status,
+        statusText: response.statusText,
+        headers: Object.fromEntries(response.headers.entries())
+      });
+      
+      const responseData = await response.json().catch(() => ({}));
       
       if (!response.ok) {
-        const errorData = await response.json().catch(() => ({}));
-        throw new Error(errorData.detail || errorData.message || `HTTP error! status: ${response.status}`);
+        console.error('[API] Error response:', responseData);
+        const errorMessage = responseData.detail || responseData.message || `HTTP error! status: ${response.status}`;
+        interface ErrorResponse {
+          status: number;
+          data: {
+            detail?: string;
+            message?: string;
+            [key: string]: unknown;
+          };
+        }
+        
+        const error = new Error(errorMessage) as Error & {
+          response?: ErrorResponse;
+        };
+        error.response = { status: response.status, data: responseData };
+        throw error;
       }
 
-      return await response.json();
+      console.log('[API] Success response:', responseData);
+      return responseData;
     } catch (error) {
-      console.error('API request failed:', error);
+      console.error('[API] Request failed:', error);
+      // Make sure error is an instance of Error
+      if (!(error instanceof Error)) {
+        throw new Error(String(error));
+      }
       throw error;
     }
   }

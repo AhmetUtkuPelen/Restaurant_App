@@ -4,8 +4,14 @@ import React, { createContext, useContext, useReducer, useEffect, ReactNode } fr
 import { User, AuthState } from '@/types';
 import { api } from '@/lib/api';
 
+interface LoginResponse {
+  user: User;
+  token: string;
+  message: string;
+}
+
 interface AuthContextType extends AuthState {
-  login: (credentials: { username_or_email: string; password: string }) => Promise<void>;
+  login: (credentials: { username_or_email: string; password: string }) => Promise<LoginResponse>;
   register: (userData: { username: string; email: string; password: string; display_name?: string }) => Promise<void>;
   logout: () => void;
   updateUser: (userData: { display_name?: string; bio?: string; avatar_url?: string }) => Promise<void>;
@@ -79,7 +85,8 @@ export function AuthProvider({ children }: AuthProviderProps) {
             // Verify token is still valid by fetching current user
             const user = await api.getCurrentUser();
             dispatch({ type: 'SET_USER', payload: user });
-          } catch (error) {
+          } catch (err) {
+            console.error('Failed to verify token:', err);
             // Token is invalid, clear storage
             localStorage.removeItem('token');
             localStorage.removeItem('user');
@@ -97,6 +104,21 @@ export function AuthProvider({ children }: AuthProviderProps) {
     initializeAuth();
   }, []);
 
+  // Helper function to set auth token
+  const setAuthToken = (token: string) => {
+    // Store in localStorage for client-side access
+    localStorage.setItem('token', token);
+    
+    // Also set in cookies for server-side access
+    document.cookie = `token=${token}; path=/; max-age=2592000; SameSite=Lax`; // 30 days
+  };
+
+  // Helper function to clear auth token
+  const clearAuthToken = () => {
+    localStorage.removeItem('token');
+    document.cookie = 'token=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT';
+  };
+
   const login = async (credentials: { username_or_email: string; password: string }) => {
     try {
       dispatch({ type: 'SET_LOADING', payload: true });
@@ -104,12 +126,16 @@ export function AuthProvider({ children }: AuthProviderProps) {
       const response = await api.login(credentials);
       
       // Store token and user data
-      localStorage.setItem('token', response.token);
+      setAuthToken(response.token);
       localStorage.setItem('user', JSON.stringify(response.user));
       
       dispatch({ type: 'SET_TOKEN', payload: response.token });
       dispatch({ type: 'SET_USER', payload: response.user });
+      
+      // Return the response data
+      return response;
     } catch (error) {
+      clearAuthToken();
       dispatch({ type: 'SET_LOADING', payload: false });
       throw error;
     }
@@ -122,19 +148,23 @@ export function AuthProvider({ children }: AuthProviderProps) {
       const response = await api.register(userData);
       
       // Store token and user data
-      localStorage.setItem('token', response.token);
+      setAuthToken(response.token);
       localStorage.setItem('user', JSON.stringify(response.user));
       
       dispatch({ type: 'SET_TOKEN', payload: response.token });
       dispatch({ type: 'SET_USER', payload: response.user });
+      
+      return response;
     } catch (error) {
+      clearAuthToken();
       dispatch({ type: 'SET_LOADING', payload: false });
       throw error;
     }
   };
 
   const logout = () => {
-    localStorage.removeItem('token');
+    // Clear both localStorage and cookies
+    clearAuthToken();
     localStorage.removeItem('user');
     dispatch({ type: 'LOGOUT' });
   };
