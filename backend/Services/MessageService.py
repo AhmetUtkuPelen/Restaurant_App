@@ -9,7 +9,7 @@ from datetime import datetime
 from Services.ReactionService import ReactionService
 
 class MessageService:
-    async def __init__(self):
+    def __init__(self):
         self.reaction_service = ReactionService()
     
     async def _message_to_response(self, message: MessageDB) -> MessageResponse:
@@ -74,7 +74,7 @@ class MessageService:
         db.commit()
         db.refresh(db_message)
         
-        return self._message_to_response(db_message)
+        return await self._message_to_response(db_message)
     
     async def get_message_by_id(self, db: Session, message_id: str) -> MessageResponse:
         """Get message by ID"""
@@ -85,7 +85,7 @@ class MessageService:
                 detail="Message not found"
             )
         
-        return self._message_to_response(message)
+        return await self._message_to_response(message)
     
     async def update_message(self, db: Session, message_id: str, sender_id: str, update_data: MessageUpdate) -> MessageResponse:
         """Update a message (only sender can edit)"""
@@ -111,7 +111,7 @@ class MessageService:
         
         db.commit()
         
-        return self._message_to_response(message)
+        return await self._message_to_response(message)
     
     async def delete_message(self, db: Session, message_id: str, user_id: str) -> dict:
         """Delete a message (only sender can delete)"""
@@ -155,7 +155,7 @@ class MessageService:
             )
         ).order_by(MessageDB.created_at.desc()).offset(skip).limit(limit).all()
         
-        return [self._message_to_response(msg) for msg in messages]
+        return [await self._message_to_response(msg) for msg in messages]
     
     async def get_chat_messages(
         self, 
@@ -172,7 +172,7 @@ class MessageService:
             )
         ).order_by(MessageDB.created_at.desc()).offset(skip).limit(limit).all()
         
-        return [self._message_to_response(msg) for msg in messages]
+        return [await self._message_to_response(msg) for msg in messages]
     
     async def add_reaction(self, db: Session, message_id: str, user_id: str, emoji: str) -> MessageResponse:
         """Add a reaction to a message"""
@@ -208,7 +208,7 @@ class MessageService:
         db.add(new_reaction)
         db.commit()
         
-        return self._message_to_response(message)
+        return await self._message_to_response(message)
     
     async def remove_reaction(self, db: Session, message_id: str, user_id: str, emoji: str) -> MessageResponse:
         """Remove a reaction from a message"""
@@ -237,7 +237,7 @@ class MessageService:
         db.delete(reaction)
         db.commit()
         
-        return self._message_to_response(message)
+        return await self._message_to_response(message)
     
     async def mark_message_as_read(self, db: Session, message_id: str, user_id: str) -> MessageResponse:
         """Mark a message as read"""
@@ -258,5 +258,24 @@ class MessageService:
         message.status = MessageStatus.READ
         message.read_at = datetime.utcnow()
         db.commit()
-        
-        return self._message_to_response(message)
+
+        return await self._message_to_response(message)
+
+    async def get_user_messages(
+        self,
+        db: Session,
+        user_id: str,
+        skip: int = 0,
+        limit: int = 50
+    ) -> List[MessageResponse]:
+        """Get all messages for a user (recent conversations)"""
+        # Get messages where user is either sender or recipient
+        messages = db.query(MessageDB).filter(
+            or_(
+                MessageDB.sender_id == user_id,
+                MessageDB.recipient_id == user_id
+            ),
+            MessageDB.is_deleted == False
+        ).order_by(MessageDB.created_at.desc()).offset(skip).limit(limit).all()
+
+        return [await self._message_to_response(message) for message in messages]

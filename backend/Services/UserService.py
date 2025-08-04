@@ -8,18 +8,19 @@ from Models.User.UserModel import UserStatus
 from Schemas.User.UserSchemas import UserCreate, UserUpdate, UserResponse, UserLogin, UserPublic, LoginResponse
 from datetime import datetime
 from Services.AuthService import AuthService
+from Services.PasswordService import PasswordService
 
 class UserService:
     def __init__(self):
         pass
     
     def _hash_password(self, password: str) -> str:
-        """Simple password hashing - use proper hashing in production"""
-        return hashlib.sha256(password.encode()).hexdigest()
+        """Hash password using secure bcrypt"""
+        return PasswordService.hash_password(password)
     
     def _verify_password(self, password: str, hashed: str) -> bool:
         """Verify password against hash"""
-        return self._hash_password(password) == hashed
+        return PasswordService.verify_password(password, hashed)
     
     def _user_to_response(self, user: UserDB) -> UserResponse:
         """Convert UserDB to UserResponse"""
@@ -84,7 +85,7 @@ class UserService:
         db.refresh(db_user)
 
         # Generate JWT token
-        token = AuthService.create_access_token(data={"sub": db_user.id})
+        token = AuthService.create_access_token(db_user.id, db_user.role)
 
         return LoginResponse(
             user=self._user_to_response(db_user),
@@ -119,7 +120,7 @@ class UserService:
         db.commit()
 
         # Generate JWT token
-        token = AuthService.create_access_token(data={"sub": user.id})
+        token = AuthService.create_access_token(user.id, user.role)
 
         return LoginResponse(
             user=self._user_to_response(user),

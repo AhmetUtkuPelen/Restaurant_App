@@ -93,7 +93,7 @@ class ConnectionManager:
         """Broadcast a message to all connected users"""
         disconnected_users = []
         
-        for user_id, websocket in self.active_connections.items():
+        for user_id, websocket in list(self.active_connections.items()):
             if exclude_user and user_id == exclude_user:
                 continue
                 
@@ -111,7 +111,7 @@ class ConnectionManager:
         """Broadcast JSON data to all connected users"""
         disconnected_users = []
         
-        for user_id, websocket in self.active_connections.items():
+        for user_id, websocket in list(self.active_connections.items()):
             if exclude_user and user_id == exclude_user:
                 continue
                 
@@ -132,7 +132,7 @@ class ConnectionManager:
         
         disconnected_users = []
         
-        for user_id in self.room_members[room_id]:
+        for user_id in list(self.room_members.get(room_id, set())):
             if exclude_user and user_id == exclude_user:
                 continue
                 

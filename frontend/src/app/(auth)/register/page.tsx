@@ -4,84 +4,62 @@ import React, { useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/contexts/AuthContext';
-import { Eye, EyeOff, UserPlus, Mail, Lock, User } from 'lucide-react';
-import { isValidEmail, isValidUsername } from '@/lib/utils';
+import { UserPlus, Mail, Lock, User } from 'lucide-react';
+import { useFormValidation } from '@/hooks/useFormValidation';
+import { ValidationRules } from '@/lib/validation';
+import { ValidatedInput } from '@/components/ui/ValidatedInput';
 
 export default function RegisterPage() {
-  const [formData, setFormData] = useState({
-    username: '',
-    email: '',
-    password: '',
-    confirmPassword: '',
-    display_name: '',
-  });
-  const [showPassword, setShowPassword] = useState(false);
-  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
-  const [errors, setErrors] = useState<{ [key: string]: string }>({});
+  const [serverError, setServerError] = useState('');
 
   const { register } = useAuth();
   const router = useRouter();
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, value } = e.target;
-    setFormData({
-      ...formData,
-      [name]: value,
-    });
-    
-    // Clear specific field error when user starts typing
-    if (errors[name]) {
-      setErrors({
-        ...errors,
-        [name]: '',
-      });
+  // Form validation setup
+  const {
+    formData,
+    setFieldValue,
+    validateForm,
+    touchAllFields,
+    setFieldError
+  } = useFormValidation(
+    {
+      username: '',
+      email: '',
+      password: '',
+      confirmPassword: '',
+      display_name: '',
+    },
+    {
+      username: [ValidationRules.username()],
+      email: [ValidationRules.email()],
+      password: [ValidationRules.password()],
+      confirmPassword: [ValidationRules.confirmPassword('password')],
+      display_name: [ValidationRules.displayName()],
     }
-  };
+  );
 
-  const validateForm = () => {
-    const newErrors: { [key: string]: string } = {};
-
-    // Username validation
-    if (!formData.username) {
-      newErrors.username = 'Username is required';
-    } else if (!isValidUsername(formData.username)) {
-      newErrors.username = 'Username must be 3-20 characters, alphanumeric and underscores only';
-    }
-
-    // Email validation
-    if (!formData.email) {
-      newErrors.email = 'Email is required';
-    } else if (!isValidEmail(formData.email)) {
-      newErrors.email = 'Please enter a valid email address';
-    }
-
-    // Password validation
-    if (!formData.password) {
-      newErrors.password = 'Password is required';
-    } else if (formData.password.length < 6) {
-      newErrors.password = 'Password must be at least 6 characters long';
-    }
-
-    // Confirm password validation
-    if (!formData.confirmPassword) {
-      newErrors.confirmPassword = 'Please confirm your password';
-    } else if (formData.password !== formData.confirmPassword) {
-      newErrors.confirmPassword = 'Passwords do not match';
-    }
-
-    setErrors(newErrors);
-    return Object.keys(newErrors).length === 0;
+  const handleFieldChange = (name: string, value: string) => {
+    setFieldValue(name as keyof typeof formData, value);
+    // Clear server error when user starts typing
+    if (serverError) setServerError('');
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!validateForm()) {
+    // Touch all fields to show validation errors
+    touchAllFields();
+    
+    // Validate form
+    const validationResult = await validateForm();
+    if (!validationResult.isValid) {
       return;
     }
 
     setIsLoading(true);
+    setServerError('');
 
     try {
       await register({
@@ -92,10 +70,19 @@ export default function RegisterPage() {
       });
       
       router.push('/chat');
-    } catch (err: any) {
-      setErrors({
-        general: err.message || 'Registration failed. Please try again.',
-      });
+    } catch (err: unknown) {
+      console.error('Registration error:', err);
+      
+      // Handle specific field errors from server
+      const error = err as { response?: { data?: { field_errors?: Record<string, string>; detail?: string } }; message?: string };
+      const errorData = error.response?.data;
+      if (errorData?.field_errors) {
+        Object.entries(errorData.field_errors).forEach(([field, message]) => {
+          setFieldError(field as keyof typeof formData, message as string);
+        });
+      } else {
+        setServerError(errorData?.detail || error.message || 'Registration failed. Please try again.');
+      }
     } finally {
       setIsLoading(false);
     }
@@ -116,134 +103,71 @@ export default function RegisterPage() {
         <div className="card bg-base-100 shadow-xl">
           <div className="card-body">
             <form className="space-y-6" onSubmit={handleSubmit}>
-              {errors.general && (
+              {serverError && (
                 <div className="alert alert-error">
-                  <span>{errors.general}</span>
+                  <span>{serverError}</span>
                 </div>
               )}
 
-              <div className="form-control">
-                <label className="label">
-                  <span className="label-text">Username *</span>
-                </label>
-                <div className="relative">
-                  <input
-                    type="text"
-                    name="username"
-                    value={formData.username}
-                    onChange={handleChange}
-                    className={`input input-bordered w-full pl-10 ${errors.username ? 'input-error' : ''}`}
-                    placeholder="Choose a username"
-                    required
-                  />
-                  <User className="absolute left-3 top-1/2 transform -translate-y-1/2 text-base-content/50" size={18} />
-                </div>
-                {errors.username && (
-                  <label className="label">
-                    <span className="label-text-alt text-error">{errors.username}</span>
-                  </label>
-                )}
-              </div>
+              <ValidatedInput
+                name="username"
+                label="Username"
+                type="text"
+                value={formData.username}
+                onChange={handleFieldChange}
+                validationRules={[ValidationRules.username()]}
+                placeholder="Choose a username"
+                required
+                icon={<User size={18} />}
+              />
 
-              <div className="form-control">
-                <label className="label">
-                  <span className="label-text">Display Name</span>
-                </label>
-                <div className="relative">
-                  <input
-                    type="text"
-                    name="display_name"
-                    value={formData.display_name}
-                    onChange={handleChange}
-                    className="input input-bordered w-full pl-10"
-                    placeholder="Your display name (optional)"
-                  />
-                  <User className="absolute left-3 top-1/2 transform -translate-y-1/2 text-base-content/50" size={18} />
-                </div>
-              </div>
+              <ValidatedInput
+                name="display_name"
+                label="Display Name"
+                type="text"
+                value={formData.display_name}
+                onChange={handleFieldChange}
+                validationRules={[ValidationRules.displayName()]}
+                placeholder="Your display name (optional)"
+                icon={<User size={18} />}
+              />
 
-              <div className="form-control">
-                <label className="label">
-                  <span className="label-text">Email *</span>
-                </label>
-                <div className="relative">
-                  <input
-                    type="email"
-                    name="email"
-                    value={formData.email}
-                    onChange={handleChange}
-                    className={`input input-bordered w-full pl-10 ${errors.email ? 'input-error' : ''}`}
-                    placeholder="Enter your email"
-                    required
-                  />
-                  <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 text-base-content/50" size={18} />
-                </div>
-                {errors.email && (
-                  <label className="label">
-                    <span className="label-text-alt text-error">{errors.email}</span>
-                  </label>
-                )}
-              </div>
+              <ValidatedInput
+                name="email"
+                label="Email"
+                type="email"
+                value={formData.email}
+                onChange={handleFieldChange}
+                validationRules={[ValidationRules.email()]}
+                placeholder="Enter your email"
+                required
+                icon={<Mail size={18} />}
+              />
 
-              <div className="form-control">
-                <label className="label">
-                  <span className="label-text">Password *</span>
-                </label>
-                <div className="relative">
-                  <input
-                    type={showPassword ? 'text' : 'password'}
-                    name="password"
-                    value={formData.password}
-                    onChange={handleChange}
-                    className={`input input-bordered w-full pl-10 pr-10 ${errors.password ? 'input-error' : ''}`}
-                    placeholder="Create a password"
-                    required
-                  />
-                  <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 text-base-content/50" size={18} />
-                  <button
-                    type="button"
-                    onClick={() => setShowPassword(!showPassword)}
-                    className="absolute right-3 top-1/2 transform -translate-y-1/2 text-base-content/50 hover:text-base-content"
-                  >
-                    {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
-                  </button>
-                </div>
-                {errors.password && (
-                  <label className="label">
-                    <span className="label-text-alt text-error">{errors.password}</span>
-                  </label>
-                )}
-              </div>
+              <ValidatedInput
+                name="password"
+                label="Password"
+                type="password"
+                value={formData.password}
+                onChange={handleFieldChange}
+                validationRules={[ValidationRules.password()]}
+                placeholder="Create a password"
+                required
+                icon={<Lock size={18} />}
+              />
 
-              <div className="form-control">
-                <label className="label">
-                  <span className="label-text">Confirm Password *</span>
-                </label>
-                <div className="relative">
-                  <input
-                    type={showConfirmPassword ? 'text' : 'password'}
-                    name="confirmPassword"
-                    value={formData.confirmPassword}
-                    onChange={handleChange}
-                    className={`input input-bordered w-full pl-10 pr-10 ${errors.confirmPassword ? 'input-error' : ''}`}
-                    placeholder="Confirm your password"
-                    required
-                  />
-                  <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 text-base-content/50" size={18} />
-                  <button
-                    type="button"
-                    onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                    className="absolute right-3 top-1/2 transform -translate-y-1/2 text-base-content/50 hover:text-base-content"
-                  >
-                    {showConfirmPassword ? <EyeOff size={18} /> : <Eye size={18} />}
-                  </button>
-                </div>
-                {errors.confirmPassword && (
-                  <label className="label">
-                    <span className="label-text-alt text-error">{errors.confirmPassword}</span>
-                  </label>
-                )}
-              </div>
+              <ValidatedInput
+                name="confirmPassword"
+                label="Confirm Password"
+                type="password"
+                value={formData.confirmPassword}
+                onChange={handleFieldChange}
+                validationRules={[ValidationRules.confirmPassword('password')]}
+                placeholder="Confirm your password"
+                required
+                icon={<Lock size={18} />}
+                showValidationStatus={false}
+              />
 
               <div className="form-control">
                 <label className="label cursor-pointer justify-start">

@@ -253,7 +253,7 @@ class WebSocketManager {
   }
 
   get isConnected(): boolean {
-    return this.socket?.connected || false;
+    return this.socket?.readyState === WebSocket.OPEN;
   }
 }
 

@@ -89,6 +89,8 @@ export default function ChatPage() {
   };
 
   const getTypingText = () => {
+    if (!typingUsers || !onlineUsers) return '';
+
     const typingUsernames = typingUsers
       .filter(userId => userId !== user?.id)
       .map(userId => {
@@ -130,10 +132,10 @@ export default function ChatPage() {
           <div className="p-4 border-b border-base-300">
             <div className="flex items-center gap-2 mb-3">
               <Users size={16} />
-              <span className="font-semibold">Online Users ({onlineUsers.length})</span>
+              <span className="font-semibold">Online Users ({onlineUsers?.length || 0})</span>
             </div>
             <div className="space-y-2 max-h-40 overflow-y-auto">
-              {onlineUsers.map((onlineUser) => (
+              {onlineUsers?.map((onlineUser) => (
                 <div key={onlineUser.id} className="flex items-center gap-2">
                   <div className="avatar placeholder">
                     <div className="bg-neutral text-neutral-content rounded-full w-8">
@@ -178,13 +180,13 @@ export default function ChatPage() {
 
           {/* Messages Area */}
           <div className="flex-1 overflow-y-auto p-4 space-y-4">
-            {messages.length === 0 ? (
+            {!messages || messages.length === 0 ? (
               <div className="text-center text-base-content/50 py-8">
                 <p>No messages yet. Start the conversation!</p>
               </div>
             ) : (
-              messages.map((msg) => (
-                <div key={msg.id} className={`chat ${msg.sender_id === user?.id ? 'chat-end' : 'chat-start'}`}>
+              messages.map((msg, index) => (
+                <div key={msg.id || `message-${index}`} className={`chat ${msg.sender_id === user?.id ? 'chat-end' : 'chat-start'}`}>
                   <div className="chat-image avatar">
                     <div className="w-10 rounded-full bg-neutral text-neutral-content flex items-center justify-center">
                       <span className="text-sm">

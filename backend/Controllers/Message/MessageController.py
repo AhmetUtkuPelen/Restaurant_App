@@ -5,7 +5,7 @@ from Schemas.Message.MessageSchemas import MessageCreate, MessageUpdate, Message
 
 class MessageController:
     def __init__(self):
-        pass
+        self.message_service = MessageService()
 
     async def create_message(self, db: Session, sender_id: str, message_data: MessageCreate) -> MessageResponse:
         """Create a new message"""
@@ -55,5 +55,15 @@ class MessageController:
     async def mark_message_as_read(self, db: Session, message_id: str, user_id: str) -> MessageResponse:
         """Mark a message as read"""
         return await self.message_service.mark_message_as_read(db, message_id, user_id)
+
+    async def get_user_messages(
+        self,
+        db: Session,
+        user_id: str,
+        skip: int = 0,
+        limit: int = 50
+    ) -> List[MessageResponse]:
+        """Get all messages for a user (recent conversations)"""
+        return await self.message_service.get_user_messages(db, user_id, skip, limit)
 
 
