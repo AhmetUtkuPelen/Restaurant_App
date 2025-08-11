@@ -1,1 +1,0 @@
-# Message schemas package

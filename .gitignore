@@ -1,7 +1,7 @@
 node_modules
-__pycache__
-.pytest_cache
 .env
-.kiro
-.vscode
+pytest_cache
+pytest_cov
+pytest_flake8
 .idea
+.kiro
