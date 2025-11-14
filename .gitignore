@@ -1,7 +1,10 @@
-node_modules
-.env
-pytest_cache
-pytest_cov
-pytest_flake8
 .idea
-.kiro
+node_modules
+__pycache__
+__tests__
+.pytest_cache
+.vscode
+.git
+.DS_Store
+.env
+.benchmarks
