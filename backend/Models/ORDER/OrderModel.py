@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, DateTime, func, ForeignKey, Numeric
+from sqlalchemy import Column, Integer, DateTime, func, ForeignKey, Numeric,String
 from sqlalchemy.orm import relationship, validates
 from Database.Database import Base
 from Utils.Enums.Enums import OrderStatus

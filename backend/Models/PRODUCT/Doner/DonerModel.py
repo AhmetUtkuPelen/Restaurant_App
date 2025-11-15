@@ -13,7 +13,6 @@ class Doner(Product):
         CheckConstraint('spice_level IS NOT NULL'),
         CheckConstraint('is_vegan IS NOT NULL'),
         CheckConstraint('is_alergic IS NOT NULL'),
-        CheckConstraint('preperation_time IS NOT NULL'),
         {'extend_existing': True}
     )
 

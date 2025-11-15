@@ -8,6 +8,10 @@ from Models.RESERVATION.TableModel import Table
 from Models.RESERVATION.ReservationModel import Reservation
 from Schemas.RESERVATION.TableSchemas import TableCreate,TableUpdate
 from Utils.Enums.Enums import ReservationStatus
+from Utils.Enums.Enums import TableLocation
+
+from datetime import timedelta
+
 
 
 class TableControllers:
@@ -32,7 +36,6 @@ class TableControllers:
                 }
                 for table in tables
             ]
-            
         except Exception as e:
             raise HTTPException(
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
@@ -55,12 +58,15 @@ class TableControllers:
                     detail="Table not found"
                 )
             
-            # Get reservation count for this table
+            # Count active reservations
             count_stmt = select(func.count(Reservation.id)).where(
-                Reservation.table_id == table_id
+                and_(
+                    Reservation.table_id == table_id,
+                    Reservation.status.in_([ReservationStatus.PENDING, ReservationStatus.CONFIRMED])
+                )
             )
             count_result = await db.execute(count_stmt)
-            reservation_count = count_result.scalar()
+            active_reservations = count_result.scalar()
             
             return {
                 "id": table.id,
@@ -68,9 +74,8 @@ class TableControllers:
                 "capacity": table.capacity,
                 "location": table.location.value,
                 "is_available": table.is_available,
-                "total_reservations": reservation_count
+                "active_reservations": active_reservations
             }
-            
         except HTTPException:
             raise
         except Exception as e:
@@ -78,7 +83,6 @@ class TableControllers:
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
                 detail=f"Failed to fetch table: {str(e)}"
             )
-
 
     @staticmethod
     async def get_available_tables(
@@ -92,22 +96,27 @@ class TableControllers:
         If datetime is provided, checks for conflicting reservations.
         """
         try:
-            # Base query for available tables
-            stmt = select(Table).where(Table.is_available == True)
+            # Build base query
+            conditions = [Table.is_available == True]
             
-            # Filter by capacity if provided
             if min_capacity:
-                stmt = stmt.where(Table.capacity >= min_capacity)
+                conditions.append(Table.capacity >= min_capacity)
             
-            # Filter by location if provided
             if location:
-                from Utils.Enums.Enums import TableLocation
-                stmt = stmt.where(Table.location == TableLocation(location))
+                try:
+                    location_enum = TableLocation(location.lower())
+                    conditions.append(Table.location == location_enum)
+                except ValueError:
+                    raise HTTPException(
+                        status_code=status.HTTP_400_BAD_REQUEST,
+                        detail=f"Invalid location. Must be one of: {[loc.value for loc in TableLocation]}"
+                    )
             
+            stmt = select(Table).where(and_(*conditions)).order_by(Table.table_number)
             result = await db.execute(stmt)
             tables = result.scalars().all()
             
-            # If datetime provided, filter out tables with conflicting reservations
+            # If datetime provided, filter by availability
             if date_time:
                 available_tables = []
                 for table in tables:
@@ -128,7 +137,8 @@ class TableControllers:
                 }
                 for table in tables
             ]
-            
+        except HTTPException:
+            raise
         except Exception as e:
             raise HTTPException(
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
@@ -145,25 +155,26 @@ class TableControllers:
         Helper: Check if table is available at specific time.
         Assumes 2-hour reservation window.
         """
-        from datetime import timedelta
-        
-        # Check for overlapping reservations (2-hour window)
-        start_time = reservation_time - timedelta(hours=2)
-        end_time = reservation_time + timedelta(hours=2)
-        
-        stmt = select(Reservation).where(
-            and_(
-                Reservation.table_id == table_id,
-                Reservation.reservation_time >= start_time,
-                Reservation.reservation_time <= end_time,
-                Reservation.status.in_([ReservationStatus.PENDING, ReservationStatus.CONFIRMED])
+        try:
+            # Define time window (2 hours)
+            window_start = reservation_time - timedelta(hours=2)
+            window_end = reservation_time + timedelta(hours=2)
+            
+            # Check for conflicting reservations
+            stmt = select(Reservation).where(
+                and_(
+                    Reservation.table_id == table_id,
+                    Reservation.status.in_([ReservationStatus.PENDING, ReservationStatus.CONFIRMED]),
+                    Reservation.reservation_time >= window_start,
+                    Reservation.reservation_time <= window_end
+                )
             )
-        )
-        
-        result = await db.execute(stmt)
-        conflicting_reservation = result.scalar_one_or_none()
-        
-        return conflicting_reservation is None
+            result = await db.execute(stmt)
+            conflicting = result.scalar_one_or_none()
+            
+            return conflicting is None
+        except Exception:
+            return False
 
     @staticmethod
     async def add_new_table(table_data: TableCreate, db: AsyncSession) -> Dict[str, Any]:
@@ -174,12 +185,12 @@ class TableControllers:
             # Check if table number already exists
             stmt = select(Table).where(Table.table_number == table_data.table_number)
             result = await db.execute(stmt)
-            existing_table = result.scalar_one_or_none()
+            existing = result.scalar_one_or_none()
             
-            if existing_table:
+            if existing:
                 raise HTTPException(
                     status_code=status.HTTP_400_BAD_REQUEST,
-                    detail=f"Table number {table_data.table_number} already exists"
+                    detail="Table number already exists"
                 )
             
             # Create new table
@@ -195,7 +206,7 @@ class TableControllers:
             await db.refresh(new_table)
             
             return {
-                "message": "Table added successfully",
+                "message": "Table created successfully",
                 "table": {
                     "id": new_table.id,
                     "table_number": new_table.table_number,
@@ -204,14 +215,13 @@ class TableControllers:
                     "is_available": new_table.is_available
                 }
             }
-            
         except HTTPException:
             raise
         except Exception as e:
             await db.rollback()
             raise HTTPException(
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-                detail=f"Failed to add table: {str(e)}"
+                detail=f"Failed to create table: {str(e)}"
             )
 
     @staticmethod
@@ -224,7 +234,6 @@ class TableControllers:
         Admin: Update existing table information.
         """
         try:
-            # Get table
             stmt = select(Table).where(Table.id == table_id)
             result = await db.execute(stmt)
             table = result.scalar_one_or_none()
@@ -242,7 +251,7 @@ class TableControllers:
                 if check_result.scalar_one_or_none():
                     raise HTTPException(
                         status_code=status.HTTP_400_BAD_REQUEST,
-                        detail=f"Table number {update_data.table_number} already exists"
+                        detail="Table number already exists"
                     )
             
             # Update fields
@@ -263,7 +272,6 @@ class TableControllers:
                     "is_available": table.is_available
                 }
             }
-            
         except HTTPException:
             raise
         except Exception as e:
@@ -279,7 +287,6 @@ class TableControllers:
         Admin: Delete a table. Only allowed if no active reservations.
         """
         try:
-            # Get table
             stmt = select(Table).where(Table.id == table_id)
             result = await db.execute(stmt)
             table = result.scalar_one_or_none()
@@ -291,26 +298,25 @@ class TableControllers:
                 )
             
             # Check for active reservations
-            active_reservations_stmt = select(func.count(Reservation.id)).where(
+            check_stmt = select(Reservation).where(
                 and_(
                     Reservation.table_id == table_id,
                     Reservation.status.in_([ReservationStatus.PENDING, ReservationStatus.CONFIRMED])
                 )
             )
-            active_result = await db.execute(active_reservations_stmt)
-            active_count = active_result.scalar()
+            check_result = await db.execute(check_stmt)
+            active_reservation = check_result.scalar_one_or_none()
             
-            if active_count > 0:
+            if active_reservation:
                 raise HTTPException(
                     status_code=status.HTTP_400_BAD_REQUEST,
-                    detail=f"Cannot delete table with {active_count} active reservation(s)"
+                    detail="Cannot delete table with active reservations"
                 )
             
             await db.delete(table)
             await db.commit()
             
             return {"message": f"Table {table.table_number} deleted successfully"}
-            
         except HTTPException:
             raise
         except Exception as e:
@@ -326,9 +332,15 @@ class TableControllers:
         Get all tables in a specific location.
         """
         try:
-            from Utils.Enums.Enums import TableLocation
+            try:
+                location_enum = TableLocation(location.lower())
+            except ValueError:
+                raise HTTPException(
+                    status_code=status.HTTP_400_BAD_REQUEST,
+                    detail=f"Invalid location. Must be one of: {[loc.value for loc in TableLocation]}"
+                )
             
-            stmt = select(Table).where(Table.location == TableLocation(location)).order_by(Table.table_number)
+            stmt = select(Table).where(Table.location == location_enum).order_by(Table.table_number)
             result = await db.execute(stmt)
             tables = result.scalars().all()
             
@@ -342,12 +354,8 @@ class TableControllers:
                 }
                 for table in tables
             ]
-            
-        except ValueError:
-            raise HTTPException(
-                status_code=status.HTTP_400_BAD_REQUEST,
-                detail=f"Invalid location: {location}"
-            )
+        except HTTPException:
+            raise
         except Exception as e:
             raise HTTPException(
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
@@ -374,17 +382,16 @@ class TableControllers:
             await db.commit()
             await db.refresh(table)
             
-            status_text = "available" if table.is_available else "unavailable"
-            
             return {
-                "message": f"Table {table.table_number} is now {status_text}",
+                "message": f"Table {table.table_number} is now {'available' if table.is_available else 'unavailable'}",
                 "table": {
                     "id": table.id,
                     "table_number": table.table_number,
+                    "capacity": table.capacity,
+                    "location": table.location.value,
                     "is_available": table.is_available
                 }
             }
-            
         except HTTPException:
             raise
         except Exception as e:

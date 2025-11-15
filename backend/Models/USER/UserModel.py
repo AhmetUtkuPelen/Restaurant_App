@@ -3,7 +3,6 @@ from sqlalchemy import Column, Integer, String, DateTime, func, Boolean, Enum as
 from sqlalchemy.orm import relationship
 from Utils.Enums.Enums import UserRole
 from Utils.Auth.HashPassword import get_password_hash
-from backend.Models.CART.CartModel import Cart
 
 class User(Base):
     __tablename__ = "users"
@@ -113,14 +112,14 @@ def create_user_cart(mapper, connection, target):
     """
     Automatically creates an empty cart for a newly registered user.
     This ensures every user has a cart immediately after registration.
+    Uses raw SQL to avoid session flushing issues.
     """
+    # Use the connection directly to insert cart without triggering session flush
+    from sqlalchemy import text
     
-    # Create cart for the new user
-    cart = Cart(user_id=target.id)
+    insert_stmt = text(
+        "INSERT INTO carts (user_id, created_at, updated_at) "
+        "VALUES (:user_id, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)"
+    )
     
-    # Use the session to add the cart
-    from sqlalchemy.orm import Session
-    session = Session.object_session(target)
-    if session:
-        session.add(cart)
-        session.flush()  # Flush to make cart available immediately
+    connection.execute(insert_stmt, {"user_id": target.id})

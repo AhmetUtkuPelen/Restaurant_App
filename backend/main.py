@@ -13,8 +13,34 @@ from slowapi import _rate_limit_exceeded_handler
 
 
 
-
+### ADMIN DASHBOARD FOR MODELS ###
 from sqladmin import Admin, ModelView
+
+
+# Import models for SQLAdmin
+from Models.USER.UserModel import User
+from Models.PRODUCT.Dessert.DessertModel import Dessert
+from Models.PRODUCT.Doner.DonerModel import Doner
+from Models.PRODUCT.Drink.DrinkModel import Drink
+from Models.PRODUCT.Kebab.KebabModel import Kebab
+from Models.PRODUCT.Salad.SaladModel import Salad
+from Models.RESERVATION.TableModel import Table
+from Models.RESERVATION.ReservationModel import Reservation
+from Models.COMMENT.CommentModel import Comment
+
+
+# Import Routes
+from Routes.USER.UserRoutes import UserRouter
+from Routes.RESERVATION.TableRoutes import TableRouter
+from Routes.RESERVATION.ReservationRoutes import ReservationRouter
+from Routes.PRODUCT.Dessert.DessertRoutes import DessertRouter
+from Routes.PRODUCT.Doner.DonerRoutes import DonerRouter
+from Routes.PRODUCT.Drink.DrinkRoutes import DrinkRouter
+from Routes.PRODUCT.Kebab.KebabRoutes import KebabRouter
+from Routes.PRODUCT.Salad.SaladRoutes import SaladRouter
+from Routes.PRODUCT.FavouriteProduct.FavouriteProductRoutes import FavouriteProductRouter
+from Routes.COMMENT.CommentRoutes import CommentRouter
+from Routes.CART.CartRoutes import CartRouter
 
 
 
@@ -43,6 +69,16 @@ async def lifespan(app: FastAPI):
     print(f" Starting Server in {ENVIRONMENT} mode...")
     await init_db()
     print(" Database initialized and ready.")
+    
+    # Optional: Seed admin users on startup (set SEED_ADMIN=true in .env)
+    if os.getenv("SEED_ADMIN", "false").lower() == "true":
+        print(" Seeding admin users...")
+        from Database.Seed.SeedAdminUser import seed_admin_users
+        try:
+            await seed_admin_users()
+            print(" Admin users seeded successfully.")
+        except Exception as e:
+            print(f" Warning: Admin user seeding failed: {str(e)}")
 
     # Yield control to FastAPI (the app runs during this time)
     yield
@@ -96,8 +132,6 @@ app.add_middleware(SlowAPIMiddleware)
 # -----------------------------
 
 
-
-
 ########## SQL ADMIN CONFIG ##########
 
 admin = Admin(app, engine)
@@ -109,15 +143,81 @@ class UserModelForAdmin(ModelView, model=User):
     column_filters = [User.username, User.email, User.role]
     column_sortable_list = [User.username, User.email, User.role]
 
+class TableModelForAdmin(ModelView,model=Table):
+    column_list = [Table.id, Table.table_number, Table.capacity, Table.location, Table.is_available]
+    column_searchable_list = [Table.table_number, Table.capacity, Table.location, Table.is_available]
+    column_filters = [Table.table_number, Table.capacity, Table.location, Table.is_available]
+    column_sortable_list = [Table.table_number, Table.capacity, Table.location, Table.is_available]
+
+class ReservationModelForAdmin(ModelView, model=Reservation):
+    column_list = [Reservation.id, Reservation.user_id, Reservation.table_id, Reservation.reservation_time, Reservation.number_of_guests, Reservation.status]
+    column_searchable_list = [Reservation.user_id, Reservation.table_id, Reservation.reservation_time, Reservation.number_of_guests, Reservation.status]
+    column_filters = [Reservation.user_id, Reservation.table_id, Reservation.reservation_time, Reservation.number_of_guests, Reservation.status]
+    column_sortable_list = [Reservation.user_id, Reservation.table_id, Reservation.reservation_time, Reservation.number_of_guests, Reservation.status]
+
+class DessertModelForAdmin(ModelView, model=Dessert):
+    column_list = [Dessert.id, Dessert.name, Dessert.description, Dessert.price, Dessert.image_url]
+    column_searchable_list = [Dessert.name, Dessert.description, Dessert.price, Dessert.image_url]
+    column_filters = [Dessert.name, Dessert.description, Dessert.price, Dessert.image_url]
+    column_sortable_list = [Dessert.name, Dessert.description, Dessert.price, Dessert.image_url]
+
+class DonerModelForAdmin(ModelView, model=Doner):
+    column_list = [Doner.id, Doner.name, Doner.description, Doner.price, Doner.image_url]
+    column_searchable_list = [Doner.name, Doner.description, Doner.price, Doner.image_url]
+    column_filters = [Doner.name, Doner.description, Doner.price, Doner.image_url]
+    column_sortable_list = [Doner.name, Doner.description, Doner.price, Doner.image_url]
+
+class DrinkModelForAdmin(ModelView, model=Drink):
+    column_list = [Drink.id, Drink.name, Drink.description, Drink.price, Drink.image_url]
+    column_searchable_list = [Drink.name, Drink.description, Drink.price, Drink.image_url]
+    column_filters = [Drink.name, Drink.description, Drink.price, Drink.image_url]
+    column_sortable_list = [Drink.name, Drink.description, Drink.price, Drink.image_url]
+
+class KebabModelForAdmin(ModelView, model=Kebab):
+    column_list = [Kebab.id, Kebab.name, Kebab.description, Kebab.price, Kebab.image_url]
+    column_searchable_list = [Kebab.name, Kebab.description, Kebab.price, Kebab.image_url]
+    column_filters = [Kebab.name, Kebab.description, Kebab.price, Kebab.image_url]
+    column_sortable_list = [Kebab.name, Kebab.description, Kebab.price, Kebab.image_url]
+
+class SaladModelForAdmin(ModelView, model=Salad):
+    column_list = [Salad.id, Salad.name, Salad.description, Salad.price, Salad.image_url]
+    column_searchable_list = [Salad.name, Salad.description, Salad.price, Salad.image_url]
+    column_filters = [Salad.name, Salad.description, Salad.price, Salad.image_url]
+    column_sortable_list = [Salad.name, Salad.description, Salad.price, Salad.image_url]
+
+class CommentModelForAdmin(ModelView, model=Comment):
+    column_list = [Comment.id, Comment.user_id, Comment.product_id, Comment.comment, Comment.rating]
+    column_searchable_list = [Comment.user_id, Comment.product_id, Comment.comment, Comment.rating]
+    column_filters = [Comment.user_id, Comment.product_id, Comment.comment, Comment.rating]
+    column_sortable_list = [Comment.user_id, Comment.product_id, Comment.comment, Comment.rating]
+
 
 admin.add_view(UserModelForAdmin)
+admin.add_view(TableModelForAdmin)
+admin.add_view(ReservationModelForAdmin)
+admin.add_view(DessertModelForAdmin)
+admin.add_view(DonerModelForAdmin)
+admin.add_view(DrinkModelForAdmin)
+admin.add_view(KebabModelForAdmin)
+admin.add_view(SaladModelForAdmin)
+admin.add_view(CommentModelForAdmin)
 
 ########## SQL ADMIN CONFIG ##########
 
 
 
 ### ROUTES ###
-
+app.include_router(UserRouter, prefix="/api")
+app.include_router(TableRouter, prefix="/api")
+app.include_router(ReservationRouter, prefix="/api")
+app.include_router(DessertRouter, prefix="/api")
+app.include_router(DonerRouter, prefix="/api")
+app.include_router(DrinkRouter, prefix="/api")
+app.include_router(KebabRouter, prefix="/api")
+app.include_router(SaladRouter, prefix="/api")
+app.include_router(FavouriteProductRouter, prefix="/api")
+app.include_router(CommentRouter, prefix="/api")
+app.include_router(CartRouter, prefix="/api")
 ### ROUTES ###
 
 

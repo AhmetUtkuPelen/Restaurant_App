@@ -1,4 +1,4 @@
-from backend.Models.PRODUCT.BaseProduct.BaseProductModel import Product
+from Models.PRODUCT.BaseProduct.BaseProductModel import Product
 from sqlalchemy import Column, Integer, String, ForeignKey, Boolean, CheckConstraint
 from sqlalchemy.orm import relationship
 from Database.Database import Base
@@ -10,7 +10,6 @@ class Salad(Product):
     __table_args__ = (
         CheckConstraint('is_vegan IS NOT NULL', name='check_salad_is_vegan'),
         CheckConstraint('is_alergic IS NOT NULL', name='check_salad_is_alergic'),
-        CheckConstraint('preperation_time IS NOT NULL', name='check_salad_preperation_time'),
         {'extend_existing': True}
     )
 

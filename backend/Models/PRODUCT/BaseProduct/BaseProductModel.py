@@ -13,7 +13,6 @@ class Product(Base):
         CheckConstraint('name IS NOT NULL', name='check_name'),
         CheckConstraint('description IS NOT NULL', name='check_description'),
         CheckConstraint('image_url IS NOT NULL', name='check_image_url'),
-        CheckConstraint('type IS NOT NULL', name='check_type'),
         {'extend_existing': True}
     )
 

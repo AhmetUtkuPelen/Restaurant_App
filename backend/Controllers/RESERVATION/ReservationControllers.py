@@ -1,6 +1,5 @@
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select, and_,func
-from sqlalchemy.orm import selectinload
 from fastapi import HTTPException, status
 from typing import List, Dict, Any, Optional
 from datetime import datetime, timedelta, timezone
@@ -21,16 +20,9 @@ class ReservationControllers:
         db: AsyncSession
     ) -> Dict[str, Any]:
         """
-        User: Create a new reservation if table is available.
+        User: Create a new reservation if table is available. IF Table is not available throw an error
         """
         try:
-            # Validate reservation time is in the future
-            if reservation_data.reservation_time < datetime.now(timezone.utc):
-                raise HTTPException(
-                    status_code=status.HTTP_400_BAD_REQUEST,
-                    detail="Reservation time must be in the future"
-                )
-            
             # Check if table exists
             table_stmt = select(Table).where(Table.id == reservation_data.table_id)
             table_result = await db.execute(table_stmt)
@@ -42,11 +34,10 @@ class ReservationControllers:
                     detail="Table not found"
                 )
             
-            # Check if table is marked as available
             if not table.is_available:
                 raise HTTPException(
                     status_code=status.HTTP_400_BAD_REQUEST,
-                    detail="Table is not available for reservations"
+                    detail="Table is not available"
                 )
             
             # Check table capacity
@@ -56,7 +47,7 @@ class ReservationControllers:
                     detail=f"Table capacity is {table.capacity}, but {reservation_data.number_of_guests} guests requested"
                 )
             
-            # Check for conflicting reservations (2-hour window)
+            # Check time slot availability
             is_available = await ReservationControllers._check_time_slot_availability(
                 reservation_data.table_id,
                 reservation_data.reservation_time,
@@ -66,7 +57,7 @@ class ReservationControllers:
             if not is_available:
                 raise HTTPException(
                     status_code=status.HTTP_400_BAD_REQUEST,
-                    detail="Table is already reserved for this time slot"
+                    detail="Table is not available at the requested time"
                 )
             
             # Create reservation
@@ -87,7 +78,6 @@ class ReservationControllers:
                 "message": "Reservation created successfully",
                 "reservation": new_reservation.to_dict()
             }
-            
         except HTTPException:
             raise
         except Exception as e:
@@ -96,7 +86,6 @@ class ReservationControllers:
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
                 detail=f"Failed to create reservation: {str(e)}"
             )
-
 
     @staticmethod
     async def _check_time_slot_availability(
@@ -108,27 +97,30 @@ class ReservationControllers:
         """
         Helper: Check if time slot is available (2-hour window).
         """
-        # Check for overlapping reservations
-        start_time = reservation_time - timedelta(hours=2)
-        end_time = reservation_time + timedelta(hours=2)
-        
-        stmt = select(Reservation).where(
-            and_(
+        try:
+            # Define time window (2 hours before and after)
+            window_start = reservation_time - timedelta(hours=2)
+            window_end = reservation_time + timedelta(hours=2)
+            
+            # Build query conditions
+            conditions = [
                 Reservation.table_id == table_id,
-                Reservation.reservation_time >= start_time,
-                Reservation.reservation_time <= end_time,
-                Reservation.status.in_([ReservationStatus.PENDING, ReservationStatus.CONFIRMED])
-            )
-        )
-        
-        # Exclude current reservation if updating
-        if exclude_reservation_id:
-            stmt = stmt.where(Reservation.id != exclude_reservation_id)
-        
-        result = await db.execute(stmt)
-        conflicting_reservation = result.scalar_one_or_none()
-        
-        return conflicting_reservation is None
+                Reservation.status.in_([ReservationStatus.PENDING, ReservationStatus.CONFIRMED]),
+                Reservation.reservation_time >= window_start,
+                Reservation.reservation_time <= window_end
+            ]
+            
+            # Exclude specific reservation if updating
+            if exclude_reservation_id:
+                conditions.append(Reservation.id != exclude_reservation_id)
+            
+            stmt = select(Reservation).where(and_(*conditions))
+            result = await db.execute(stmt)
+            conflicting = result.scalar_one_or_none()
+            
+            return conflicting is None
+        except Exception:
+            return False
 
     @staticmethod
     async def update_existing_reservation(
@@ -138,7 +130,7 @@ class ReservationControllers:
         db: AsyncSession
     ) -> Dict[str, Any]:
         """
-        User: Update their own reservation if table is available.
+        User: Update their own reservation if table is available. If Table is not available throw an error
         """
         try:
             # Get reservation
@@ -159,50 +151,43 @@ class ReservationControllers:
                     detail="You can only update your own reservations"
                 )
             
-            # Check if reservation is cancelled
+            # Can't update cancelled reservations
             if reservation.status == ReservationStatus.CANCELLED:
                 raise HTTPException(
                     status_code=status.HTTP_400_BAD_REQUEST,
                     detail="Cannot update cancelled reservation"
                 )
             
-            # If changing table, validate new table
+            # If changing table, check new table
             if update_data.table_id and update_data.table_id != reservation.table_id:
                 table_stmt = select(Table).where(Table.id == update_data.table_id)
                 table_result = await db.execute(table_stmt)
-                new_table = table_result.scalar_one_or_none()
+                table = table_result.scalar_one_or_none()
                 
-                if not new_table:
+                if not table:
                     raise HTTPException(
                         status_code=status.HTTP_404_NOT_FOUND,
-                        detail="New table not found"
+                        detail="Table not found"
                     )
                 
-                if not new_table.is_available:
+                if not table.is_available:
                     raise HTTPException(
                         status_code=status.HTTP_400_BAD_REQUEST,
-                        detail="New table is not available"
+                        detail="Table is not available"
                     )
                 
                 # Check capacity
                 guests = update_data.number_of_guests or reservation.number_of_guests
-                if guests > new_table.capacity:
+                if guests > table.capacity:
                     raise HTTPException(
                         status_code=status.HTTP_400_BAD_REQUEST,
-                        detail=f"New table capacity is {new_table.capacity}, but {guests} guests requested"
+                        detail=f"Table capacity is {table.capacity}, but {guests} guests requested"
                     )
             
             # If changing time or table, check availability
             if update_data.reservation_time or update_data.table_id:
                 check_table_id = update_data.table_id or reservation.table_id
                 check_time = update_data.reservation_time or reservation.reservation_time
-                
-                # Validate future time
-                if check_time < datetime.now(timezone.utc):
-                    raise HTTPException(
-                        status_code=status.HTTP_400_BAD_REQUEST,
-                        detail="Reservation time must be in the future"
-                    )
                 
                 is_available = await ReservationControllers._check_time_slot_availability(
                     check_table_id,
@@ -214,7 +199,7 @@ class ReservationControllers:
                 if not is_available:
                     raise HTTPException(
                         status_code=status.HTTP_400_BAD_REQUEST,
-                        detail="Table is not available for the requested time"
+                        detail="Table is not available at the requested time"
                     )
             
             # Update fields
@@ -229,7 +214,6 @@ class ReservationControllers:
                 "message": "Reservation updated successfully",
                 "reservation": reservation.to_dict()
             }
-            
         except HTTPException:
             raise
         except Exception as e:
@@ -249,7 +233,6 @@ class ReservationControllers:
         User: Cancel their own reservation.
         """
         try:
-            # Get reservation
             stmt = select(Reservation).where(Reservation.id == reservation_id)
             result = await db.execute(stmt)
             reservation = result.scalar_one_or_none()
@@ -274,14 +257,10 @@ class ReservationControllers:
                     detail="Reservation is already cancelled"
                 )
             
-            # Cancel reservation
             reservation.status = ReservationStatus.CANCELLED
-            reservation.deleted_at = datetime.now(timezone.utc)
-            
             await db.commit()
             
             return {"message": "Reservation cancelled successfully"}
-            
         except HTTPException:
             raise
         except Exception as e:
@@ -301,19 +280,16 @@ class ReservationControllers:
         User: Get all their own reservations.
         """
         try:
-            stmt = select(Reservation).where(Reservation.user_id == current_user.id)
+            conditions = [Reservation.user_id == current_user.id]
             
-            # Optionally exclude cancelled reservations
             if not include_cancelled:
-                stmt = stmt.where(Reservation.status != ReservationStatus.CANCELLED)
+                conditions.append(Reservation.status != ReservationStatus.CANCELLED)
             
-            stmt = stmt.order_by(Reservation.reservation_time.desc())
-            
+            stmt = select(Reservation).where(and_(*conditions)).order_by(Reservation.reservation_time.desc())
             result = await db.execute(stmt)
             reservations = result.scalars().all()
             
             return [reservation.to_dict() for reservation in reservations]
-            
         except Exception as e:
             raise HTTPException(
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
@@ -330,11 +306,7 @@ class ReservationControllers:
         User: Get a single reservation by ID (must be their own).
         """
         try:
-            stmt = select(Reservation).options(
-                selectinload(Reservation.table),
-                selectinload(Reservation.payments)
-            ).where(Reservation.id == reservation_id)
-            
+            stmt = select(Reservation).where(Reservation.id == reservation_id)
             result = await db.execute(stmt)
             reservation = result.scalar_one_or_none()
             
@@ -351,16 +323,7 @@ class ReservationControllers:
                     detail="You can only view your own reservations"
                 )
             
-            # Build detailed response
-            reservation_dict = reservation.to_dict()
-            reservation_dict["table_details"] = {
-                "table_number": reservation.table.table_number,
-                "capacity": reservation.table.capacity,
-                "location": reservation.table.location.value
-            }
-            
-            return reservation_dict
-            
+            return reservation.to_dict()
         except HTTPException:
             raise
         except Exception as e:
@@ -368,7 +331,6 @@ class ReservationControllers:
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
                 detail=f"Failed to fetch reservation: {str(e)}"
             )
-
 
     # ============================================
     # ADMIN FUNCTIONS
@@ -385,23 +347,23 @@ class ReservationControllers:
         Admin: Get all reservations with pagination and filtering.
         """
         try:
-            # Base query
-            stmt = select(Reservation)
-            
-            # Filter by status if provided
+            # Build query
+            conditions = []
             if status_filter:
-                stmt = stmt.where(Reservation.status == status_filter)
+                conditions.append(Reservation.status == status_filter)
             
             # Get total count
             count_stmt = select(func.count(Reservation.id))
-            if status_filter:
-                count_stmt = count_stmt.where(Reservation.status == status_filter)
-            
+            if conditions:
+                count_stmt = count_stmt.where(and_(*conditions))
             count_result = await db.execute(count_stmt)
             total = count_result.scalar()
             
-            # Get reservations with pagination
-            stmt = stmt.offset(skip).limit(limit).order_by(Reservation.reservation_time.desc())
+            # Get reservations
+            stmt = select(Reservation).order_by(Reservation.reservation_time.desc()).offset(skip).limit(limit)
+            if conditions:
+                stmt = stmt.where(and_(*conditions))
+            
             result = await db.execute(stmt)
             reservations = result.scalars().all()
             
@@ -411,7 +373,6 @@ class ReservationControllers:
                 "limit": limit,
                 "reservations": [reservation.to_dict() for reservation in reservations]
             }
-            
         except Exception as e:
             raise HTTPException(
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
@@ -443,6 +404,12 @@ class ReservationControllers:
                     detail="Cannot confirm cancelled reservation"
                 )
             
+            if reservation.status == ReservationStatus.CONFIRMED:
+                raise HTTPException(
+                    status_code=status.HTTP_400_BAD_REQUEST,
+                    detail="Reservation is already confirmed"
+                )
+            
             reservation.status = ReservationStatus.CONFIRMED
             await db.commit()
             await db.refresh(reservation)
@@ -451,7 +418,6 @@ class ReservationControllers:
                 "message": "Reservation confirmed successfully",
                 "reservation": reservation.to_dict()
             }
-            
         except HTTPException:
             raise
         except Exception as e:
@@ -485,7 +451,6 @@ class ReservationControllers:
             reservations = result.scalars().all()
             
             return [reservation.to_dict() for reservation in reservations]
-            
         except Exception as e:
             raise HTTPException(
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
@@ -502,12 +467,12 @@ class ReservationControllers:
         """
         try:
             now = datetime.now(timezone.utc)
-            future_date = now + timedelta(days=days)
+            end_date = now + timedelta(days=days)
             
             stmt = select(Reservation).where(
                 and_(
                     Reservation.reservation_time >= now,
-                    Reservation.reservation_time <= future_date,
+                    Reservation.reservation_time <= end_date,
                     Reservation.status.in_([ReservationStatus.PENDING, ReservationStatus.CONFIRMED])
                 )
             ).order_by(Reservation.reservation_time)
@@ -516,7 +481,6 @@ class ReservationControllers:
             reservations = result.scalars().all()
             
             return [reservation.to_dict() for reservation in reservations]
-            
         except Exception as e:
             raise HTTPException(
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
@@ -535,36 +499,43 @@ class ReservationControllers:
             total = total_result.scalar()
             
             # By status
-            pending_stmt = select(func.count(Reservation.id)).where(
-                Reservation.status == ReservationStatus.PENDING
-            )
+            pending_stmt = select(func.count(Reservation.id)).where(Reservation.status == ReservationStatus.PENDING)
             pending_result = await db.execute(pending_stmt)
             pending = pending_result.scalar()
             
-            confirmed_stmt = select(func.count(Reservation.id)).where(
-                Reservation.status == ReservationStatus.CONFIRMED
-            )
+            confirmed_stmt = select(func.count(Reservation.id)).where(Reservation.status == ReservationStatus.CONFIRMED)
             confirmed_result = await db.execute(confirmed_stmt)
             confirmed = confirmed_result.scalar()
             
-            cancelled_stmt = select(func.count(Reservation.id)).where(
-                Reservation.status == ReservationStatus.CANCELLED
-            )
+            cancelled_stmt = select(func.count(Reservation.id)).where(Reservation.status == ReservationStatus.CANCELLED)
             cancelled_result = await db.execute(cancelled_stmt)
             cancelled = cancelled_result.scalar()
             
             # Upcoming reservations (next 7 days)
             now = datetime.now(timezone.utc)
-            future = now + timedelta(days=7)
+            upcoming_end = now + timedelta(days=7)
             upcoming_stmt = select(func.count(Reservation.id)).where(
                 and_(
                     Reservation.reservation_time >= now,
-                    Reservation.reservation_time <= future,
+                    Reservation.reservation_time <= upcoming_end,
                     Reservation.status.in_([ReservationStatus.PENDING, ReservationStatus.CONFIRMED])
                 )
             )
             upcoming_result = await db.execute(upcoming_stmt)
             upcoming = upcoming_result.scalar()
+            
+            # Today's reservations
+            start_of_day = now.replace(hour=0, minute=0, second=0, microsecond=0)
+            end_of_day = now.replace(hour=23, minute=59, second=59, microsecond=999999)
+            today_stmt = select(func.count(Reservation.id)).where(
+                and_(
+                    Reservation.reservation_time >= start_of_day,
+                    Reservation.reservation_time <= end_of_day,
+                    Reservation.status.in_([ReservationStatus.PENDING, ReservationStatus.CONFIRMED])
+                )
+            )
+            today_result = await db.execute(today_stmt)
+            today = today_result.scalar()
             
             return {
                 "total_reservations": total,
@@ -573,9 +544,9 @@ class ReservationControllers:
                     "confirmed": confirmed,
                     "cancelled": cancelled
                 },
-                "upcoming_7_days": upcoming
+                "upcoming_7_days": upcoming,
+                "today": today
             }
-            
         except Exception as e:
             raise HTTPException(
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,

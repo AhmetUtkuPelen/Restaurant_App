@@ -3,7 +3,7 @@ from sqlalchemy import Column, Integer, String, Float, ForeignKey, Boolean, Chec
 from sqlalchemy import Enum as SAEnum
 from sqlalchemy.dialects.postgresql import ARRAY
 from sqlalchemy.orm import relationship
-from backend.Models.PRODUCT.BaseProduct.BaseProductModel import Product
+from Models.PRODUCT.BaseProduct.BaseProductModel import Product
 from Utils.Enums.Enums import SpiceLevel, MeatType, KebabSize
 from sqlalchemy import Enum as SAEnum
 
@@ -15,7 +15,6 @@ class Kebab(Product):
         CheckConstraint('spice_level IS NOT NULL'),
         CheckConstraint('is_vegan IS NOT NULL'),
         CheckConstraint('is_alergic IS NOT NULL'),
-        CheckConstraint('preperation_time IS NOT NULL'),
         {'extend_existing': True}
     )
 

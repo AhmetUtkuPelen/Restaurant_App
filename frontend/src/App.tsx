@@ -18,7 +18,6 @@ import Order from "./Pages/Order/Order";
 import Reservation from "./Pages/Reservation/Reservation";
 import UserSettings from "./Pages/User/UserSettings";
 import Profile from "./Pages/User/Profile";
-import AdminStock from "./Pages/Admin/AdminStock";
 import Contact from "./Pages/Contact/Contact";
 import Header from "./Components/Header/Header";
 import Footer from "./Components/Footer/Footer";
@@ -69,7 +68,6 @@ function App() {
           {/* Admin Routes - Only for admin users */}
 
             <Route path="/admin" element={<Admin />} />
-            <Route path="/admin/stock" element={<AdminStock />} />
 
 
           {/* Error Routes */}

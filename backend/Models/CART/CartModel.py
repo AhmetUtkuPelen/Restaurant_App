@@ -16,7 +16,7 @@ class Cart(Base):
 
     # Relationships
     user = relationship("User", back_populates="cart")
-    cart_items = relationship("CartItem", back_populates="cart", cascade="all, delete-orphan")
+    cart_items = relationship("CartItem", back_populates="cart", cascade="all, delete-orphan", lazy="select")
 
     def to_dict(self):
         return {

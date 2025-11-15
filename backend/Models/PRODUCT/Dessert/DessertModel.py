@@ -1,4 +1,4 @@
-from backend.Models.PRODUCT.BaseProduct.BaseProductModel import Product
+from Models.PRODUCT.BaseProduct.BaseProductModel import Product
 from sqlalchemy import CheckConstraint, Column, Integer, String, Float, ForeignKey, Boolean
 from sqlalchemy.orm import relationship
 from Utils.Enums.Enums import DessertType
@@ -10,7 +10,6 @@ class Dessert(Product):
     __table_args__ = (
         CheckConstraint('is_vegan IN (0, 1)', name='check_is_vegan'),
         CheckConstraint('is_alergic IN (0, 1)', name='check_is_alergic'),
-        CheckConstraint('brand IS NOT NULL', name='check_brand'),
         CheckConstraint('calories IS NOT NULL', name='check_calories'),
         {'extend_existing': True}
     )

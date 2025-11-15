@@ -4,9 +4,37 @@ from datetime import datetime
 import re
 
 from Utils.Enums.Enums import UserRole as Role
+from Utils.Auth.HashPassword import is_password_strong
 
 # Pydantic v2 config for ORM -> dict conversion and Enums + Decimal handling
 model_conf = ConfigDict(from_attributes=True, orm_mode=True)
+
+# -------------------
+# Password Validation Helper
+# -------------------
+def validate_password_strength(password: str) -> str:
+    """
+    Centralized password validation using is_password_strong().
+    Raises ValueError with specific message if password is weak.
+    """
+    strength = is_password_strong(password)
+    
+    if not strength["valid"]:
+        errors = []
+        if not strength["length"]:
+            errors.append("at least 8 characters")
+        if not strength["uppercase"]:
+            errors.append("one uppercase letter")
+        if not strength["lowercase"]:
+            errors.append("one lowercase letter")
+        if not strength["digit"]:
+            errors.append("one digit")
+        if not strength["special"]:
+            errors.append("one special character")
+        
+        raise ValueError(f"Password must contain: {', '.join(errors)}")
+    
+    return password
 
 # -------------------
 # Token Schemas
@@ -92,6 +120,20 @@ class UserRegister(UserBase):
     password: str
     image_url : Optional[str] = None
 
+    @field_validator("password")
+    def validate_password(cls, v: str) -> str:
+        if len(v) < 8:
+            raise ValueError("Password must be at least 8 characters long")
+        if not re.search(r"[A-Z]", v):
+            raise ValueError("Password must contain at least one uppercase letter")
+        if not re.search(r"[a-z]", v):
+            raise ValueError("Password must contain at least one lowercase letter")
+        if not re.search(r"[0-9]", v):
+            raise ValueError("Password must contain at least one digit")
+        if not re.search(r"[!@#$%^&*(),.?\":{}|<>]", v):
+            raise ValueError("Password must contain at least one special character")
+        return v
+
 class UserUpdate(BaseModel):
     """
     Schema for User to update user information of himself.
@@ -104,6 +146,22 @@ class UserUpdate(BaseModel):
     phone: Optional[str] = None
     address: Optional[str] = None
     password: Optional[str] = None  # Allow password update
+
+    @field_validator("password")
+    def validate_password(cls, v: Optional[str]) -> Optional[str]:
+        if v is None:
+            return v
+        if len(v) < 8:
+            raise ValueError("Password must be at least 8 characters long")
+        if not re.search(r"[A-Z]", v):
+            raise ValueError("Password must contain at least one uppercase letter")
+        if not re.search(r"[a-z]", v):
+            raise ValueError("Password must contain at least one lowercase letter")
+        if not re.search(r"[0-9]", v):
+            raise ValueError("Password must contain at least one digit")
+        if not re.search(r"[!@#$%^&*(),.?\":{}|<>]", v):
+            raise ValueError("Password must contain at least one special character")
+        return v
 
 
 class AdminCreateUser(BaseModel):
@@ -128,6 +186,20 @@ class AdminCreateUser(BaseModel):
         if not re.match(r"^[A-Za-z0-9._-]{3,20}$", v2):
             raise ValueError("Username must be 3-20 chars and contain only letters, digits, ., _, -")
         return v2
+
+    @field_validator("password")
+    def validate_password(cls, v: str) -> str:
+        if len(v) < 8:
+            raise ValueError("Password must be at least 8 characters long")
+        if not re.search(r"[A-Z]", v):
+            raise ValueError("Password must contain at least one uppercase letter")
+        if not re.search(r"[a-z]", v):
+            raise ValueError("Password must contain at least one lowercase letter")
+        if not re.search(r"[0-9]", v):
+            raise ValueError("Password must contain at least one digit")
+        if not re.search(r"[!@#$%^&*(),.?\":{}|<>]", v):
+            raise ValueError("Password must contain at least one special character")
+        return v
 
 class AdminUpdateUser(BaseModel):
     """
@@ -233,3 +305,19 @@ class UserProfileUpdate(BaseModel):
     image_url: Optional[str] = None
     phone: Optional[str] = None
     address: Optional[str] = None
+
+    @field_validator("password")
+    def validate_password(cls, v: Optional[str]) -> Optional[str]:
+        if v is None:
+            return v
+        if len(v) < 8:
+            raise ValueError("Password must be at least 8 characters long")
+        if not re.search(r"[A-Z]", v):
+            raise ValueError("Password must contain at least one uppercase letter")
+        if not re.search(r"[a-z]", v):
+            raise ValueError("Password must contain at least one lowercase letter")
+        if not re.search(r"[0-9]", v):
+            raise ValueError("Password must contain at least one digit")
+        if not re.search(r"[!@#$%^&*(),.?\":{}|<>]", v):
+            raise ValueError("Password must contain at least one special character")
+        return v

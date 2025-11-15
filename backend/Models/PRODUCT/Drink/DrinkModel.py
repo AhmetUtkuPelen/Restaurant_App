@@ -1,6 +1,6 @@
 from sqlalchemy import Column, Integer, String, Float, ForeignKey, Boolean, CheckConstraint
 from sqlalchemy.orm import relationship
-from backend.Models.PRODUCT.BaseProduct.BaseProductModel import Product
+from Models.PRODUCT.BaseProduct.BaseProductModel import Product
 from Utils.Enums.Enums import DrinkSize
 from sqlalchemy import Enum as SAEnum
 

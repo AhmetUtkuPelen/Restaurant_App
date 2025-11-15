@@ -4,12 +4,12 @@ from sqlalchemy.orm import selectinload
 from fastapi import HTTPException, status
 from fastapi.security import OAuth2PasswordBearer
 from typing import List, Dict, Any
-from datetime import datetime, timezone
+from datetime import datetime, timezone, timedelta
 
 from Models.USER.UserModel import User
 from Schemas.USER.UserSchemas import UserRegister,UserLogin,AdminCreateUser,AdminUpdateUser,UserProfileUpdate
 from Utils.Auth.JWT import create_access_token,create_refresh_token,decode_access_token,decode_refresh_token,TokenExpiredError,TokenInvalidError
-from Utils.Auth.HashPassword import get_password_hash,verify_password,is_password_strong
+from Utils.Auth.HashPassword import get_password_hash,verify_password
 from Utils.Enums.Enums import UserRole
 
 # OAuth2 scheme for token extraction
@@ -341,6 +341,7 @@ n route dependencies: Depends(UserControllers.get_current_user)
     ) -> Dict[str, str]:
         """
         Change authenticated user's password.
+        Note: Password validation is handled by Pydantic schemas in the route layer.
         """
         try:
             # Verify current password
@@ -348,14 +349,6 @@ n route dependencies: Depends(UserControllers.get_current_user)
                 raise HTTPException(
                     status_code=status.HTTP_400_BAD_REQUEST,
                     detail="Current password is incorrect"
-                )
-            
-            # Check password strength
-            strength = is_password_strong(new_password)
-            if not strength["valid"]:
-                raise HTTPException(
-                    status_code=status.HTTP_400_BAD_REQUEST,
-                    detail="Password does not meet strength requirements"
                 )
             
             # Hash and update password
@@ -623,7 +616,6 @@ n route dependencies: Depends(UserControllers.get_current_user)
             user_count = user_result.scalar()
             
             # New registrations (last 30 days)
-            from datetime import timedelta
             thirty_days_ago = datetime.now(timezone.utc) - timedelta(days=30)
             new_stmt = select(func.count(User.id)).where(User.created_at >= thirty_days_ago)
             new_result = await db.execute(new_stmt)
