@@ -3,6 +3,7 @@ import os
 
 from dotenv import load_dotenv
 from sqlalchemy.ext.asyncio import async_sessionmaker, create_async_engine
+from sqlalchemy import create_engine
 from sqlalchemy.orm import declarative_base
 
 logger = logging.getLogger(__name__)
@@ -16,6 +17,8 @@ ENV = os.getenv("ENVIRONMENT", "DEVELOPMENT").upper()
 # Set database URL based on environment
 if ENV == "DEVELOPMENT":
     DATABASE_URL = os.getenv("DATABASE_URL", "sqlite+aiosqlite:///./E-Commerce.db")
+    # Sync URL for SQLAdmin (remove aiosqlite)
+    SYNC_DATABASE_URL = DATABASE_URL.replace("sqlite+aiosqlite", "sqlite")
     logger.info(f"Using SQLite database at: {DATABASE_URL}")
 else:
     SUPABASE_URL = os.getenv("SUPABASE_CONNECTION_URL")
@@ -24,16 +27,26 @@ else:
             "SUPABASE_CONNECTION_URL environment variable is required for non-development environments"
         )
     DATABASE_URL = SUPABASE_URL
+    # For PostgreSQL, sync URL is the same but without +asyncpg
+    SYNC_DATABASE_URL = SUPABASE_URL.replace("+asyncpg", "")
     logger.info("Using Supabase database")
 
 try:
-    # The async engine is the entry point to the database.
+    # The async engine is the entry point to the database for API routes
     engine = create_async_engine(
         DATABASE_URL,
         echo=True if ENV == "DEVELOPMENT" else False,
         pool_pre_ping=True,
     )
-    logger.info("Database engine created successfully")
+    logger.info("Async database engine created successfully")
+    
+    # Sync engine for SQLAdmin
+    sync_engine = create_engine(
+        SYNC_DATABASE_URL,
+        echo=True if ENV == "DEVELOPMENT" else False,
+        pool_pre_ping=True,
+    )
+    logger.info("Sync database engine created successfully for SQLAdmin")
 except Exception as e:
     logger.error(f"Failed to create database engine: {str(e)}")
     raise

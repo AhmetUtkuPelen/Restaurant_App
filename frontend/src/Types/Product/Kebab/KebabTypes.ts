@@ -1,89 +1,92 @@
-import type { IngredientInResponse } from '../Ingredient/IngredientTypes';
+import type { ProductBaseCreate, ProductBaseUpdate, ProductBaseRead } from '../BaseProduct/BasePRoductTypes';
 
-// Base Interface
-export interface KebabBase {
-  /** Name of the kebab */
-  name: string;
-  /** Optional description */
-  description?: string | null;
-  /** Price of the kebab */
-  price: number;
-  /** Discount percentage (0-100) */
-  discount_percentage: number;
-  /** URL to kebab image */
-  image?: string | null;
-  /** List of ingredient IDs */
-  ingredient_ids: number[];
-  /** Count of ingredients */
-  ingredient_count: number;
-  /** Creation timestamp */
-  created_at: string;
-  /** Last update timestamp */
-  updated_at: string | null;
-  /** Deletion timestamp if soft-deleted */
-  deleted_at: string | null;
+// --- Enums ---
+type KebabSize = 'SMALL' | 'MEDIUM' | 'LARGE' | 'EXTRA_LARGE';
+type MeatType = 'CHICKEN' | 'BEEF' | 'LAMB' | 'MIXED' | 'VEGETARIAN';
+type SpiceLevel = 'MILD' | 'MEDIUM' | 'HOT' | 'EXTRA_HOT';
+
+// --- Base Types ---
+interface KebabBase {
+  /** Size of the kebab */
+  size: KebabSize;
+  /** Type of meat used */
+  meat_type: MeatType;
+  /** Spice level */
+  spice_level: SpiceLevel;
+  /** Whether the kebab is vegan */
+  is_vegan: boolean;
+  /** Whether the kebab contains allergens */
+  is_alergic: boolean;
 }
 
-// Kebab Ingredient Schema
-export interface KebabIngredientCreate {
-  /** ID of the ingredient */
-  ingredient_id: number;
-  /** Quantity needed */
-  quantity: number;
-  /** Unit of measurement (default: 'g') */
-  unit: string;
+// --- Create Schema ---
+interface KebabCreate extends ProductBaseCreate, KebabBase {
+  /** Category is always 'kebab' */
+  category: 'kebab';
 }
 
-// Create Schema
-export interface KebabCreate extends Omit<KebabBase, 'created_at' | 'updated_at' | 'deleted_at' | 'ingredient_count'> {
-  /** List of ingredients with quantities */
-  ingredients: KebabIngredientCreate[];
+// --- Update Schema ---
+interface KebabUpdate extends ProductBaseUpdate {
+  /** Size of the kebab */
+  size?: KebabSize;
+  /** Type of meat used */
+  meat_type?: MeatType;
+  /** Spice level */
+  spice_level?: SpiceLevel;
+  /** Whether the kebab is vegan */
+  is_vegan?: boolean;
+  /** Whether the kebab contains allergens */
+  is_alergic?: boolean;
 }
 
-// Update Schema
-export type KebabUpdate = Partial<KebabBase>;
+// --- Read Schema ---
+interface KebabRead extends ProductBaseRead, KebabBase {
+  // Combines product base fields with kebab-specific fields
+}
 
-// Database Schema
-export interface KebabInDB extends Omit<KebabBase, 'ingredient_ids'> {
-  /** Unique identifier */
+// --- In DB Schema ---
+type KebabInDB = KebabRead;
+
+// --- Extended Response ---
+interface KebabWithDetails extends KebabRead {
+  /** Readable summary of the kebab */
+  summary?: string;
+  /** Description summary */
+  description_summary?: string;
+}
+
+// --- Kebab Summary (for lists) ---
+interface KebabSummary {
+  /** Unique kebab identifier */
   id: number;
-  created_at: string;
-  updated_at: string | null;
-  deleted_at: string | null;
-}
-
-// Response Schema
-export interface KebabResponse extends KebabInDB {
-  /** Price after applying discount */
-  discounted_price: number;
-  /** Total calories in the kebab */
-  total_calories: number;
-  /** Total protein content */
-  total_protein: number;
-  /** Total carbohydrates content */
-  total_carbs: number;
-  /** Total fat content */
-  total_fat: number;
-  /** Allergen warnings */
-  allergen_warning: Record<string, unknown>;
-  /** Stock warnings */
-  stock_warning: Record<string, unknown>;
-  /** List of ingredients with details */
-  ingredients: IngredientInResponse[];
-}
-
-// List View Schema
-export interface KebabForList {
-  /** Unique identifier */
-  id: number;
-  /** Name of the kebab */
+  /** Kebab name */
   name: string;
   /** Original price */
-  price: number;
-  /** Price after discount */
-  discounted_price: number;
+  price: string;
+  /** Final price after discount */
+  final_price: string;
   /** URL to kebab image */
-  image?: string | null;
-  /** Count of ingredients */
-  ingredient_count: number;
+  image_url: string;
+  /** Size of the kebab */
+  size: KebabSize;
+  /** Type of meat */
+  meat_type: MeatType;
+  /** Spice level */
+  spice_level: SpiceLevel;
+  /** Whether it's active */
+  is_active: boolean;
 }
+
+// Export all interfaces
+export type {
+  KebabSize,
+  MeatType,
+  SpiceLevel,
+  KebabBase,
+  KebabCreate,
+  KebabUpdate,
+  KebabRead,
+  KebabInDB,
+  KebabWithDetails,
+  KebabSummary
+};

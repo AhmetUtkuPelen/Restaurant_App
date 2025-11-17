@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import {
   Card,
   CardContent,
@@ -18,122 +19,67 @@ import {
   SelectValue,
 } from "@/Components/ui/select";
 import { Badge } from "@/Components/ui/badge";
-import { Separator } from "@/Components/ui/separator";
 import {
   Calendar,
   Clock,
   Users,
   MapPin,
-  Mail,
   CheckCircle,
+  AlertCircle,
 } from "lucide-react";
-
-interface TableOption {
-  id: string;
-  name: string;
-  capacity: number;
-  location: string;
-  price: number;
-  image: string;
-  features: string[];
-  available: boolean;
-}
+import { useTables, useCreateReservation } from "@/hooks/useReservation";
 
 interface ReservationData {
   date: string;
   time: string;
   guests: number;
-  tableId: string;
-  customerName: string;
-  customerEmail: string;
-  customerPhone: string;
+  tableId: number | null;
   specialRequests: string;
 }
 
 const Reservation = () => {
+  const navigate = useNavigate();
+  const {
+    data: tables = [],
+    isLoading: tablesLoading,
+    error: tablesError,
+  } = useTables();
+  const createReservation = useCreateReservation();
+
   const [reservationData, setReservationData] = useState<ReservationData>({
     date: "",
     time: "",
     guests: 2,
-    tableId: "",
-    customerName: "",
-    customerEmail: "",
-    customerPhone: "",
+    tableId: null,
     specialRequests: "",
   });
 
   const [currentStep, setCurrentStep] = useState(1);
-  const [isLoading, setIsLoading] = useState(false);
+  const [reservationSuccess, setReservationSuccess] = useState(false);
+  const [confirmationNumber, setConfirmationNumber] = useState("");
 
-  // Mock table data
-  const tableOptions: TableOption[] = [
-    {
-      id: "table-1",
-      name: "Romantic Corner",
-      capacity: 2,
-      location: "Window Side",
-      price: 25,
-      image:
+  // Helper function to format location
+  const formatLocation = (location: string) => {
+    const locationMap: Record<string, string> = {
+      window: "Window Side",
+      patio: "Patio",
+      main_dining_room: "Main Dining Room",
+    };
+    return locationMap[location] || location;
+  };
+
+  // Helper function to get table image based on location
+  const getTableImage = (location: string) => {
+    const imageMap: Record<string, string> = {
+      window:
         "https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=400&h=300&fit=crop",
-      features: ["Window View", "Intimate Setting", "Candlelit"],
-      available: true,
-    },
-    {
-      id: "table-2",
-      name: "Family Table",
-      capacity: 6,
-      location: "Main Hall",
-      price: 40,
-      image:
-        "https://images.unsplash.com/photo-1555396273-367ea4eb4db5?w=400&h=300&fit=crop",
-      features: ["Spacious", "Family Friendly", "Central Location"],
-      available: true,
-    },
-    {
-      id: "table-3",
-      name: "Business Booth",
-      capacity: 4,
-      location: "Quiet Section",
-      price: 35,
-      image:
-        "https://images.unsplash.com/photo-1514933651103-005eec06c04b?w=400&h=300&fit=crop",
-      features: ["Private", "Business Friendly", "Power Outlets"],
-      available: false,
-    },
-    {
-      id: "table-4",
-      name: "Garden Terrace",
-      capacity: 8,
-      location: "Outdoor",
-      price: 50,
-      image:
+      patio:
         "https://images.unsplash.com/photo-1578474846511-04ba529f0b88?w=400&h=300&fit=crop",
-      features: ["Outdoor Dining", "Garden View", "Fresh Air"],
-      available: true,
-    },
-    {
-      id: "table-5",
-      name: "Chef's Counter",
-      capacity: 3,
-      location: "Kitchen View",
-      price: 45,
-      image:
-        "https://images.unsplash.com/photo-1551218808-94e220e084d2?w=400&h=300&fit=crop",
-      features: ["Kitchen View", "Interactive", "Premium Experience"],
-      available: true,
-    },
-    {
-      id: "table-6",
-      name: "VIP Lounge",
-      capacity: 10,
-      location: "Private Room",
-      price: 75,
-      image:
-        "https://images.unsplash.com/photo-1559329007-40df8a9345d8?w=400&h=300&fit=crop",
-      features: ["Private Room", "Luxury Setting", "Dedicated Service"],
-      available: true,
-    },
-  ];
+      main_dining_room:
+        "https://images.unsplash.com/photo-1555396273-367ea4eb4db5?w=400&h=300&fit=crop",
+    };
+    return imageMap[location] || imageMap.main_dining_room;
+  };
 
   // Available time slots
   const timeSlots = [
@@ -157,7 +103,7 @@ const Reservation = () => {
 
   const handleInputChange = (
     field: keyof ReservationData,
-    value: string | number
+    value: string | number | null
   ) => {
     setReservationData((prev) => ({
       ...prev,
@@ -177,27 +123,64 @@ const Reservation = () => {
     }
   };
 
+  // Helper function to convert 12-hour time to 24-hour format
+  const convertTo24Hour = (time12h: string) => {
+    const [time, modifier] = time12h.split(" ");
+    const [hoursStr, minutes] = time.split(":");
+    let hours = hoursStr;
+
+    if (hours === "12") {
+      hours = "00";
+    }
+
+    if (modifier === "PM" && hours !== "12") {
+      hours = String(parseInt(hours, 10) + 12);
+    }
+
+    if (modifier === "AM" && hours === "12") {
+      hours = "00";
+    }
+
+    return `${hours.padStart(2, "0")}:${minutes}`;
+  };
+
   const handleSubmitReservation = async () => {
-    setIsLoading(true);
-    // Simulate API call
-    await new Promise((resolve) => setTimeout(resolve, 2000));
-    setIsLoading(false);
-    setCurrentStep(4); // Success step
+    if (!reservationData.tableId) return;
+
+    try {
+      // Convert 12-hour time to 24-hour format
+      const time24h = convertTo24Hour(reservationData.time);
+
+      // Combine date and time into ISO datetime string
+      const reservationDateTime = new Date(
+        `${reservationData.date}T${time24h}:00`
+      ).toISOString();
+
+      await createReservation.mutateAsync({
+        table_id: reservationData.tableId,
+        reservation_time: reservationDateTime,
+        number_of_guests: reservationData.guests,
+        special_requests: reservationData.specialRequests || undefined,
+      });
+
+      // Generate confirmation number
+      setConfirmationNumber(`RSV-${Date.now().toString().slice(-6)}`);
+      setReservationSuccess(true);
+    } catch (error) {
+      console.error("Failed to create reservation:", error);
+      alert("Failed to create reservation. Please try again.");
+    }
   };
 
   const getAvailableTables = () => {
-    return tableOptions.filter(
-      (table) => table.available && table.capacity >= reservationData.guests
+    return tables.filter(
+      (table) => table.is_available && table.capacity >= reservationData.guests
     );
   };
 
-  const selectedTable = tableOptions.find(
+  const selectedTable = tables.find(
     (table) => table.id === reservationData.tableId
   );
-
-  const getTotalPrice = () => {
-    return selectedTable ? selectedTable.price : 0;
-  };
 
   const isStepValid = (step: number) => {
     switch (step) {
@@ -208,17 +191,111 @@ const Reservation = () => {
           reservationData.guests > 0
         );
       case 2:
-        return reservationData.tableId;
-      case 3:
-        return (
-          reservationData.customerName &&
-          reservationData.customerEmail &&
-          reservationData.customerPhone
-        );
+        return reservationData.tableId !== null;
       default:
         return false;
     }
   };
+
+  // Loading state
+  if (tablesLoading) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+      </div>
+    );
+  }
+
+  // Error state
+  if (tablesError) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <Card className="max-w-md">
+          <CardContent className="p-8 text-center">
+            <AlertCircle className="h-12 w-12 text-red-500 mx-auto mb-4" />
+            <h3 className="text-xl font-semibold text-gray-900 mb-2">
+              Error Loading Tables
+            </h3>
+            <p className="text-gray-600 mb-4">
+              {tablesError instanceof Error
+                ? tablesError.message
+                : "Failed to load tables"}
+            </p>
+            <Button onClick={() => window.location.reload()}>Try Again</Button>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
+  // Success state
+  if (reservationSuccess) {
+    return (
+      <div className="min-h-screen bg-gray-50 py-8">
+        <div className="max-w-2xl mx-auto px-4 sm:px-6 lg:px-8">
+          <Card className="border-green-200 shadow-lg">
+            <CardContent className="p-12 bg-white text-center">
+              <div className="mb-6">
+                <CheckCircle className="h-16 w-16 text-green-600 mx-auto mb-4" />
+                <h2 className="text-3xl font-bold text-gray-900 mb-2">
+                  Reservation Confirmed!
+                </h2>
+                <p className="text-xl text-gray-600">
+                  Thank you for choosing our restaurant
+                </p>
+              </div>
+
+              <div className="bg-gray-50 rounded-lg p-6 mb-6">
+                <h3 className="text-lg font-semibold text-gray-900 mb-4">
+                  Reservation Details
+                </h3>
+                <div className="space-y-2 text-left">
+                  <div className="flex justify-between">
+                    <span className="text-gray-600">Confirmation #:</span>
+                    <span className="font-medium">{confirmationNumber}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-gray-600">Date & Time:</span>
+                    <span className="font-medium">
+                      {reservationData.date} at {reservationData.time}
+                    </span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-gray-600">Table:</span>
+                    <span className="font-medium">
+                      {selectedTable?.table_number}
+                    </span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-gray-600">Guests:</span>
+                    <span className="font-medium">
+                      {reservationData.guests}
+                    </span>
+                  </div>
+                </div>
+              </div>
+
+              <div className="space-y-3">
+                <Button
+                  onClick={() => navigate("/user/reservations")}
+                  className="bg-blue-600 hover:bg-blue-700 text-white px-8 py-3 text-lg w-full"
+                >
+                  View My Reservations
+                </Button>
+                <Button
+                  onClick={() => window.location.reload()}
+                  variant="outline"
+                  className="px-8 py-3 text-lg w-full"
+                >
+                  Make Another Reservation
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gray-50 py-8">
@@ -236,7 +313,7 @@ const Reservation = () => {
         {/* Progress Steps */}
         <div className="mb-8">
           <div className="flex items-center justify-center space-x-8">
-            {[1, 2, 3].map((step) => (
+            {[1, 2].map((step) => (
               <div key={step} className="flex items-center">
                 <div
                   className={`
@@ -261,9 +338,8 @@ const Reservation = () => {
                 >
                   {step === 1 && "Date & Time"}
                   {step === 2 && "Select Table"}
-                  {step === 3 && "Your Details"}
                 </span>
-                {step < 3 && (
+                {step < 2 && (
                   <div
                     className={`w-16 h-0.5 ml-4 ${
                       currentStep > step ? "bg-blue-600" : "bg-gray-300"
@@ -356,6 +432,24 @@ const Reservation = () => {
                 </div>
               </div>
 
+              <div className="mt-6">
+                <Label
+                  htmlFor="requests"
+                  className="text-lg font-medium text-gray-700"
+                >
+                  Special Requests (Optional)
+                </Label>
+                <Textarea
+                  id="requests"
+                  value={reservationData.specialRequests}
+                  onChange={(e) =>
+                    handleInputChange("specialRequests", e.target.value)
+                  }
+                  className="border-gray-300 focus:border-blue-500 focus:ring-blue-500 min-h-[100px] mt-2"
+                  placeholder="Any dietary restrictions, celebrations, or special accommodations..."
+                />
+              </div>
+
               <div className="flex justify-end mt-8">
                 <Button
                   onClick={handleNextStep}
@@ -382,180 +476,75 @@ const Reservation = () => {
               </CardDescription>
             </CardHeader>
             <CardContent className="p-8 bg-white">
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {getAvailableTables().map((table) => (
-                  <div
-                    key={table.id}
-                    className={`
-                      relative border-2 rounded-lg overflow-hidden cursor-pointer transition-all duration-200
-                      ${
-                        reservationData.tableId === table.id
-                          ? "border-blue-600 ring-2 ring-blue-200"
-                          : "border-gray-200 hover:border-gray-300"
-                      }
-                    `}
-                    onClick={() => handleInputChange("tableId", table.id)}
-                  >
-                    <div className="aspect-video relative">
-                      <img
-                        src={table.image}
-                        alt={table.name}
-                        className="w-full h-full object-cover"
-                      />
-                      {reservationData.tableId === table.id && (
-                        <div className="absolute top-2 right-2 bg-blue-600 text-white p-1 rounded-full">
-                          <CheckCircle className="h-5 w-5" />
+              {getAvailableTables().length === 0 ? (
+                <div className="text-center py-12">
+                  <AlertCircle className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+                  <h3 className="text-lg font-semibold text-gray-900 mb-2">
+                    No Available Tables
+                  </h3>
+                  <p className="text-gray-600 mb-4">
+                    No tables available for {reservationData.guests} guests. Try
+                    selecting fewer guests or a different date/time.
+                  </p>
+                  <Button onClick={handlePrevStep} variant="outline">
+                    Go Back
+                  </Button>
+                </div>
+              ) : (
+                <>
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    {getAvailableTables().map((table) => (
+                      <div
+                        key={table.id}
+                        className={`
+                          relative border-2 rounded-lg overflow-hidden cursor-pointer transition-all duration-200
+                          ${
+                            reservationData.tableId === table.id
+                              ? "border-blue-600 ring-2 ring-blue-200"
+                              : "border-gray-200 hover:border-gray-300"
+                          }
+                        `}
+                        onClick={() => handleInputChange("tableId", table.id)}
+                      >
+                        <div className="aspect-video relative">
+                          <img
+                            src={getTableImage(table.location)}
+                            alt={table.table_number}
+                            className="w-full h-full object-cover"
+                          />
+                          {reservationData.tableId === table.id && (
+                            <div className="absolute top-2 right-2 bg-blue-600 text-white p-1 rounded-full">
+                              <CheckCircle className="h-5 w-5" />
+                            </div>
+                          )}
                         </div>
-                      )}
-                    </div>
 
-                    <div className="p-4">
-                      <div className="flex justify-between items-start mb-2">
-                        <h3 className="text-lg font-semibold text-gray-900">
-                          {table.name}
-                        </h3>
-                        <Badge className="bg-blue-100 text-blue-800">
-                          ${table.price}
-                        </Badge>
+                        <div className="p-4">
+                          <div className="flex justify-between items-start mb-2">
+                            <h3 className="text-lg font-semibold text-gray-900">
+                              Table {table.table_number}
+                            </h3>
+                            <Badge className="bg-green-100 text-green-800">
+                              Available
+                            </Badge>
+                          </div>
+
+                          <div className="flex items-center text-gray-600 mb-2">
+                            <Users className="h-4 w-4 mr-1" />
+                            <span className="text-sm">
+                              Up to {table.capacity} guests
+                            </span>
+                          </div>
+
+                          <div className="flex items-center text-gray-600 mb-3">
+                            <MapPin className="h-4 w-4 mr-1" />
+                            <span className="text-sm">
+                              {formatLocation(table.location)}
+                            </span>
+                          </div>
+                        </div>
                       </div>
-
-                      <div className="flex items-center text-gray-600 mb-2">
-                        <Users className="h-4 w-4 mr-1" />
-                        <span className="text-sm">
-                          Up to {table.capacity} guests
-                        </span>
-                      </div>
-
-                      <div className="flex items-center text-gray-600 mb-3">
-                        <MapPin className="h-4 w-4 mr-1" />
-                        <span className="text-sm">{table.location}</span>
-                      </div>
-
-                      <div className="flex flex-wrap gap-1">
-                        {table.features.map((feature, index) => (
-                          <Badge
-                            key={index}
-                            variant="outline"
-                            className="text-xs"
-                          >
-                            {feature}
-                          </Badge>
-                        ))}
-                      </div>
-                    </div>
-                  </div>
-                ))}
-              </div>
-
-              <div className="flex justify-between mt-8">
-                <Button
-                  onClick={handlePrevStep}
-                  variant="outline"
-                  className="border-gray-300 text-gray-700 hover:bg-gray-50 px-8 py-3 text-lg"
-                >
-                  Back
-                </Button>
-                <Button
-                  onClick={handleNextStep}
-                  disabled={!isStepValid(2)}
-                  className="bg-blue-600 hover:bg-blue-700 text-white px-8 py-3 text-lg"
-                >
-                  Continue to Details
-                </Button>
-              </div>
-            </CardContent>
-          </Card>
-        )}
-
-        {currentStep === 3 && (
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-            <div className="lg:col-span-2">
-              <Card className="border-gray-200 shadow-lg">
-                <CardHeader className="bg-white border-b border-gray-100">
-                  <CardTitle className="text-2xl text-gray-900 flex items-center">
-                    <Mail className="h-6 w-6 mr-2 text-blue-600" />
-                    Your Details
-                  </CardTitle>
-                  <CardDescription className="text-gray-600">
-                    Please provide your contact information
-                  </CardDescription>
-                </CardHeader>
-                <CardContent className="p-8 bg-white">
-                  <div className="space-y-6">
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                      <div className="space-y-2">
-                        <Label
-                          htmlFor="name"
-                          className="text-gray-700 font-medium"
-                        >
-                          Full Name *
-                        </Label>
-                        <Input
-                          id="name"
-                          value={reservationData.customerName}
-                          onChange={(e) =>
-                            handleInputChange("customerName", e.target.value)
-                          }
-                          className="border-gray-300 focus:border-blue-500 focus:ring-blue-500"
-                          placeholder="Enter your full name"
-                        />
-                      </div>
-
-                      <div className="space-y-2">
-                        <Label
-                          htmlFor="phone"
-                          className="text-gray-700 font-medium"
-                        >
-                          Phone Number *
-                        </Label>
-                        <Input
-                          id="phone"
-                          value={reservationData.customerPhone}
-                          onChange={(e) =>
-                            handleInputChange("customerPhone", e.target.value)
-                          }
-                          className="border-gray-300 focus:border-blue-500 focus:ring-blue-500"
-                          placeholder="+1 (555) 123-4567"
-                        />
-                      </div>
-                    </div>
-
-                    <div className="space-y-2">
-                      <Label
-                        htmlFor="email"
-                        className="text-gray-700 font-medium"
-                      >
-                        Email Address *
-                      </Label>
-                      <Input
-                        id="email"
-                        type="email"
-                        value={reservationData.customerEmail}
-                        onChange={(e) =>
-                          handleInputChange("customerEmail", e.target.value)
-                        }
-                        className="border-gray-300 focus:border-blue-500 focus:ring-blue-500"
-                        placeholder="your.email@example.com"
-                      />
-                    </div>
-
-                    <div className="space-y-2">
-                      <Label
-                        htmlFor="requests"
-                        className="text-gray-700 font-medium"
-                      >
-                        Special Requests (Optional)
-                      </Label>
-                      <Textarea
-                        id="requests"
-                        value={reservationData.specialRequests}
-                        onChange={(e) =>
-                          handleInputChange("specialRequests", e.target.value)
-                        }
-                        className="border-gray-300 focus:border-blue-500 focus:ring-blue-500 min-h-[100px]"
-                        placeholder="Any dietary restrictions, celebrations, or special accommodations..."
-                      />
-                    </div>
+                    ))}
                   </div>
 
                   <div className="flex justify-between mt-8">
@@ -568,10 +557,10 @@ const Reservation = () => {
                     </Button>
                     <Button
                       onClick={handleSubmitReservation}
-                      disabled={!isStepValid(3) || isLoading}
+                      disabled={!isStepValid(2) || createReservation.isPending}
                       className="bg-blue-600 hover:bg-blue-700 text-white px-8 py-3 text-lg"
                     >
-                      {isLoading ? (
+                      {createReservation.isPending ? (
                         <>
                           <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white mr-2"></div>
                           Processing...
@@ -581,127 +570,8 @@ const Reservation = () => {
                       )}
                     </Button>
                   </div>
-                </CardContent>
-              </Card>
-            </div>
-
-            {/* Reservation Summary */}
-            <div>
-              <Card className="border-gray-200 shadow-lg sticky top-8">
-                <CardHeader className="bg-blue-50 border-b border-blue-100">
-                  <CardTitle className="text-xl text-gray-900">
-                    Reservation Summary
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="p-6 bg-white">
-                  <div className="space-y-4">
-                    <div className="flex justify-between">
-                      <span className="text-gray-600">Date:</span>
-                      <span className="font-medium">
-                        {reservationData.date}
-                      </span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-gray-600">Time:</span>
-                      <span className="font-medium">
-                        {reservationData.time}
-                      </span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-gray-600">Guests:</span>
-                      <span className="font-medium">
-                        {reservationData.guests}
-                      </span>
-                    </div>
-
-                    {selectedTable && (
-                      <>
-                        <Separator className="bg-gray-200" />
-                        <div>
-                          <div className="flex justify-between mb-2">
-                            <span className="text-gray-600">Table:</span>
-                            <span className="font-medium">
-                              {selectedTable.name}
-                            </span>
-                          </div>
-                          <div className="flex justify-between">
-                            <span className="text-gray-600">Location:</span>
-                            <span className="font-medium">
-                              {selectedTable.location}
-                            </span>
-                          </div>
-                        </div>
-
-                        <Separator className="bg-gray-200" />
-                        <div className="flex justify-between text-lg font-semibold">
-                          <span>Total:</span>
-                          <span className="text-blue-600">
-                            ${getTotalPrice()}
-                          </span>
-                        </div>
-                      </>
-                    )}
-                  </div>
-                </CardContent>
-              </Card>
-            </div>
-          </div>
-        )}
-
-        {currentStep === 4 && (
-          <Card className="border-green-200 shadow-lg max-w-2xl mx-auto">
-            <CardContent className="p-12 bg-white text-center">
-              <div className="mb-6">
-                <CheckCircle className="h-16 w-16 text-green-600 mx-auto mb-4" />
-                <h2 className="text-3xl font-bold text-gray-900 mb-2">
-                  Reservation Confirmed!
-                </h2>
-                <p className="text-xl text-gray-600">
-                  Thank you for choosing our restaurant
-                </p>
-              </div>
-
-              <div className="bg-gray-50 rounded-lg p-6 mb-6">
-                <h3 className="text-lg font-semibold text-gray-900 mb-4">
-                  Reservation Details
-                </h3>
-                <div className="space-y-2 text-left">
-                  <div className="flex justify-between">
-                    <span className="text-gray-600">Confirmation #:</span>
-                    <span className="font-medium">
-                      RSV-{Date.now().toString().slice(-6)}
-                    </span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-gray-600">Date & Time:</span>
-                    <span className="font-medium">
-                      {reservationData.date} at {reservationData.time}
-                    </span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-gray-600">Table:</span>
-                    <span className="font-medium">{selectedTable?.name}</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-gray-600">Guests:</span>
-                    <span className="font-medium">
-                      {reservationData.guests}
-                    </span>
-                  </div>
-                </div>
-              </div>
-
-              <p className="text-gray-600 mb-6">
-                A confirmation email has been sent to{" "}
-                {reservationData.customerEmail}
-              </p>
-
-              <Button
-                onClick={() => window.location.reload()}
-                className="bg-blue-600 hover:bg-blue-700 text-white px-8 py-3 text-lg"
-              >
-                Make Another Reservation
-              </Button>
+                </>
+              )}
             </CardContent>
           </Card>
         )}

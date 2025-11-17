@@ -27,3 +27,6 @@ __test_cache__
   "username": "exampleusername",
   "password": "Password_123!"
 }
+
+
+uvicorn main:app --reload --host 127.0.0.1 --port 8000

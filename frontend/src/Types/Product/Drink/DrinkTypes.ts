@@ -1,78 +1,72 @@
-import type { SupplierResponse } from '../Supplier/SupplierTypes';
+import type { ProductBaseCreate, ProductBaseUpdate, ProductBaseRead } from '../BaseProduct/BasePRoductTypes';
 
-export enum ReorderLevel {
-  LOW = "LOW",
-  MEDIUM = "MEDIUM",
-  HIGH = "HIGH"
+// --- Enums ---
+type DrinkSize = 'SMALL' | 'MEDIUM' | 'LARGE' | 'EXTRA_LARGE';
+
+// --- Base Types ---
+interface DrinkBase {
+  /** Size of the drink */
+  size: DrinkSize;
+  /** Whether the drink is acidic */
+  is_acidic: boolean;
 }
 
-// Base Interface
-export interface DrinkBase {
-  /** Name of the drink */
-  name: string;
-  /** Brand of the drink */
-  brand?: string | null;
-  /** Description of the drink */
-  description?: string | null;
-  /** URL to drink image */
-  image?: string | null;
-  /** Tags for categorization */
-  tags?: string | null;
-  /** Additional notes */
-  notes?: string | null;
-  /** Recommended storage temperature */
-  storage_temp?: string | null;
-  /** Size in milliliters */
-  size_ml: number;
-  /** Price of the drink */
-  price: number;
-  /** Current stock quantity */
-  in_stock: number;
-  /** Minimum stock level before reorder */
-  min_stock?: number | null;
-  /** Maximum stock capacity */
-  max_stock?: number | null;
-  /** Reorder level indicator */
-  reorder_level?: ReorderLevel;
-  /** Whether the drink is sugar-free */
-  sugar_free: boolean;
-  /** Whether the drink is carbonated */
-  carbonated: boolean;
-  /** Whether the drink should be served cold */
-  is_cold: boolean;
-  /** Supplier ID */
-  supplier_id?: number | null;
-  /** Supplier details */
-  supplier?: SupplierResponse | null;
+// --- Create Schema ---
+interface DrinkCreate extends ProductBaseCreate, DrinkBase {
+  /** Category is always 'drink' */
+  category: 'drink';
 }
 
-// Create Schema
-export type DrinkCreate = Omit<DrinkBase, 'supplier' | 'created_at' | 'updated_at' | 'deleted_at'>;
-
-// Update Schema
-export interface DrinkUpdate {
-  name?: string;
-  brand?: string | null;
-  size_ml?: number;
-  price?: number;
-  in_stock?: number;
-  reorder_level?: number;
-  sugar_free?: boolean;
-  carbonated?: boolean;
-  is_cold?: boolean;
-  description?: string | null;
-  image?: string | null;
-  supplier_id?: number | null;
+// --- Update Schema ---
+interface DrinkUpdate extends ProductBaseUpdate {
+  /** Size of the drink */
+  size?: DrinkSize;
+  /** Whether the drink is acidic */
+  is_acidic?: boolean;
 }
 
-// Read/Response Schema
-export interface DrinkResponse extends Omit<DrinkBase, 'supplier_id'> {
-  /** Unique identifier */
+// --- Read Schema ---
+interface DrinkRead extends ProductBaseRead, DrinkBase {
+  // Combines product base fields with drink-specific fields
+}
+
+// --- In DB Schema ---
+type DrinkInDB = DrinkRead;
+
+// --- Extended Response ---
+interface DrinkWithDetails extends DrinkRead {
+  /** Summary of the drink */
+  summary?: string;
+}
+
+// --- Drink Summary (for lists) ---
+interface DrinkSummary {
+  /** Unique drink identifier */
   id: number;
-  /** Whether the drink needs to be reordered */
-  needs_reorder: boolean;
-  /** Creation timestamp */
-  created_at: string;
-  /** Last update timestamp */
-  updated_at: string | null;
+  /** Drink name */
+  name: string;
+  /** Original price */
+  price: string;
+  /** Final price after discount */
+  final_price: string;
+  /** URL to drink image */
+  image_url: string;
+  /** Size of the drink */
+  size: DrinkSize;
+  /** Whether it's acidic */
+  is_acidic: boolean;
+  /** Whether it's active */
+  is_active: boolean;
 }
+
+// Export all interfaces
+export type {
+  DrinkSize,
+  DrinkBase,
+  DrinkCreate,
+  DrinkUpdate,
+  DrinkRead,
+  DrinkInDB,
+  DrinkWithDetails,
+  DrinkSummary
+};

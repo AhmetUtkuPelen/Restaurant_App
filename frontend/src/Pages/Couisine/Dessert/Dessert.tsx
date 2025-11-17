@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Button } from "@/Components/ui/button";
-import { Link } from "react-router-dom";
+import { Link, useParams } from "react-router-dom";
+import { useDessert, useDesserts } from "@/hooks/useProducts";
 import {
   Heart,
   ShoppingCart,
@@ -10,78 +11,54 @@ import {
   ArrowLeft,
   Clock,
   Users,
-  ChefHat,
   Award,
 } from "lucide-react";
+import { useCartStore } from "@/Zustand/Cart/CartState";
+import { useFavouriteStore } from "@/Zustand/FavouriteProduct/FavouriteProductState";
 
 const Dessert = () => {
-  // const { id } = useParams();
+  const { id } = useParams();
   const [quantity, setQuantity] = useState(1);
-  const [selectedImage, setSelectedImage] = useState(0);
-  const [isFavorite, setIsFavorite] = useState(false);
 
-  // Mock data - in real app, fetch based on id
-  const dessert = {
-    id: 1,
-    name: "Baklava",
-    description:
-      "Traditional Turkish pastry made with layers of phyllo dough, filled with chopped nuts and sweetened with honey syrup. A perfect blend of crispy texture and rich flavors that will transport you to the Mediterranean.",
-    price: 8.99,
-    originalPrice: 10.99,
-    images: [
-      "https://via.placeholder.com/600x400/1f2937/ffffff?text=Baklava+Main",
-      "https://via.placeholder.com/600x400/1f2937/ffffff?text=Baklava+Side",
-      "https://via.placeholder.com/600x400/1f2937/ffffff?text=Baklava+Close",
-    ],
-    rating: 4.8,
-    reviews: 124,
-    prepTime: "15 mins",
-    serves: "2-3 people",
-    calories: 320,
-    isPopular: true,
-    ingredients: [
-      "Phyllo dough",
-      "Mixed nuts (pistachios, walnuts)",
-      "Honey",
-      "Butter",
-      "Sugar syrup",
-      "Cinnamon",
-    ],
-    nutritionFacts: {
-      calories: 320,
-      protein: "8g",
-      carbs: "45g",
-      fat: "14g",
-      fiber: "3g",
-    },
-    allergens: ["Nuts", "Gluten", "Dairy"],
-    category: "Traditional Desserts",
-  };
+  const { data: dessert, isLoading, error } = useDessert(parseInt(id!));
+  const { data: products = [] } = useDesserts();
 
-  const relatedDesserts = [
-    {
-      id: 2,
-      name: "Kunefe",
-      price: 9.99,
-      image: "https://via.placeholder.com/200x150/1f2937/ffffff?text=Kunefe",
-      rating: 4.7,
-    },
-    {
-      id: 3,
-      name: "Rice Pudding",
-      price: 6.99,
-      image:
-        "https://via.placeholder.com/200x150/1f2937/ffffff?text=Rice+Pudding",
-      rating: 4.5,
-    },
-    {
-      id: 4,
-      name: "Tiramisu",
-      price: 12.99,
-      image: "https://via.placeholder.com/200x150/1f2937/ffffff?text=Tiramisu",
-      rating: 4.9,
-    },
-  ];
+  const addToCart = useCartStore((state) => state.addToCart);
+  const addToFavourites = useFavouriteStore((state) => state.addToFavourites);
+  const removeFromFavourites = useFavouriteStore(
+    (state) => state.removeFromFavourites
+  );
+  const isFavourite = useFavouriteStore((state) => state.isFavourite);
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-gray-900 flex items-center justify-center">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-400"></div>
+      </div>
+    );
+  }
+
+  if (error || !dessert) {
+    return (
+      <div className="min-h-screen bg-gray-900 flex items-center justify-center">
+        <div className="text-center">
+          <h2 className="text-2xl font-bold text-white mb-4">
+            Dessert Not Found
+          </h2>
+          <Link to="/desserts" className="text-blue-400 hover:text-blue-300">
+            Back to Desserts
+          </Link>
+        </div>
+      </div>
+    );
+  }
+
+  const hasDiscount = parseFloat(dessert.discount_percentage || "0") > 0;
+  const price = parseFloat(dessert.price || "0");
+  const finalPrice = parseFloat(dessert.final_price || dessert.price || "0");
+  const relatedDesserts = products
+    .filter((p) => p.id !== dessert.id)
+    .slice(0, 3);
 
   return (
     <div className="min-h-screen bg-gray-900 text-white">
@@ -113,45 +90,27 @@ const Dessert = () => {
         </Link>
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
-          {/* Product Images */}
+          {/* Product Image */}
           <div>
-            <div className="relative mb-4">
+            <div className="relative">
               <img
-                src={dessert.images[selectedImage]}
+                src={
+                  dessert.image_url ||
+                  "https://via.placeholder.com/600x400/1f2937/ffffff?text=Dessert"
+                }
                 alt={dessert.name}
                 className="w-full h-96 object-cover rounded-lg"
               />
-              {dessert.isPopular && (
+              {dessert.is_front_page && (
                 <div className="absolute top-4 left-4 bg-blue-600 text-white px-3 py-1 rounded-full text-sm font-medium">
                   Popular Choice
                 </div>
               )}
-              {dessert.originalPrice && (
+              {hasDiscount && (
                 <div className="absolute top-4 right-4 bg-red-600 text-white px-3 py-1 rounded-full text-sm font-medium">
                   On Sale
                 </div>
               )}
-            </div>
-
-            {/* Image Thumbnails */}
-            <div className="flex gap-2">
-              {dessert.images.map((image, index) => (
-                <button
-                  key={index}
-                  onClick={() => setSelectedImage(index)}
-                  className={`w-20 h-20 rounded-lg overflow-hidden border-2 transition-colors ${
-                    selectedImage === index
-                      ? "border-blue-400"
-                      : "border-gray-600"
-                  }`}
-                >
-                  <img
-                    src={image}
-                    alt={`${dessert.name} ${index + 1}`}
-                    className="w-full h-full object-cover"
-                  />
-                </button>
-              ))}
             </div>
           </div>
 
@@ -162,18 +121,34 @@ const Dessert = () => {
                 <h1 className="text-3xl font-bold text-white mb-2">
                   {dessert.name}
                 </h1>
-                <p className="text-gray-400 mb-4">{dessert.category}</p>
+                <p className="text-gray-400 mb-4">Desserts</p>
               </div>
               <button
-                onClick={() => setIsFavorite(!isFavorite)}
+                onClick={() => {
+                  if (isFavourite(dessert.id)) {
+                    removeFromFavourites(dessert.id);
+                  } else {
+                    addToFavourites({
+                      id: dessert.id,
+                      name: dessert.name,
+                      price: dessert.price,
+                      final_price: dessert.final_price,
+                      image_url: dessert.image_url,
+                      category: "dessert",
+                      description: dessert.description,
+                    });
+                  }
+                }}
                 className={`p-2 rounded-full transition-colors ${
-                  isFavorite
+                  isFavourite(dessert.id)
                     ? "text-red-400 bg-red-400/20"
                     : "text-gray-400 hover:text-red-400"
                 }`}
               >
                 <Heart
-                  className={`w-6 h-6 ${isFavorite ? "fill-current" : ""}`}
+                  className={`w-6 h-6 ${
+                    isFavourite(dessert.id) ? "fill-current" : ""
+                  }`}
                 />
               </button>
             </div>
@@ -185,30 +160,28 @@ const Dessert = () => {
                   <Star
                     key={i}
                     className={`w-5 h-5 ${
-                      i < Math.floor(dessert.rating)
-                        ? "text-yellow-400 fill-current"
-                        : "text-gray-600"
+                      i < 4 ? "text-yellow-400 fill-current" : "text-gray-600"
                     }`}
                   />
                 ))}
               </div>
-              <span className="text-gray-300">{dessert.rating}</span>
-              <span className="text-gray-400">({dessert.reviews} reviews)</span>
+              <span className="text-gray-300">4.5</span>
+              <span className="text-gray-400">(0 reviews)</span>
             </div>
 
             {/* Price */}
             <div className="flex items-center gap-3 mb-6">
               <span className="text-3xl font-bold text-blue-400">
-                ${dessert.price}
+                ${finalPrice.toFixed(2)}
               </span>
-              {dessert.originalPrice && (
+              {hasDiscount && (
                 <span className="text-xl text-gray-500 line-through">
-                  ${dessert.originalPrice}
+                  ${price.toFixed(2)}
                 </span>
               )}
-              {dessert.originalPrice && (
+              {hasDiscount && (
                 <span className="bg-red-600 text-white px-2 py-1 rounded text-sm">
-                  Save ${(dessert.originalPrice - dessert.price).toFixed(2)}
+                  Save ${(price - finalPrice).toFixed(2)}
                 </span>
               )}
             </div>
@@ -217,11 +190,11 @@ const Dessert = () => {
             <div className="grid grid-cols-3 gap-4 mb-6">
               <div className="flex items-center gap-2 text-gray-400">
                 <Clock className="w-5 h-5 text-blue-400" />
-                <span className="text-sm">{dessert.prepTime}</span>
+                <span className="text-sm">15 mins</span>
               </div>
               <div className="flex items-center gap-2 text-gray-400">
                 <Users className="w-5 h-5 text-green-400" />
-                <span className="text-sm">{dessert.serves}</span>
+                <span className="text-sm">2-3 people</span>
               </div>
               <div className="flex items-center gap-2 text-gray-400">
                 <Award className="w-5 h-5 text-yellow-400" />
@@ -258,9 +231,24 @@ const Dessert = () => {
 
             {/* Action Buttons */}
             <div className="flex gap-4 mb-4">
-              <Button className="flex-1 bg-blue-600 hover:bg-blue-700 text-white py-3 text-lg">
+              <Button
+                className="flex-1 bg-blue-600 hover:bg-blue-700 text-white py-3 text-lg"
+                onClick={() =>
+                  addToCart(
+                    {
+                      id: dessert.id,
+                      name: dessert.name,
+                      price: dessert.price,
+                      final_price: dessert.final_price,
+                      image_url: dessert.image_url,
+                      category: "dessert",
+                    },
+                    quantity
+                  )
+                }
+              >
                 <ShoppingCart className="w-5 h-5 mr-2" />
-                Add to Cart - ${(dessert.price * quantity).toFixed(2)}
+                Add to Cart - ${(finalPrice * quantity).toFixed(2)}
               </Button>
               <Button
                 variant="outline"
@@ -271,28 +259,58 @@ const Dessert = () => {
             </div>
 
             {/* Add to Favorites Button */}
-            <Button 
-              variant="outline" 
-              className="w-full mb-8 border-red-400 text-red-400 hover:bg-red-400 hover:text-white transition-colors py-3"
+            <Button
+              variant="outline"
+              onClick={() => {
+                if (isFavourite(dessert.id)) {
+                  removeFromFavourites(dessert.id);
+                } else {
+                  addToFavourites({
+                    id: dessert.id,
+                    name: dessert.name,
+                    price: dessert.price,
+                    final_price: dessert.final_price,
+                    image_url: dessert.image_url,
+                    category: "dessert",
+                    description: dessert.description,
+                  });
+                }
+              }}
+              className={`w-full mb-8 transition-colors py-3 ${
+                isFavourite(dessert.id)
+                  ? "border-red-400 bg-red-400 text-white hover:bg-red-500"
+                  : "border-red-400 text-red-400 hover:bg-red-400 hover:text-white"
+              }`}
             >
-              <Heart className="w-5 h-5 mr-2" />
-              Add to Favorites
+              <Heart
+                className={`w-5 h-5 mr-2 ${
+                  isFavourite(dessert.id) ? "fill-current" : ""
+                }`}
+              />
+              {isFavourite(dessert.id)
+                ? "Remove from Favorites"
+                : "Add to Favorites"}
             </Button>
 
             {/* Allergen Info */}
             <div className="bg-gray-800 rounded-lg p-4">
               <h3 className="font-semibold mb-2 text-yellow-400">
-                Allergen Information
+                Product Information
               </h3>
               <div className="flex flex-wrap gap-2">
-                {dessert.allergens.map((allergen) => (
-                  <span
-                    key={allergen}
-                    className="bg-yellow-600/20 text-yellow-400 px-2 py-1 rounded text-sm"
-                  >
-                    {allergen}
+                {dessert.is_vegan && (
+                  <span className="bg-green-600/20 text-green-400 px-2 py-1 rounded text-sm">
+                    Vegan
                   </span>
-                ))}
+                )}
+                {dessert.is_alergic && (
+                  <span className="bg-yellow-600/20 text-yellow-400 px-2 py-1 rounded text-sm">
+                    Contains Allergens
+                  </span>
+                )}
+                <span className="bg-blue-600/20 text-blue-400 px-2 py-1 rounded text-sm">
+                  {dessert.dessert_type}
+                </span>
               </div>
             </div>
           </div>
@@ -309,7 +327,7 @@ const Dessert = () => {
                 Nutrition Facts
               </button>
               <button className="py-4 px-1 text-gray-400 hover:text-white">
-                Reviews ({dessert.reviews})
+                Reviews (0)
               </button>
             </nav>
           </div>
@@ -319,40 +337,55 @@ const Dessert = () => {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
               <div>
                 <h3 className="text-xl font-semibold mb-4 text-blue-400">
-                  Ingredients
+                  Product Details
                 </h3>
-                <ul className="space-y-2">
-                  {dessert.ingredients.map((ingredient, index) => (
-                    <li
-                      key={index}
-                      className="flex items-center gap-2 text-gray-300"
-                    >
-                      <ChefHat className="w-4 h-4 text-blue-400" />
-                      {ingredient}
-                    </li>
-                  ))}
-                </ul>
+                <div className="bg-gray-800 rounded-lg p-4 space-y-2">
+                  <div className="flex justify-between">
+                    <span className="text-gray-400">Type:</span>
+                    <span className="text-white font-medium">
+                      {dessert.dessert_type}
+                    </span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-gray-400">Calories:</span>
+                    <span className="text-white font-medium">
+                      {dessert.calories} cal
+                    </span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-gray-400">Vegan:</span>
+                    <span className="text-white font-medium">
+                      {dessert.is_vegan ? "Yes" : "No"}
+                    </span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-gray-400">Allergens:</span>
+                    <span className="text-white font-medium">
+                      {dessert.is_alergic ? "Yes" : "No"}
+                    </span>
+                  </div>
+                </div>
               </div>
 
               <div>
                 <h3 className="text-xl font-semibold mb-4 text-blue-400">
-                  Nutrition Facts
+                  Tags
                 </h3>
-                <div className="bg-gray-800 rounded-lg p-4">
-                  <div className="grid grid-cols-2 gap-4">
-                    {Object.entries(dessert.nutritionFacts).map(
-                      ([key, value]) => (
-                        <div key={key} className="flex justify-between">
-                          <span className="text-gray-400 capitalize">
-                            {key}:
-                          </span>
-                          <span className="text-white font-medium">
-                            {value}
-                          </span>
-                        </div>
-                      )
-                    )}
-                  </div>
+                <div className="flex flex-wrap gap-2">
+                  {dessert.tags && dessert.tags.length > 0 ? (
+                    dessert.tags.map((tag, index) => (
+                      <span
+                        key={index}
+                        className="bg-gray-800 text-gray-300 px-3 py-1 rounded-full text-sm"
+                      >
+                        {tag}
+                      </span>
+                    ))
+                  ) : (
+                    <span className="text-gray-400 text-sm">
+                      No tags available
+                    </span>
+                  )}
                 </div>
               </div>
             </div>
@@ -368,11 +401,14 @@ const Dessert = () => {
             {relatedDesserts.map((item) => (
               <Link
                 key={item.id}
-                to={`/dessert/${item.id}`}
+                to={`/desserts/${item.id}`}
                 className="bg-gray-800 rounded-lg overflow-hidden hover:transform hover:scale-105 transition-all duration-300"
               >
                 <img
-                  src={item.image}
+                  src={
+                    item.image_url ||
+                    "https://via.placeholder.com/200x150/1f2937/ffffff?text=Dessert"
+                  }
                   alt={item.name}
                   className="w-full h-48 object-cover"
                 />
@@ -380,13 +416,11 @@ const Dessert = () => {
                   <h3 className="font-semibold mb-2">{item.name}</h3>
                   <div className="flex items-center justify-between">
                     <span className="text-blue-400 font-bold">
-                      ${item.price}
+                      ${parseFloat(item.final_price).toFixed(2)}
                     </span>
                     <div className="flex items-center">
                       <Star className="w-4 h-4 text-yellow-400 fill-current" />
-                      <span className="text-sm text-gray-400 ml-1">
-                        {item.rating}
-                      </span>
+                      <span className="text-sm text-gray-400 ml-1">4.5</span>
                     </div>
                   </div>
                 </div>

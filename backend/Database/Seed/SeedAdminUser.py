@@ -30,7 +30,7 @@ async def seed_admin_users():
                     "role": UserRole.ADMIN,
                     "phone": "+905551234567",
                     "address": "Admin Office, Restaurant HQ",
-                    "image_url": "https://ui-avatars.com/api/?name=Admin&background=0D8ABC&color=fff"
+                    "image_url": "https://upload.wikimedia.org/wikipedia/commons/thumb/f/f5/Typescript.svg/250px-Typescript.svg.png"
                 },
                 {
                     "username": "admin2",
@@ -39,7 +39,7 @@ async def seed_admin_users():
                     "role": UserRole.ADMIN,
                     "phone": "+905551234568",
                     "address": "Admin Office 2, Restaurant HQ",
-                    "image_url": "https://ui-avatars.com/api/?name=Admin+2&background=0D8ABC&color=fff"
+                    "image_url": "https://upload.wikimedia.org/wikipedia/commons/thumb/c/c3/Python-logo-notext.svg/150px-Python-logo-notext.svg.png"
                 },
                 {
                     "username": "superadmin",
@@ -48,7 +48,7 @@ async def seed_admin_users():
                     "role": UserRole.ADMIN,
                     "phone": "+905551234569",
                     "address": "Super Admin Office, Restaurant HQ",
-                    "image_url": "https://ui-avatars.com/api/?name=Super+Admin&background=DC143C&color=fff"
+                    "image_url": "https://res.cloudinary.com/harendra21/image/upload/v1742473055/withcodeexample.com/getting-started-with-python-fastapi-a-comprehensive-guide_tnigh2.jpg"
                 }
             ]
             

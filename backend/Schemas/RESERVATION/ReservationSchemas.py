@@ -1,6 +1,6 @@
 from pydantic import BaseModel, Field, ConfigDict, field_validator
 from typing import Optional, List
-from datetime import datetime
+from datetime import datetime, timezone
 from Utils.Enums.Enums import ReservationStatus
 
 model_conf = ConfigDict(from_attributes=True, orm_mode=True)
@@ -15,7 +15,11 @@ class ReservationBase(BaseModel):
 
     @field_validator('reservation_time')
     def validate_future_time(cls, v):
-        if v < datetime.now():
+        # Make both datetimes timezone-aware for comparison
+        now = datetime.now(timezone.utc)
+        reservation_time = v if v.tzinfo else v.replace(tzinfo=timezone.utc)
+        
+        if reservation_time < now:
             raise ValueError('Reservation time must be in the future')
         return v
 

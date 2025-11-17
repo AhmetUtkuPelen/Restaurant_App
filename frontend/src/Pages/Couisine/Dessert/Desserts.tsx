@@ -1,6 +1,7 @@
 
 
 import { useState } from "react";
+import { useDesserts } from "@/hooks/useProducts";
 import { Button } from "@/Components/ui/button";
 import { Input } from "@/Components/ui/input";
 import { Card, CardContent } from "@/Components/ui/card";
@@ -14,81 +15,19 @@ import {
   List,
   ChefHat
 } from "lucide-react";
+import { useCartStore } from "@/Zustand/Cart/CartState";
+import { useFavouriteStore } from "@/Zustand/FavouriteProduct/FavouriteProductState";
 
 const Desserts = () => {
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
   const [searchTerm, setSearchTerm] = useState('');
   const [sortBy, setSortBy] = useState('name');
 
-  const desserts = [
-    {
-      id: 1,
-      name: "Baklava",
-      description: "Traditional Turkish pastry with honey and nuts",
-      price: 8.99,
-      originalPrice: 10.99,
-      image: "https://via.placeholder.com/300x200/1f2937/ffffff?text=Baklava",
-      rating: 4.8,
-      reviews: 124,
-      isPopular: true,
-      ingredients: ["Phyllo dough", "Honey", "Pistachios", "Walnuts"]
-    },
-    {
-      id: 2,
-      name: "Tiramisu",
-      description: "Classic Italian coffee-flavored dessert",
-      price: 12.99,
-      image: "https://via.placeholder.com/300x200/1f2937/ffffff?text=Tiramisu",
-      rating: 4.9,
-      reviews: 89,
-      isPopular: false,
-      ingredients: ["Mascarpone", "Coffee", "Ladyfingers", "Cocoa"]
-    },
-    {
-      id: 3,
-      name: "Kunefe",
-      description: "Sweet cheese pastry soaked in syrup",
-      price: 9.99,
-      image: "https://via.placeholder.com/300x200/1f2937/ffffff?text=Kunefe",
-      rating: 4.7,
-      reviews: 156,
-      isPopular: true,
-      ingredients: ["Cheese", "Kadayif", "Sugar syrup", "Pistachios"]
-    },
-    {
-      id: 4,
-      name: "Chocolate Lava Cake",
-      description: "Warm chocolate cake with molten center",
-      price: 11.99,
-      image: "https://via.placeholder.com/300x200/1f2937/ffffff?text=Lava+Cake",
-      rating: 4.6,
-      reviews: 203,
-      isPopular: false,
-      ingredients: ["Dark chocolate", "Butter", "Eggs", "Vanilla"]
-    },
-    {
-      id: 5,
-      name: "Rice Pudding",
-      description: "Creamy traditional rice pudding with cinnamon",
-      price: 6.99,
-      image: "https://via.placeholder.com/300x200/1f2937/ffffff?text=Rice+Pudding",
-      rating: 4.5,
-      reviews: 78,
-      isPopular: false,
-      ingredients: ["Rice", "Milk", "Sugar", "Cinnamon"]
-    },
-    {
-      id: 6,
-      name: "Cheesecake",
-      description: "New York style cheesecake with berry compote",
-      price: 13.99,
-      image: "https://via.placeholder.com/300x200/1f2937/ffffff?text=Cheesecake",
-      rating: 4.8,
-      reviews: 167,
-      isPopular: true,
-      ingredients: ["Cream cheese", "Graham crackers", "Berries", "Sugar"]
-    }
-  ];
+  const { data: desserts = [], isLoading, error } = useDesserts();
+  const addToCart = useCartStore((state) => state.addToCart);
+  const addToFavourites = useFavouriteStore((state) => state.addToFavourites);
+  const removeFromFavourites = useFavouriteStore((state) => state.removeFromFavourites);
+  const isFavourite = useFavouriteStore((state) => state.isFavourite);
 
   const filteredDesserts = desserts.filter(dessert =>
     dessert.name.toLowerCase().includes(searchTerm.toLowerCase())
@@ -163,12 +102,40 @@ const Desserts = () => {
       {/* Products Grid/List */}
       <section className="py-12 bg-gray-900">
         <div className="max-w-6xl mx-auto px-4">
-          <div className={`grid gap-6 ${
-            viewMode === 'grid' 
-              ? 'grid-cols-1 md:grid-cols-2 lg:grid-cols-3' 
-              : 'grid-cols-1'
-          }`}>
-            {filteredDesserts.map((dessert) => (
+          {/* Loading State */}
+          {isLoading && (
+            <div className="flex justify-center items-center py-20">
+              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-400"></div>
+            </div>
+          )}
+
+          {/* Error State */}
+          {error && (
+            <div className="bg-red-900/50 border border-red-500 text-red-200 px-4 py-3 rounded mb-6">
+              {error instanceof Error ? error.message : "Failed to load desserts"}
+            </div>
+          )}
+
+          {/* Empty State */}
+          {!isLoading && !error && filteredDesserts.length === 0 && (
+            <div className="text-center py-20">
+              <p className="text-gray-400 text-lg">No desserts found</p>
+            </div>
+          )}
+
+          {/* Products Grid */}
+          {!isLoading && !error && filteredDesserts.length > 0 && (
+            <div className={`grid gap-6 ${
+              viewMode === 'grid' 
+                ? 'grid-cols-1 md:grid-cols-2 lg:grid-cols-3' 
+                : 'grid-cols-1'
+            }`}>
+            {filteredDesserts.map((dessert) => {
+              const hasDiscount = parseFloat(dessert.discount_percentage || "0") > 0;
+              const price = parseFloat(dessert.price || "0");
+              const finalPrice = parseFloat(dessert.final_price || dessert.price || "0");
+              
+              return (
               <Card
                 key={dessert.id}
                 className={`bg-gray-800 border-gray-700 hover:border-blue-500 overflow-hidden hover:transform hover:scale-105 transition-all duration-300 ${
@@ -177,18 +144,18 @@ const Desserts = () => {
               >
                 <div className={`relative ${viewMode === 'list' ? 'w-64 flex-shrink-0' : ''}`}>
                   <img
-                    src={dessert.image}
+                    src={dessert.image_url || "https://via.placeholder.com/300x200/1f2937/ffffff?text=Dessert"}
                     alt={dessert.name}
                     className={`object-cover ${
                       viewMode === 'list' ? 'w-full h-full' : 'w-full h-48'
                     }`}
                   />
-                  {dessert.isPopular && (
+                  {dessert.is_front_page && (
                     <div className="absolute top-2 left-2 bg-blue-600 text-white px-2 py-1 rounded-full text-xs font-medium">
                       Popular
                     </div>
                   )}
-                  {dessert.originalPrice && (
+                  {hasDiscount && (
                     <div className="absolute top-2 right-2 bg-red-600 text-white px-2 py-1 rounded-full text-xs font-medium">
                       Sale
                     </div>
@@ -211,7 +178,7 @@ const Desserts = () => {
                         <Star
                           key={i}
                           className={`w-4 h-4 ${
-                            i < Math.floor(dessert.rating)
+                            i < 4
                               ? 'text-yellow-400 fill-current'
                               : 'text-gray-600'
                           }`}
@@ -219,23 +186,33 @@ const Desserts = () => {
                       ))}
                     </div>
                     <span className="text-sm text-gray-400">
-                      {dessert.rating} ({dessert.reviews} reviews)
+                      4.5 (0 reviews)
                     </span>
                   </div>
 
                   <div className="flex items-center gap-2 mb-4">
                     <span className="text-2xl font-bold text-blue-400">
-                      ${dessert.price}
+                      ${finalPrice.toFixed(2)}
                     </span>
-                    {dessert.originalPrice && (
+                    {hasDiscount && (
                       <span className="text-lg text-gray-500 line-through">
-                        ${dessert.originalPrice}
+                        ${price.toFixed(2)}
                       </span>
                     )}
                   </div>
 
                   <div className="flex gap-2 mb-3">
-                    <Button className="flex-1 bg-blue-600 hover:bg-blue-700 text-white">
+                    <Button 
+                      className="flex-1 bg-blue-600 hover:bg-blue-700 text-white"
+                      onClick={() => addToCart({
+                        id: dessert.id,
+                        name: dessert.name,
+                        price: dessert.price,
+                        final_price: dessert.final_price,
+                        image_url: dessert.image_url,
+                        category: "dessert"
+                      })}
+                    >
                       <ShoppingCart className="w-4 h-4 mr-2" />
                       Add to Cart
                     </Button>
@@ -249,15 +226,35 @@ const Desserts = () => {
                   
                   <Button 
                     variant="outline" 
-                    className="w-full border-red-400 text-red-400 hover:bg-red-400 hover:text-white transition-colors"
+                    onClick={() => {
+                      if (isFavourite(dessert.id)) {
+                        removeFromFavourites(dessert.id);
+                      } else {
+                        addToFavourites({
+                          id: dessert.id,
+                          name: dessert.name,
+                          price: dessert.price,
+                          final_price: dessert.final_price,
+                          image_url: dessert.image_url,
+                          category: "dessert",
+                          description: dessert.description
+                        });
+                      }
+                    }}
+                    className={`w-full transition-colors ${
+                      isFavourite(dessert.id)
+                        ? "border-red-400 bg-red-400 text-white hover:bg-red-500"
+                        : "border-red-400 text-red-400 hover:bg-red-400 hover:text-white"
+                    }`}
                   >
-                    <Heart className="w-4 h-4 mr-2" />
-                    Add to Favorites
+                    <Heart className={`w-4 h-4 mr-2 ${isFavourite(dessert.id) ? "fill-current" : ""}`} />
+                    {isFavourite(dessert.id) ? "Remove from Favorites" : "Add to Favorites"}
                   </Button>
                 </CardContent>
               </Card>
-            ))}
+            )})}
           </div>
+          )}
         </div>
       </section>
     </div>

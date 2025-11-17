@@ -1,6 +1,7 @@
 
 
 import { useState } from 'react'
+import { Link, useNavigate } from 'react-router-dom'
 import { Card, CardContent, CardHeader, CardTitle } from '@/Components/ui/card'
 import { Button } from '@/Components/ui/button'
 import { Badge } from '@/Components/ui/badge'
@@ -12,78 +13,46 @@ import {
   Trash2, 
   ShoppingCart,
   CreditCard,
-  Tag
+  Tag,
+  ArrowLeft
 } from 'lucide-react'
-
-interface CartItem {
-  id: string
-  name: string
-  category: string
-  price: number
-  quantity: number
-  image: string
-  description: string
-}
+import { useCartStore } from '@/Zustand/Cart/CartState'
 
 export const Cart = () => {
-  const [cartItems, setCartItems] = useState<CartItem[]>([
-    {
-      id: '1',
-      name: 'Chicken Doner',
-      category: 'Doner',
-      price: 12.99,
-      quantity: 2,
-      image: 'https://images.unsplash.com/photo-1529193591184-b1d58069ecdd?w=300&h=200&fit=crop',
-      description: 'Traditional chicken doner with fresh vegetables'
-    },
-    {
-      id: '2',
-      name: 'Baklava',
-      category: 'Dessert',
-      price: 8.50,
-      quantity: 1,
-      image: 'https://images.unsplash.com/photo-1571115764595-644a1f56a55c?w=300&h=200&fit=crop',
-      description: 'Sweet pastry with nuts and honey'
-    },
-    {
-      id: '3',
-      name: 'Turkish Tea',
-      category: 'Drink',
-      price: 3.99,
-      quantity: 3,
-      image: 'https://images.unsplash.com/photo-1544787219-7f47ccb76574?w=300&h=200&fit=crop',
-      description: 'Traditional Turkish black tea'
-    }
-  ])
-
+  const navigate = useNavigate()
   const [promoCode, setPromoCode] = useState('')
 
-  const updateQuantity = (id: string, newQuantity: number) => {
-    if (newQuantity === 0) {
-      removeItem(id)
-      return
-    }
-    setCartItems(items =>
-      items.map(item =>
-        item.id === id ? { ...item, quantity: newQuantity } : item
-      )
-    )
-  }
+  // Get cart data and functions from Zustand store
+  const cartItems = useCartStore((state) => state.items)
+  const updateQuantity = useCartStore((state) => state.updateQuantity)
+  const removeFromCart = useCartStore((state) => state.removeFromCart)
+  const clearCart = useCartStore((state) => state.clearCart)
+  const getTotalPrice = useCartStore((state) => state.getTotalPrice)
 
-  const removeItem = (id: string) => {
-    setCartItems(items => items.filter(item => item.id !== id))
-  }
-
-  const subtotal = cartItems.reduce((sum, item) => sum + (item.price * item.quantity), 0)
+  // Calculate totals
+  const subtotal = getTotalPrice()
   const tax = subtotal * 0.08
-  const delivery = 4.99
+  const delivery = subtotal > 30 ? 0 : 4.99 // Free delivery over $30
   const total = subtotal + tax + delivery
+
+  // Helper function to capitalize category
+  const formatCategory = (category: string) => {
+    return category.charAt(0).toUpperCase() + category.slice(1)
+  }
 
   return (
     <div className="min-h-screen bg-slate-900 py-8">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Header */}
         <div className="mb-8">
+          <Button
+            variant="ghost"
+            onClick={() => navigate(-1)}
+            className="text-slate-300 hover:text-white mb-4"
+          >
+            <ArrowLeft className="h-4 w-4 mr-2" />
+            Back
+          </Button>
           <h1 className="text-3xl font-bold text-white flex items-center">
             <ShoppingCart className="h-8 w-8 mr-3 text-blue-400" />
             Shopping Cart
@@ -99,79 +68,95 @@ export const Cart = () => {
               <ShoppingCart className="h-16 w-16 text-slate-600 mx-auto mb-4" />
               <h3 className="text-xl font-semibold text-white mb-2">Your cart is empty</h3>
               <p className="text-slate-400 mb-6">Add some delicious items to get started!</p>
-              <Button className="bg-blue-600 hover:bg-blue-700 text-white">
-                Continue Shopping
-              </Button>
+              <Link to="/">
+                <Button className="bg-blue-600 hover:bg-blue-700 text-white">
+                  Continue Shopping
+                </Button>
+              </Link>
             </CardContent>
           </Card>
         ) : (
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
             {/* Cart Items */}
             <div className="lg:col-span-2 space-y-4">
-              {cartItems.map((item) => (
-                <Card key={item.id} className="bg-slate-800 border-slate-700">
-                  <CardContent className="p-6">
-                    <div className="flex items-center space-x-4">
-                      <img
-                        src={item.image}
-                        alt={item.name}
-                        className="w-20 h-20 object-cover rounded-lg"
-                      />
-                      <div className="flex-1">
-                        <div className="flex items-start justify-between">
-                          <div>
-                            <h3 className="text-lg font-semibold text-white">{item.name}</h3>
-                            <Badge variant="secondary" className="bg-slate-700 text-slate-300 mt-1">
-                              {item.category}
-                            </Badge>
-                            <p className="text-slate-400 text-sm mt-2">{item.description}</p>
-                          </div>
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => removeItem(item.id)}
-                            className="text-red-400 hover:text-red-300 hover:bg-red-900/20"
-                          >
-                            <Trash2 className="h-4 w-4" />
-                          </Button>
-                        </div>
-                        
-                        <div className="flex items-center justify-between mt-4">
-                          <div className="flex items-center space-x-3">
+              {cartItems.map((item) => {
+                const itemPrice = parseFloat(item.final_price || item.price)
+                const itemTotal = itemPrice * item.quantity
+
+                return (
+                  <Card key={item.id} className="bg-slate-800 border-slate-700">
+                    <CardContent className="p-6">
+                      <div className="flex items-center space-x-4">
+                        <img
+                          src={item.image_url || "https://via.placeholder.com/80x80/1f2937/ffffff?text=Product"}
+                          alt={item.name}
+                          className="w-20 h-20 object-cover rounded-lg"
+                        />
+                        <div className="flex-1">
+                          <div className="flex items-start justify-between">
+                            <div>
+                              <h3 className="text-lg font-semibold text-white">{item.name}</h3>
+                              <Badge variant="secondary" className="bg-slate-700 text-slate-300 mt-1">
+                                {formatCategory(item.category)}
+                              </Badge>
+                            </div>
                             <Button
-                              variant="outline"
+                              variant="ghost"
                               size="sm"
-                              onClick={() => updateQuantity(item.id, item.quantity - 1)}
-                              className="h-8 w-8 p-0 border-slate-600 text-slate-300 hover:bg-slate-700"
+                              onClick={() => removeFromCart(item.id)}
+                              className="text-red-400 hover:text-red-300 hover:bg-red-900/20"
                             >
-                              <Minus className="h-4 w-4" />
-                            </Button>
-                            <span className="text-white font-medium w-8 text-center">
-                              {item.quantity}
-                            </span>
-                            <Button
-                              variant="outline"
-                              size="sm"
-                              onClick={() => updateQuantity(item.id, item.quantity + 1)}
-                              className="h-8 w-8 p-0 border-slate-600 text-slate-300 hover:bg-slate-700"
-                            >
-                              <Plus className="h-4 w-4" />
+                              <Trash2 className="h-4 w-4" />
                             </Button>
                           </div>
-                          <div className="text-right">
-                            <p className="text-lg font-semibold text-white">
-                              ${(item.price * item.quantity).toFixed(2)}
-                            </p>
-                            <p className="text-sm text-slate-400">
-                              ${item.price.toFixed(2)} each
-                            </p>
+                          
+                          <div className="flex items-center justify-between mt-4">
+                            <div className="flex items-center space-x-3">
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() => updateQuantity(item.id, item.quantity - 1)}
+                                className="h-8 w-8 p-0 border-slate-600 text-slate-300 hover:bg-slate-700"
+                              >
+                                <Minus className="h-4 w-4" />
+                              </Button>
+                              <span className="text-white font-medium w-8 text-center">
+                                {item.quantity}
+                              </span>
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() => updateQuantity(item.id, item.quantity + 1)}
+                                className="h-8 w-8 p-0 border-slate-600 text-slate-300 hover:bg-slate-700"
+                              >
+                                <Plus className="h-4 w-4" />
+                              </Button>
+                            </div>
+                            <div className="text-right">
+                              <p className="text-lg font-semibold text-white">
+                                ${itemTotal.toFixed(2)}
+                              </p>
+                              <p className="text-sm text-slate-400">
+                                ${itemPrice.toFixed(2)} each
+                              </p>
+                            </div>
                           </div>
                         </div>
                       </div>
-                    </div>
-                  </CardContent>
-                </Card>
-              ))}
+                    </CardContent>
+                  </Card>
+                )
+              })}
+
+              {/* Clear Cart Button */}
+              <Button
+                variant="outline"
+                onClick={clearCart}
+                className="w-full border-red-600 text-red-400 hover:bg-red-900/20 hover:text-red-300"
+              >
+                <Trash2 className="h-4 w-4 mr-2" />
+                Clear Cart
+              </Button>
             </div>
 
             {/* Order Summary */}
@@ -212,13 +197,27 @@ export const Cart = () => {
                       <span>${subtotal.toFixed(2)}</span>
                     </div>
                     <div className="flex justify-between text-slate-300">
-                      <span>Tax</span>
+                      <span>Tax (8%)</span>
                       <span>${tax.toFixed(2)}</span>
                     </div>
                     <div className="flex justify-between text-slate-300">
                       <span>Delivery</span>
-                      <span>${delivery.toFixed(2)}</span>
+                      <span className="flex items-center gap-2">
+                        {delivery === 0 ? (
+                          <>
+                            <span className="line-through text-slate-500">$4.99</span>
+                            <span className="text-green-400 font-medium">FREE</span>
+                          </>
+                        ) : (
+                          `$${delivery.toFixed(2)}`
+                        )}
+                      </span>
                     </div>
+                    {subtotal < 30 && subtotal > 0 && (
+                      <p className="text-xs text-slate-400">
+                        Add ${(30 - subtotal).toFixed(2)} more for free delivery!
+                      </p>
+                    )}
                     <Separator className="bg-slate-700" />
                     <div className="flex justify-between text-lg font-semibold text-white">
                       <span>Total</span>
@@ -231,12 +230,14 @@ export const Cart = () => {
                     Proceed to Checkout
                   </Button>
 
-                  <Button 
-                    variant="outline" 
-                    className="w-full border-slate-600 text-slate-300 hover:bg-slate-700"
-                  >
-                    Continue Shopping
-                  </Button>
+                  <Link to="/">
+                    <Button 
+                      variant="outline" 
+                      className="w-full border-slate-600 text-slate-300 hover:bg-slate-700"
+                    >
+                      Continue Shopping
+                    </Button>
+                  </Link>
                 </CardContent>
               </Card>
             </div>

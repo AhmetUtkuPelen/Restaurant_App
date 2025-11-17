@@ -1,9 +1,20 @@
 import { Button } from "@/Components/ui/button";
 import { Card, CardContent } from "@/Components/ui/card";
+import {
+  Carousel,
+  CarouselContent,
+  CarouselItem,
+  CarouselNext,
+  CarouselPrevious,
+} from "@/Components/ui/carousel";
 import { ChefHat, Clock, MapPin, Phone, Star, Utensils } from "lucide-react";
 import RestaurantImg from "../../assets/restaurant.png";
+import { useFrontPageProducts } from "@/hooks/useProducts";
+import { Link } from "react-router-dom";
 
 const Home = () => {
+  const { data: frontPageProducts = [], isLoading } = useFrontPageProducts();
+
   const features = [
     {
       icon: <Utensils className="w-8 h-8" />,
@@ -31,51 +42,41 @@ const Home = () => {
     {
       name: "Desserts",
       image: "https://via.placeholder.com/300x200/1f2937/ffffff?text=Desserts",
+      link: "/desserts",
     },
     {
       name: "Drinks",
       image: "https://via.placeholder.com/300x200/1f2937/ffffff?text=Drinks",
+      link: "/drinks",
     },
     {
       name: "Salads",
       image: "https://via.placeholder.com/300x200/1f2937/ffffff?text=Salads",
+      link: "/salads",
     },
     {
       name: "Doners",
       image: "https://via.placeholder.com/300x200/1f2937/ffffff?text=Doners",
+      link: "/doners",
     },
     {
       name: "Kebabs",
       image: "https://via.placeholder.com/300x200/1f2937/ffffff?text=Kebabs",
+      link: "/kebabs",
     },
   ];
 
-  const carouselItems = [
-    {
-      name: "Special Kebab",
-      image:
-        "https://via.placeholder.com/400x300/1f2937/ffffff?text=Special+Kebab",
-      price: "$24.99",
-    },
-    {
-      name: "Fresh Salad",
-      image:
-        "https://via.placeholder.com/400x300/1f2937/ffffff?text=Fresh+Salad",
-      price: "$12.99",
-    },
-    {
-      name: "Premium Dessert",
-      image:
-        "https://via.placeholder.com/400x300/1f2937/ffffff?text=Premium+Dessert",
-      price: "$8.99",
-    },
-    {
-      name: "Refreshing Drink",
-      image:
-        "https://via.placeholder.com/400x300/1f2937/ffffff?text=Refreshing+Drink",
-      price: "$5.99",
-    },
-  ];
+  // Helper function to get product link based on category
+  const getProductLink = (category: string, id: number) => {
+    const categoryMap: { [key: string]: string } = {
+      dessert: "desserts",
+      doner: "doners",
+      drink: "drinks",
+      kebab: "kebabs",
+      salad: "salads",
+    };
+    return `/${categoryMap[category] || category}/${id}`;
+  };
 
   return (
     <div className="min-h-screen bg-gray-900 text-white">
@@ -107,12 +108,14 @@ const Home = () => {
             <Button className="bg-blue-600 hover:bg-blue-700 text-white px-8 py-3 text-lg">
               Order Now
             </Button>
-            <Button
+    <Link to="/reservation">
+                    <Button
               variant="outline"
               className="border-blue-400 text-blue-400 hover:bg-blue-400 hover:text-white px-8 py-3 text-lg"
             >
               Make Reservation
             </Button>
+    </Link>
           </div>
         </div>
       </section>
@@ -133,7 +136,9 @@ const Home = () => {
                   <div className="text-blue-400 mb-4 flex justify-center">
                     {feature.icon}
                   </div>
-                  <h3 className="text-xl font-semibold mb-2 text-white">{feature.title}</h3>
+                  <h3 className="text-xl font-semibold mb-2 text-white">
+                    {feature.title}
+                  </h3>
                   <p className="text-gray-400">{feature.description}</p>
                 </CardContent>
               </Card>
@@ -150,56 +155,124 @@ const Home = () => {
           </h2>
           <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-6">
             {products.map((product, index) => (
-              <Card key={index} className="group cursor-pointer bg-gray-800 border-gray-700 hover:bg-gray-700 transition-colors overflow-hidden">
-                <div className="relative">
-                  <img
-                    src={product.image}
-                    alt={product.name}
-                    className="w-full h-48 object-cover group-hover:scale-105 transition-transform duration-300"
-                  />
-                </div>
-                <CardContent className="p-4">
-                  <h3 className="text-lg font-semibold text-center text-blue-400">
-                    {product.name}
-                  </h3>
-                </CardContent>
-              </Card>
+              <Link key={index} to={product.link}>
+                <Card className="group cursor-pointer bg-gray-800 border-gray-700 hover:bg-gray-700 transition-colors overflow-hidden">
+                  <div className="relative">
+                    <img
+                      src={product.image}
+                      alt={product.name}
+                      className="w-full h-48 object-cover group-hover:scale-105 transition-transform duration-300"
+                    />
+                  </div>
+                  <CardContent className="p-4">
+                    <h3 className="text-lg font-semibold text-center text-blue-400">
+                      {product.name}
+                    </h3>
+                  </CardContent>
+                </Card>
+              </Link>
             ))}
           </div>
         </div>
       </section>
 
-      {/* Carousel Section */}
+      {/* Featured Dishes Section */}
       <section className="py-20 bg-gray-800">
-        <div className="max-w-6xl mx-auto px-4">
+        <div className="max-w-7xl mx-auto px-4">
           <h2 className="text-4xl font-bold text-center mb-16 text-blue-400">
             Featured Dishes
           </h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-            {carouselItems.map((item, index) => (
-              <Card
-                key={index}
-                className="bg-gray-900 border-gray-700 overflow-hidden hover:transform hover:scale-105 transition-all duration-300"
-              >
-                <div className="relative">
-                  <img
-                    src={item.image}
-                    alt={item.name}
-                    className="w-full h-48 object-cover"
-                  />
-                </div>
-                <CardContent className="p-4">
-                  <h3 className="text-lg font-semibold mb-2 text-white">{item.name}</h3>
-                  <p className="text-blue-400 font-bold text-xl mb-3">
-                    {item.price}
-                  </p>
-                  <Button className="w-full bg-blue-600 hover:bg-blue-700">
-                    Add to Cart
-                  </Button>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
+
+          {/* Loading State */}
+          {isLoading && (
+            <div className="flex justify-center items-center py-20">
+              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-400"></div>
+            </div>
+          )}
+
+          {/* Empty State */}
+          {!isLoading && frontPageProducts.length === 0 && (
+            <div className="text-center py-20">
+              <p className="text-gray-400 text-lg">
+                No featured dishes available at the moment
+              </p>
+            </div>
+          )}
+
+          {/* Featured Products Carousel */}
+          {!isLoading && frontPageProducts.length > 0 && (
+            <Carousel
+              opts={{
+                align: "start",
+                loop: true,
+              }}
+              className="w-full"
+            >
+              <CarouselContent className="-ml-2 md:-ml-4">
+                {frontPageProducts.map((product) => {
+                  const hasDiscount =
+                    parseFloat(product.discount_percentage || "0") > 0;
+                  const finalPrice = parseFloat(
+                    product.final_price || product.price || "0"
+                  );
+                  const originalPrice = parseFloat(product.price || "0");
+
+                  return (
+                    <CarouselItem
+                      key={product.id}
+                      className="pl-2 md:pl-4 md:basis-1/2 lg:basis-1/3 xl:basis-1/4"
+                    >
+                      <Card className="bg-gray-900 border-gray-700 overflow-hidden hover:transform hover:scale-105 transition-all duration-300">
+                        <Link to={getProductLink(product.category, product.id)}>
+                          <div className="relative">
+                            <img
+                              src={
+                                product.image_url ||
+                                "https://via.placeholder.com/400x300/1f2937/ffffff?text=Product"
+                              }
+                              alt={product.name}
+                              className="w-full h-48 object-cover"
+                            />
+                            {hasDiscount && (
+                              <div className="absolute top-2 right-2 bg-red-600 text-white px-2 py-1 rounded-full text-xs font-medium">
+                                Sale
+                              </div>
+                            )}
+                            <div className="absolute top-2 left-2 bg-blue-600 text-white px-2 py-1 rounded-full text-xs font-medium">
+                              Featured
+                            </div>
+                          </div>
+                          <CardContent className="p-4">
+                            <h3 className="text-lg font-semibold mb-2 text-white truncate">
+                              {product.name}
+                            </h3>
+                            <p className="text-gray-400 text-sm mb-3 line-clamp-2">
+                              {product.description}
+                            </p>
+                            <div className="flex items-center gap-2 mb-3">
+                              <p className="text-blue-400 font-bold text-xl">
+                                ${finalPrice.toFixed(2)}
+                              </p>
+                              {hasDiscount && (
+                                <p className="text-gray-500 line-through text-sm">
+                                  ${originalPrice.toFixed(2)}
+                                </p>
+                              )}
+                            </div>
+                            <Button className="w-full bg-blue-600 hover:bg-blue-700">
+                              View Details
+                            </Button>
+                          </CardContent>
+                        </Link>
+                      </Card>
+                    </CarouselItem>
+                  );
+                })}
+              </CarouselContent>
+              <CarouselPrevious className="hidden md:flex -left-12 bg-gray-900 border-gray-700 text-white hover:bg-gray-700" />
+              <CarouselNext className="hidden md:flex -right-12 bg-gray-900 border-gray-700 text-white hover:bg-gray-700" />
+            </Carousel>
+          )}
         </div>
       </section>
     </div>

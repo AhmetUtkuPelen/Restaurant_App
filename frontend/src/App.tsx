@@ -1,4 +1,5 @@
 import { BrowserRouter, Route, Routes} from "react-router-dom";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import Home from "./Pages/Home/Home";
 import About from "./Pages/About/About";
 import Desserts from "./Pages/Couisine/Dessert/Desserts";
@@ -26,11 +27,24 @@ import { Cart } from "./Pages/Cart/Cart";
 import { OrderHistory } from "./Pages/User/OrderHistory";
 import { FAQ } from "./Pages/About/FAQ";
 import { Terms } from "./Pages/About/Terms";
+import FavouriteProducts from "./Pages/User/FavouriteProducts";
+import UserReservation from "./Pages/User/UserReservations";
+
+
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      staleTime: 1000 * 60 * 5, // 5 minutes
+      refetchOnWindowFocus: false,
+    },
+  },
+});
 
 function App() {
   return (
-    <BrowserRouter>
-    <Header/>
+    <QueryClientProvider client={queryClient}>
+      <BrowserRouter>
+      <Header/>
 
         <Routes>
           {/* Open Routes - Accessible to everyone */}
@@ -63,6 +77,12 @@ function App() {
             <Route path="/reservation" element={<Reservation />} />
             <Route path="/profile" element={<Profile />} />
             <Route path="/settings" element={<UserSettings />} />
+            <Route path="/favouriteProducts" element={<FavouriteProducts />} />
+            <Route path="/userReservations" element={<UserReservation />} />
+
+
+
+
 
 
           {/* Admin Routes - Only for admin users */}
@@ -73,8 +93,9 @@ function App() {
           {/* Error Routes */}
           
         </Routes>
-    <Footer/>
-    </BrowserRouter>
+      <Footer/>
+      </BrowserRouter>
+    </QueryClientProvider>
   );
 }
 

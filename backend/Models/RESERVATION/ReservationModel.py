@@ -34,8 +34,6 @@ class Reservation(Base):
             "special_requests": self.special_requests,
             "created_at": self.created_at.isoformat() if self.created_at else None,
             "updated_at": self.updated_at.isoformat() if self.updated_at else None,
-            "deleted_at": self.deleted_at.isoformat() if self.deleted_at else None,
-            "payments": [payment.id for payment in self.payments]
         }
 
     def __repr__(self):

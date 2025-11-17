@@ -1,78 +1,92 @@
-import type { IngredientInResponse } from '../Ingredient/IngredientTypes';
+import type { ProductBaseCreate, ProductBaseUpdate, ProductBaseRead } from '../BaseProduct/BasePRoductTypes';
 
-// Base Interface
-export interface DonerBase {
-  /** Name of the doner */
-  name: string;
-  /** Optional description */
-  description?: string | null;
-  /** Price of the doner */
-  price: number;
-  /** Discount percentage (0-100) */
-  discount_percentage: number;
-  /** URL to doner image */
-  image?: string | null;
-  /** List of ingredient IDs */
-  ingredient_ids: number[];
-  /** Count of ingredients */
-  ingredient_count: number;
-  /** Creation timestamp */
-  created_at: string;
-  /** Last update timestamp */
-  updated_at: string | null;
-  /** Deletion timestamp if soft-deleted */
-  deleted_at: string | null;
+// --- Enums ---
+type DonerSize = 'SMALL' | 'MEDIUM' | 'LARGE' | 'EXTRA_LARGE';
+type MeatType = 'CHICKEN' | 'BEEF' | 'LAMB' | 'MIXED' | 'VEGETARIAN';
+type SpiceLevel = 'MILD' | 'MEDIUM' | 'HOT' | 'EXTRA_HOT';
+
+// --- Base Types ---
+interface DonerBase {
+  /** Size of the doner */
+  size: DonerSize;
+  /** Type of meat used */
+  meat_type: MeatType;
+  /** Spice level */
+  spice_level: SpiceLevel;
+  /** Whether the doner is vegan */
+  is_vegan: boolean;
+  /** Whether the doner contains allergens */
+  is_alergic: boolean;
 }
 
-// Create Schema
-export interface DonerCreate extends Omit<DonerBase, 'created_at' | 'updated_at' | 'deleted_at' | 'ingredient_count'> {
-  ingredient_ids: number[];
+// --- Create Schema ---
+interface DonerCreate extends ProductBaseCreate, DonerBase {
+  /** Category is always 'doner' */
+  category: 'doner';
 }
 
-// Update Schema
-export type DonerUpdate = Partial<DonerCreate>;
+// --- Update Schema ---
+interface DonerUpdate extends ProductBaseUpdate {
+  /** Size of the doner */
+  size?: DonerSize;
+  /** Type of meat used */
+  meat_type?: MeatType;
+  /** Spice level */
+  spice_level?: SpiceLevel;
+  /** Whether the doner is vegan */
+  is_vegan?: boolean;
+  /** Whether the doner contains allergens */
+  is_alergic?: boolean;
+}
 
-// Database Schema
-export interface DonerInDB extends Omit<DonerBase, 'ingredient_ids'> {
-  /** Unique identifier */
+// --- Read Schema ---
+interface DonerRead extends ProductBaseRead, DonerBase {
+  // Combines product base fields with doner-specific fields
+}
+
+// --- In DB Schema ---
+type DonerInDB = DonerRead;
+
+// --- Extended Response ---
+interface DonerWithDetails extends DonerRead {
+  /** Readable summary of the doner */
+  summary?: string;
+  /** Description summary */
+  description_summary?: string;
+}
+
+// --- Doner Summary (for lists) ---
+interface DonerSummary {
+  /** Unique doner identifier */
   id: number;
-  created_at: string;
-  updated_at: string | null;
-  deleted_at: string | null;
-}
-
-// Response Schema
-export interface DonerResponse extends DonerInDB {
-  /** Price after applying discount */
-  discounted_price: number;
-  /** Total calories in the doner */
-  total_calories: number;
-  /** Total protein content */
-  total_protein: number;
-  /** Total carbohydrates content */
-  total_carbs: number;
-  /** Total fat content */
-  total_fat: number;
-  /** Allergen warnings */
-  allergen_warning: Record<string, unknown>;
-  /** Stock warnings */
-  stock_warning: Record<string, unknown>;
-  /** List of ingredients with details */
-  ingredients: IngredientInResponse[];
-}
-
-// List View Schema
-export interface DonerForList {
-  /** Unique identifier */
-  id: number;
-  /** Name of the doner */
+  /** Doner name */
   name: string;
   /** Original price */
-  price: number;
-  /** Price after discount */
-  discounted_price: number;
+  price: string;
+  /** Final price after discount */
+  final_price: string;
   /** URL to doner image */
-  image?: string | null;
-  /** Count of ingredients */
-  ingredient_count: number;
+  image_url: string;
+  /** Size of the doner */
+  size: DonerSize;
+  /** Type of meat */
+  meat_type: MeatType;
+  /** Spice level */
+  spice_level: SpiceLevel;
+  /** Whether it's active */
+  is_active: boolean;
 }
+
+// Export all interfaces
+export type {
+  DonerSize,
+  MeatType,
+  SpiceLevel,
+  DonerBase,
+  DonerCreate,
+  DonerUpdate,
+  DonerRead,
+  DonerInDB,
+  DonerWithDetails,
+  DonerSummary
+};

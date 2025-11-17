@@ -1,76 +1,95 @@
-import type { IngredientInResponse } from '../Ingredient/IngredientTypes';
-import type { SupplierResponse } from '../Supplier/SupplierTypes';
+import type {
+  ProductBaseCreate,
+  ProductBaseUpdate,
+  ProductBaseRead,
+} from "../BaseProduct/BasePRoductTypes";
 
-// Base Interface
-export interface DessertBase {
-  /** Name of the dessert */
-  name: string;
-  /** Optional description */
-  description?: string | null;
-  /** Price of the dessert */
-  price: number;
-  /** Discount percentage (0-100) */
-  discount_percentage: number;
-  /** URL to dessert image */
-  image?: string | null;
-  /** List of ingredient IDs */
-  ingredient_ids: number[];
-  /** Count of ingredients */
-  ingredient_count: number;
-  /** Optional supplier ID */
-  supplier_id?: number | null;
-  /** Optional supplier details */
-  supplier?: SupplierResponse | null;
-  /** Creation timestamp */
-  created_at: string;
-  /** Last update timestamp */
-  updated_at: string | null;
-  /** Deletion timestamp if soft-deleted */
-  deleted_at: string | null;
+// --- Enums ---
+type DessertType =
+  | "CAKE"
+  | "PIE"
+  | "PUDDING"
+  | "ICE_CREAM"
+  | "PASTRY"
+  | "COOKIE"
+  | "OTHER";
+
+// --- Base Types ---
+interface DessertBase {
+  /** Whether the dessert is vegan */
+  is_vegan: boolean;
+  /** Whether the dessert contains allergens */
+  is_alergic: boolean;
+  /** Type of dessert */
+  dessert_type: DessertType;
+  /** Calories per serving */
+  calories: number;
 }
 
-// Create Schema
-export type DessertCreate = Omit<DessertBase, 'created_at' | 'updated_at' | 'deleted_at' | 'ingredient_count'>;
+// --- Create Schema ---
+interface DessertCreate extends ProductBaseCreate, DessertBase {
+  /** Category is always 'dessert' */
+  category: "dessert";
+}
 
-// Update Schema
-export type DessertUpdate = Partial<DessertCreate>;
+// --- Update Schema ---
+interface DessertUpdate extends ProductBaseUpdate {
+  /** Whether the dessert is vegan */
+  is_vegan?: boolean;
+  /** Whether the dessert contains allergens */
+  is_alergic?: boolean;
+  /** Type of dessert */
+  dessert_type?: DessertType;
+  /** Calories per serving */
+  calories?: number;
+}
 
-// Database Schema
-export interface DessertInDB extends Omit<DessertBase, 'ingredient_ids' | 'supplier'> {
-  /** Unique identifier */
+// --- Read Schema ---
+interface DessertRead extends ProductBaseRead, DessertBase {
+  // Combines product base fields with dessert-specific fields
+}
+
+// --- In DB Schema ---
+type DessertInDB = DessertRead;
+
+// --- Extended Response ---
+interface DessertWithDetails extends DessertRead {
+  /** Allergen warning message */
+  alergen_warning?: string;
+  /** Vegan status message */
+  vegan_warning?: string;
+}
+
+// --- Dessert Summary (for lists) ---
+interface DessertSummary {
+  /** Unique dessert identifier */
   id: number;
-}
-
-// Response Schema
-export interface DessertResponse extends DessertInDB {
-  /** Price after applying discount */
-  discounted_price: number;
-  /** Total calories in the dessert */
-  total_calories: number;
-  /** Total protein content */
-  total_protein: number;
-  /** Total carbohydrates content */
-  total_carbs: number;
-  /** Total fat content */
-  total_fat: number;
-  /** Allergen warnings */
-  allergen_warning: Record<string, unknown>;
-  /** List of ingredients with details */
-  ingredients: IngredientInResponse[];
-}
-
-// List View Schema
-export interface DessertForList {
-  /** Unique identifier */
-  id: number;
-  /** Name of the dessert */
+  /** Dessert name */
   name: string;
   /** Original price */
-  price: number;
-  /** Price after discount */
-  discounted_price: number;
+  price: string;
+  /** Final price after discount */
+  final_price: string;
   /** URL to dessert image */
-  image?: string | null;
-  /** Count of ingredients */
-  ingredient_count: number;
+  image_url: string;
+  /** Type of dessert */
+  dessert_type: DessertType;
+  /** Whether it's vegan */
+  is_vegan: boolean;
+  /** Calories per serving */
+  calories: number;
+  /** Whether it's active */
+  is_active: boolean;
 }
+
+// Export all interfaces
+export type {
+  DessertType,
+  DessertBase,
+  DessertCreate,
+  DessertUpdate,
+  DessertRead,
+  DessertInDB,
+  DessertWithDetails,
+  DessertSummary,
+};

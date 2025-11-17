@@ -1,48 +1,72 @@
-
-
 import { useState } from "react";
 import { Button } from "@/Components/ui/button";
-import { Link } from "react-router-dom";
-import { 
-  Heart, 
-  ShoppingCart, 
-  Star, 
+import { Link, useParams } from "react-router-dom";
+import { useDrink, useDrinks } from "@/hooks/useProducts";
+import {
+  Heart,
+  ShoppingCart,
+  Star,
   Plus,
   Minus,
   ArrowLeft,
   Coffee,
-  Droplets
+  Droplets,
 } from "lucide-react";
+import { useCartStore } from "@/Zustand/Cart/CartState";
+import { useFavouriteStore } from "@/Zustand/FavouriteProduct/FavouriteProductState";
 
 const Drink = () => {
-  // const { id } = useParams();
+  const { id } = useParams();
   const [quantity, setQuantity] = useState(1);
-  const [isFavorite, setIsFavorite] = useState(false);
 
-  const drink = {
-    id: 1,
-    name: "Turkish Tea",
-    description: "Authentic Turkish black tea served in traditional tulip-shaped glasses. Brewed to perfection with a rich, aromatic flavor that captures the essence of Turkish hospitality.",
-    price: 3.99,
-    image: "https://via.placeholder.com/600x400/1f2937/ffffff?text=Turkish+Tea",
-    rating: 4.7,
-    reviews: 89,
-    category: "Hot Drinks",
-    size: "Regular (200ml)",
-    temperature: "Hot",
-    caffeine: "Medium",
-    ingredients: ["Black tea leaves", "Sugar (optional)", "Lemon (optional)"],
-    isPopular: true
-  };
+  const { data: drink, isLoading, error } = useDrink(parseInt(id!));
+  const { data: products = [] } = useDrinks();
+
+  const addToCart = useCartStore((state) => state.addToCart);
+  const addToFavourites = useFavouriteStore((state) => state.addToFavourites);
+  const removeFromFavourites = useFavouriteStore(
+    (state) => state.removeFromFavourites
+  );
+  const isFavourite = useFavouriteStore((state) => state.isFavourite);
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-gray-900 flex items-center justify-center">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-400"></div>
+      </div>
+    );
+  }
+
+  if (error || !drink) {
+    return (
+      <div className="min-h-screen bg-gray-900 flex items-center justify-center">
+        <div className="text-center">
+          <h2 className="text-2xl font-bold text-white mb-4">
+            Drink Not Found
+          </h2>
+          <Link to="/drinks" className="text-blue-400 hover:text-blue-300">
+            Back to Drinks
+          </Link>
+        </div>
+      </div>
+    );
+  }
+
+  const finalPrice = parseFloat(drink.final_price);
+  const relatedDrinks = products.filter((p) => p.id !== drink.id).slice(0, 3);
 
   return (
     <div className="min-h-screen bg-gray-900 text-white">
       <div className="bg-gray-800 py-4">
         <div className="max-w-6xl mx-auto px-4">
           <div className="flex items-center gap-2 text-sm">
-            <Link to="/" className="text-gray-400 hover:text-blue-400">Home</Link>
+            <Link to="/" className="text-gray-400 hover:text-blue-400">
+              Home
+            </Link>
             <span className="text-gray-600">/</span>
-            <Link to="/drinks" className="text-gray-400 hover:text-blue-400">Drinks</Link>
+            <Link to="/drinks" className="text-gray-400 hover:text-blue-400">
+              Drinks
+            </Link>
             <span className="text-gray-600">/</span>
             <span className="text-white">{drink.name}</span>
           </div>
@@ -62,11 +86,14 @@ const Drink = () => {
           <div>
             <div className="relative mb-4">
               <img
-                src={drink.image}
+                src={
+                  drink.image_url ||
+                  "https://via.placeholder.com/600x400/1f2937/ffffff?text=Drink"
+                }
                 alt={drink.name}
                 className="w-full h-96 object-cover rounded-lg"
               />
-              {drink.isPopular && (
+              {drink.is_front_page && (
                 <div className="absolute top-4 left-4 bg-blue-600 text-white px-3 py-1 rounded-full text-sm font-medium">
                   Popular Choice
                 </div>
@@ -77,16 +104,38 @@ const Drink = () => {
           <div>
             <div className="flex items-start justify-between mb-4">
               <div>
-                <h1 className="text-3xl font-bold text-white mb-2">{drink.name}</h1>
-                <p className="text-gray-400 mb-4">{drink.category}</p>
+                <h1 className="text-3xl font-bold text-white mb-2">
+                  {drink.name}
+                </h1>
+                <p className="text-gray-400 mb-4">Drinks</p>
               </div>
               <button
-                onClick={() => setIsFavorite(!isFavorite)}
+                onClick={() => {
+                  if (isFavourite(drink.id)) {
+                    removeFromFavourites(drink.id);
+                  } else {
+                    addToFavourites({
+                      id: drink.id,
+                      name: drink.name,
+                      price: drink.price,
+                      final_price: drink.final_price,
+                      image_url: drink.image_url,
+                      category: "drink",
+                      description: drink.description,
+                    });
+                  }
+                }}
                 className={`p-2 rounded-full transition-colors ${
-                  isFavorite ? 'text-red-400 bg-red-400/20' : 'text-gray-400 hover:text-red-400'
+                  isFavourite(drink.id)
+                    ? "text-red-400 bg-red-400/20"
+                    : "text-gray-400 hover:text-red-400"
                 }`}
               >
-                <Heart className={`w-6 h-6 ${isFavorite ? 'fill-current' : ''}`} />
+                <Heart
+                  className={`w-6 h-6 ${
+                    isFavourite(drink.id) ? "fill-current" : ""
+                  }`}
+                />
               </button>
             </div>
 
@@ -96,31 +145,35 @@ const Drink = () => {
                   <Star
                     key={i}
                     className={`w-5 h-5 ${
-                      i < Math.floor(drink.rating)
-                        ? 'text-yellow-400 fill-current'
-                        : 'text-gray-600'
+                      i < 4 ? "text-yellow-400 fill-current" : "text-gray-600"
                     }`}
                   />
                 ))}
               </div>
-              <span className="text-gray-300">{drink.rating}</span>
-              <span className="text-gray-400">({drink.reviews} reviews)</span>
+              <span className="text-gray-300">4.5</span>
+              <span className="text-gray-400">(0 reviews)</span>
             </div>
 
-            <div className="text-3xl font-bold text-blue-400 mb-6">${drink.price}</div>
+            <div className="text-3xl font-bold text-blue-400 mb-6">
+              ${finalPrice.toFixed(2)}
+            </div>
 
             <div className="grid grid-cols-2 gap-4 mb-6">
               <div className="flex items-center gap-2 text-gray-400">
                 <Coffee className="w-5 h-5 text-blue-400" />
-                <span className="text-sm">{drink.temperature}</span>
+                <span className="text-sm">{drink.size}</span>
               </div>
               <div className="flex items-center gap-2 text-gray-400">
                 <Droplets className="w-5 h-5 text-green-400" />
-                <span className="text-sm">{drink.size}</span>
+                <span className="text-sm">
+                  {drink.is_acidic ? "Acidic" : "Non-Acidic"}
+                </span>
               </div>
             </div>
 
-            <p className="text-gray-300 mb-6 leading-relaxed">{drink.description}</p>
+            <p className="text-gray-300 mb-6 leading-relaxed">
+              {drink.description}
+            </p>
 
             <div className="flex items-center gap-4 mb-6">
               <span className="text-gray-300">Quantity:</span>
@@ -131,7 +184,9 @@ const Drink = () => {
                 >
                   <Minus className="w-4 h-4" />
                 </button>
-                <span className="px-4 py-2 border-x border-gray-600">{quantity}</span>
+                <span className="px-4 py-2 border-x border-gray-600">
+                  {quantity}
+                </span>
                 <button
                   onClick={() => setQuantity(quantity + 1)}
                   className="p-2 hover:bg-gray-700 transition-colors"
@@ -142,31 +197,135 @@ const Drink = () => {
             </div>
 
             <div className="flex gap-4 mb-4">
-              <Button className="flex-1 bg-blue-600 hover:bg-blue-700 text-white py-3 text-lg">
+              <Button
+                className="flex-1 bg-blue-600 hover:bg-blue-700 text-white py-3 text-lg"
+                onClick={() =>
+                  addToCart(
+                    {
+                      id: drink.id,
+                      name: drink.name,
+                      price: drink.price,
+                      final_price: drink.final_price,
+                      image_url: drink.image_url,
+                      category: "drink",
+                    },
+                    quantity
+                  )
+                }
+              >
                 <ShoppingCart className="w-5 h-5 mr-2" />
-                Add to Cart - ${(drink.price * quantity).toFixed(2)}
+                Add to Cart - ${(finalPrice * quantity).toFixed(2)}
               </Button>
-              <Button variant="outline" className="px-6 border-gray-600 text-gray-300 hover:bg-gray-700">
+              <Button
+                variant="outline"
+                className="px-6 border-gray-600 text-gray-300 hover:bg-gray-700"
+              >
                 Buy Now
               </Button>
             </div>
 
-            <Button 
-              variant="outline" 
-              className="w-full mb-8 border-red-400 text-red-400 hover:bg-red-400 hover:text-white transition-colors py-3"
+            <Button
+              variant="outline"
+              onClick={() => {
+                if (isFavourite(drink.id)) {
+                  removeFromFavourites(drink.id);
+                } else {
+                  addToFavourites({
+                    id: drink.id,
+                    name: drink.name,
+                    price: drink.price,
+                    final_price: drink.final_price,
+                    image_url: drink.image_url,
+                    category: "drink",
+                    description: drink.description,
+                  });
+                }
+              }}
+              className={`w-full mb-8 transition-colors py-3 ${
+                isFavourite(drink.id)
+                  ? "border-red-400 bg-red-400 text-white hover:bg-red-500"
+                  : "border-red-400 text-red-400 hover:bg-red-400 hover:text-white"
+              }`}
             >
-              <Heart className="w-5 h-5 mr-2" />
-              Add to Favorites
+              <Heart
+                className={`w-5 h-5 mr-2 ${
+                  isFavourite(drink.id) ? "fill-current" : ""
+                }`}
+              />
+              {isFavourite(drink.id)
+                ? "Remove from Favorites"
+                : "Add to Favorites"}
             </Button>
 
             <div className="bg-gray-800 rounded-lg p-4">
-              <h3 className="font-semibold mb-2 text-blue-400">Ingredients</h3>
-              <ul className="space-y-1">
-                {drink.ingredients.map((ingredient, index) => (
-                  <li key={index} className="text-gray-300 text-sm">• {ingredient}</li>
-                ))}
-              </ul>
+              <h3 className="font-semibold mb-2 text-blue-400">
+                Product Information
+              </h3>
+              <div className="space-y-2">
+                <div className="flex justify-between">
+                  <span className="text-gray-400">Size:</span>
+                  <span className="text-white">{drink.size}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-gray-400">Type:</span>
+                  <span className="text-white">
+                    {drink.is_acidic ? "Acidic" : "Non-Acidic"}
+                  </span>
+                </div>
+                {drink.tags && drink.tags.length > 0 && (
+                  <div>
+                    <span className="text-gray-400 block mb-2">Tags:</span>
+                    <div className="flex flex-wrap gap-1">
+                      {drink.tags.map((tag, index) => (
+                        <span
+                          key={index}
+                          className="bg-blue-600/20 text-blue-400 px-2 py-1 rounded text-xs"
+                        >
+                          {tag}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
             </div>
+          </div>
+        </div>
+
+        {/* Related Products */}
+        <div className="mt-16">
+          <h2 className="text-2xl font-bold mb-8 text-blue-400">
+            You Might Also Like
+          </h2>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            {relatedDrinks.map((item) => (
+              <Link
+                key={item.id}
+                to={`/drinks/${item.id}`}
+                className="bg-gray-800 rounded-lg overflow-hidden hover:transform hover:scale-105 transition-all duration-300"
+              >
+                <img
+                  src={
+                    item.image_url ||
+                    "https://via.placeholder.com/200x150/1f2937/ffffff?text=Drink"
+                  }
+                  alt={item.name}
+                  className="w-full h-48 object-cover"
+                />
+                <div className="p-4">
+                  <h3 className="font-semibold mb-2">{item.name}</h3>
+                  <div className="flex items-center justify-between">
+                    <span className="text-blue-400 font-bold">
+                      ${parseFloat(item.final_price).toFixed(2)}
+                    </span>
+                    <div className="flex items-center">
+                      <Star className="w-4 h-4 text-yellow-400 fill-current" />
+                      <span className="text-sm text-gray-400 ml-1">4.5</span>
+                    </div>
+                  </div>
+                </div>
+              </Link>
+            ))}
           </div>
         </div>
       </div>

@@ -1,7 +1,7 @@
 import uvicorn
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from Database.Database import init_db, engine
+from Database.Database import init_db, engine, sync_engine
 from contextlib import asynccontextmanager
 import os
 from dotenv import load_dotenv
@@ -41,6 +41,8 @@ from Routes.PRODUCT.Salad.SaladRoutes import SaladRouter
 from Routes.PRODUCT.FavouriteProduct.FavouriteProductRoutes import FavouriteProductRouter
 from Routes.COMMENT.CommentRoutes import CommentRouter
 from Routes.CART.CartRoutes import CartRouter
+from Routes.ORDER.OrderRoutes import OrderRouter
+from Routes.PAYMENT.PaymentRoutes import PaymentRouter
 
 
 
@@ -79,6 +81,26 @@ async def lifespan(app: FastAPI):
             print(" Admin users seeded successfully.")
         except Exception as e:
             print(f" Warning: Admin user seeding failed: {str(e)}")
+    
+    # Optional: Seed products on startup (set SEED_PRODUCTS=true in .env)
+    if os.getenv("SEED_PRODUCTS", "false").lower() == "true":
+        print(" Seeding products...")
+        from Database.Seed.SeedAllProducts import seed_all_products
+        try:
+            await seed_all_products()
+            print(" Products seeded successfully.")
+        except Exception as e:
+            print(f" Warning: Product seeding failed: {str(e)}")
+    
+    # Optional: Seed tables on startup (set SEED_TABLES=true in .env)
+    if os.getenv("SEED_TABLES", "false").lower() == "true":
+        print(" Seeding tables...")
+        from Database.Seed.SeedTables import seed_tables
+        try:
+            await seed_tables()
+            print(" Tables seeded successfully.")
+        except Exception as e:
+            print(f" Warning: Table seeding failed: {str(e)}")
 
     # Yield control to FastAPI (the app runs during this time)
     yield
@@ -134,7 +156,7 @@ app.add_middleware(SlowAPIMiddleware)
 
 ########## SQL ADMIN CONFIG ##########
 
-admin = Admin(app, engine)
+admin = Admin(app, sync_engine)
 
 # SQLAdmin syntax: pass model as parameter in class definition
 class UserModelForAdmin(ModelView, model=User):
@@ -186,10 +208,10 @@ class SaladModelForAdmin(ModelView, model=Salad):
     column_sortable_list = [Salad.name, Salad.description, Salad.price, Salad.image_url]
 
 class CommentModelForAdmin(ModelView, model=Comment):
-    column_list = [Comment.id, Comment.user_id, Comment.product_id, Comment.comment, Comment.rating]
-    column_searchable_list = [Comment.user_id, Comment.product_id, Comment.comment, Comment.rating]
-    column_filters = [Comment.user_id, Comment.product_id, Comment.comment, Comment.rating]
-    column_sortable_list = [Comment.user_id, Comment.product_id, Comment.comment, Comment.rating]
+    column_list = [Comment.id, Comment.user_id, Comment.product_id, Comment.content, Comment.rating]
+    column_searchable_list = [Comment.user_id, Comment.product_id, Comment.content, Comment.rating]
+    column_filters = [Comment.user_id, Comment.product_id, Comment.content, Comment.rating]
+    column_sortable_list = [Comment.user_id, Comment.product_id, Comment.content, Comment.rating]
 
 
 admin.add_view(UserModelForAdmin)
@@ -218,6 +240,8 @@ app.include_router(SaladRouter, prefix="/api")
 app.include_router(FavouriteProductRouter, prefix="/api")
 app.include_router(CommentRouter, prefix="/api")
 app.include_router(CartRouter, prefix="/api")
+app.include_router(OrderRouter, prefix="/api")
+app.include_router(PaymentRouter, prefix="/api")
 ### ROUTES ###
 
 

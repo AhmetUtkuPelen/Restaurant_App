@@ -1,6 +1,7 @@
 
 
 import { useState } from "react";
+import { useDrinks } from "@/hooks/useProducts";
 import { Button } from "@/Components/ui/button";
 import { Input } from "@/Components/ui/input";
 import { Card, CardContent } from "@/Components/ui/card";
@@ -14,85 +15,18 @@ import {
   List,
   Coffee
 } from "lucide-react";
+import { useCartStore } from "@/Zustand/Cart/CartState";
+import { useFavouriteStore } from "@/Zustand/FavouriteProduct/FavouriteProductState";
 
 const Drinks = () => {
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
   const [searchTerm, setSearchTerm] = useState('');
 
-  const drinks = [
-    {
-      id: 1,
-      name: "Turkish Tea",
-      description: "Traditional black tea served in authentic tulip glasses",
-      price: 3.99,
-      image: "https://via.placeholder.com/300x200/1f2937/ffffff?text=Turkish+Tea",
-      rating: 4.7,
-      reviews: 89,
-      isPopular: true,
-      category: "Hot Drinks",
-      size: "Regular"
-    },
-    {
-      id: 2,
-      name: "Fresh Orange Juice",
-      description: "Freshly squeezed orange juice, no added sugar",
-      price: 5.99,
-      image: "https://via.placeholder.com/300x200/1f2937/ffffff?text=Orange+Juice",
-      rating: 4.8,
-      reviews: 124,
-      isPopular: false,
-      category: "Fresh Juices",
-      size: "Large"
-    },
-    {
-      id: 3,
-      name: "Ayran",
-      description: "Traditional yogurt drink with salt and mint",
-      price: 4.99,
-      image: "https://via.placeholder.com/300x200/1f2937/ffffff?text=Ayran",
-      rating: 4.6,
-      reviews: 67,
-      isPopular: true,
-      category: "Traditional",
-      size: "Regular"
-    },
-    {
-      id: 4,
-      name: "Turkish Coffee",
-      description: "Rich and aromatic coffee prepared in traditional style",
-      price: 6.99,
-      image: "https://via.placeholder.com/300x200/1f2937/ffffff?text=Turkish+Coffee",
-      rating: 4.9,
-      reviews: 156,
-      isPopular: true,
-      category: "Hot Drinks",
-      size: "Small"
-    },
-    {
-      id: 5,
-      name: "Pomegranate Juice",
-      description: "Antioxidant-rich pomegranate juice, freshly made",
-      price: 7.99,
-      image: "https://via.placeholder.com/300x200/1f2937/ffffff?text=Pomegranate",
-      rating: 4.5,
-      reviews: 78,
-      isPopular: false,
-      category: "Fresh Juices",
-      size: "Regular"
-    },
-    {
-      id: 6,
-      name: "Mint Lemonade",
-      description: "Refreshing lemonade with fresh mint leaves",
-      price: 5.49,
-      image: "https://via.placeholder.com/300x200/1f2937/ffffff?text=Mint+Lemonade",
-      rating: 4.4,
-      reviews: 92,
-      isPopular: false,
-      category: "Cold Drinks",
-      size: "Large"
-    }
-  ];
+  const { data: drinks = [], isLoading, error } = useDrinks();
+  const addToCart = useCartStore((state) => state.addToCart);
+  const addToFavourites = useFavouriteStore((state) => state.addToFavourites);
+  const removeFromFavourites = useFavouriteStore((state) => state.removeFromFavourites);
+  const isFavourite = useFavouriteStore((state) => state.isFavourite);
 
   const filteredDrinks = drinks.filter(drink =>
     drink.name.toLowerCase().includes(searchTerm.toLowerCase())
@@ -146,12 +80,35 @@ const Drinks = () => {
 
       <section className="py-12 bg-gray-900">
         <div className="max-w-6xl mx-auto px-4">
+          {isLoading && (
+            <div className="flex justify-center items-center py-20">
+              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-400"></div>
+            </div>
+          )}
+
+          {error && (
+            <div className="bg-red-900/50 border border-red-500 text-red-200 px-4 py-3 rounded mb-6">
+              {error instanceof Error ? error.message : "Failed to load drinks"}
+            </div>
+          )}
+
+          {!isLoading && !error && filteredDrinks.length === 0 && (
+            <div className="text-center py-20">
+              <p className="text-gray-400 text-lg">No drinks found</p>
+            </div>
+          )}
+
+          {!isLoading && !error && filteredDrinks.length > 0 && (
           <div className={`grid gap-6 ${
             viewMode === 'grid' 
               ? 'grid-cols-1 md:grid-cols-2 lg:grid-cols-3' 
               : 'grid-cols-1'
           }`}>
-            {filteredDrinks.map((drink) => (
+            {filteredDrinks.map((drink) => {
+              const drinkData = drink as typeof drink & { final_price?: string; image_url?: string; image?: string; is_front_page?: boolean; isPopular?: boolean; category?: string; comments?: unknown[]; reviews?: number };
+              const finalPrice = parseFloat(drinkData.final_price || String(drink.price || "0"));
+              
+              return (
               <Card
                 key={drink.id}
                 className={`bg-gray-800 border-gray-700 hover:border-blue-500 overflow-hidden hover:transform hover:scale-105 transition-all duration-300 ${
@@ -160,13 +117,13 @@ const Drinks = () => {
               >
                 <div className={`relative ${viewMode === 'list' ? 'w-64 flex-shrink-0' : ''}`}>
                   <img
-                    src={drink.image}
+                    src={drinkData.image_url || drinkData.image || "https://via.placeholder.com/300x200/1f2937/ffffff?text=Drink"}
                     alt={drink.name}
                     className={`object-cover ${
                       viewMode === 'list' ? 'w-full h-full' : 'w-full h-48'
                     }`}
                   />
-                  {drink.isPopular && (
+                  {(drinkData.is_front_page || drinkData.isPopular) && (
                     <div className="absolute top-2 left-2 bg-blue-600 text-white px-2 py-1 rounded-full text-xs font-medium">
                       Popular
                     </div>
@@ -185,7 +142,7 @@ const Drinks = () => {
                   </div>
 
                   <p className="text-gray-400 mb-3 text-sm">{drink.description}</p>
-                  <p className="text-blue-400 text-sm mb-3">{drink.category}</p>
+                  <p className="text-blue-400 text-sm mb-3">{drinkData.category || "Drinks"}</p>
 
                   <div className="flex items-center gap-2 mb-3">
                     <div className="flex items-center">
@@ -193,7 +150,7 @@ const Drinks = () => {
                         <Star
                           key={i}
                           className={`w-4 h-4 ${
-                            i < Math.floor(drink.rating)
+                            i < 4
                               ? 'text-yellow-400 fill-current'
                               : 'text-gray-600'
                           }`}
@@ -201,14 +158,24 @@ const Drinks = () => {
                       ))}
                     </div>
                     <span className="text-sm text-gray-400">
-                      {drink.rating} ({drink.reviews} reviews)
+                      4.5 ({(drinkData.comments as unknown[])?.length || drinkData.reviews || 0} reviews)
                     </span>
                   </div>
 
-                  <div className="text-2xl font-bold text-blue-400 mb-4">${drink.price}</div>
+                  <div className="text-2xl font-bold text-blue-400 mb-4">${finalPrice.toFixed(2)}</div>
 
                   <div className="flex gap-2 mb-3">
-                    <Button className="flex-1 bg-blue-600 hover:bg-blue-700 text-white">
+                    <Button 
+                      className="flex-1 bg-blue-600 hover:bg-blue-700 text-white"
+                      onClick={() => addToCart({
+                        id: drink.id,
+                        name: drink.name,
+                        price: drink.price,
+                        final_price: drink.final_price,
+                        image_url: drink.image_url,
+                        category: "drink"
+                      })}
+                    >
                       <ShoppingCart className="w-4 h-4 mr-2" />
                       Add to Cart
                     </Button>
@@ -222,15 +189,35 @@ const Drinks = () => {
                   
                   <Button 
                     variant="outline" 
-                    className="w-full border-red-400 text-red-400 hover:bg-red-400 hover:text-white transition-colors"
+                    onClick={() => {
+                      if (isFavourite(drink.id)) {
+                        removeFromFavourites(drink.id);
+                      } else {
+                        addToFavourites({
+                          id: drink.id,
+                          name: drink.name,
+                          price: drink.price,
+                          final_price: drink.final_price,
+                          image_url: drink.image_url,
+                          category: "drink",
+                          description: drink.description
+                        });
+                      }
+                    }}
+                    className={`w-full transition-colors ${
+                      isFavourite(drink.id)
+                        ? "border-red-400 bg-red-400 text-white hover:bg-red-500"
+                        : "border-red-400 text-red-400 hover:bg-red-400 hover:text-white"
+                    }`}
                   >
-                    <Heart className="w-4 h-4 mr-2" />
-                    Add to Favorites
+                    <Heart className={`w-4 h-4 mr-2 ${isFavourite(drink.id) ? "fill-current" : ""}`} />
+                    {isFavourite(drink.id) ? "Remove from Favorites" : "Add to Favorites"}
                   </Button>
                 </CardContent>
               </Card>
-            ))}
+            )})}
           </div>
+          )}
         </div>
       </section>
     </div>

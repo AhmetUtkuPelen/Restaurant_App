@@ -62,9 +62,6 @@ class Product(Base):
             "deleted_at": self.deleted_at.isoformat() if self.deleted_at else None,
             "is_active": self.is_active,
             "is_front_page": self.is_front_page,
-            "favourited_product": [favourited_product.user_id for favourited_product in self.favourited_product],
-            "comments": [ccomment.user_id for ccomment in self.comments],
-            "cart_items": [cart_item.to_dict() for cart_item in self.cart_items]
         }
 
     def summary(self):

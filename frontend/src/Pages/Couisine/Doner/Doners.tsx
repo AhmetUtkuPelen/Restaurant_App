@@ -1,6 +1,7 @@
 
 
 import { useState } from "react";
+import { useDoners } from "@/hooks/useProducts";
 import { Button } from "@/Components/ui/button";
 import { Input } from "@/Components/ui/input";
 import { Card, CardContent } from "@/Components/ui/card";
@@ -14,87 +15,19 @@ import {
   List,
   Utensils
 } from "lucide-react";
+import { useCartStore } from "@/Zustand/Cart/CartState";
+import { useFavouriteStore } from "@/Zustand/FavouriteProduct/FavouriteProductState";
 
 const Doners = () => {
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
   const [searchTerm, setSearchTerm] = useState('');
   const [sortBy, setSortBy] = useState('name');
 
-  const doners = [
-    {
-      id: 1,
-      name: "Classic Chicken Doner",
-      description: "Tender marinated chicken served in fresh pita bread with vegetables",
-      price: 12.99,
-      image: "https://via.placeholder.com/300x200/1f2937/ffffff?text=Chicken+Doner",
-      rating: 4.8,
-      reviews: 156,
-      isPopular: true,
-      spiceLevel: "Mild",
-      ingredients: ["Chicken", "Pita bread", "Tomatoes", "Onions", "Lettuce"]
-    },
-    {
-      id: 2,
-      name: "Lamb Doner Wrap",
-      description: "Succulent lamb doner with traditional spices in a warm wrap",
-      price: 15.99,
-      originalPrice: 17.99,
-      image: "https://via.placeholder.com/300x200/1f2937/ffffff?text=Lamb+Doner",
-      rating: 4.9,
-      reviews: 203,
-      isPopular: true,
-      spiceLevel: "Medium",
-      ingredients: ["Lamb", "Tortilla wrap", "Yogurt sauce", "Cucumber", "Red onion"]
-    },
-    {
-      id: 3,
-      name: "Mixed Doner Plate",
-      description: "Combination of chicken and lamb doner with rice and salad",
-      price: 18.99,
-      image: "https://via.placeholder.com/300x200/1f2937/ffffff?text=Mixed+Doner",
-      rating: 4.7,
-      reviews: 124,
-      isPopular: false,
-      spiceLevel: "Medium",
-      ingredients: ["Chicken", "Lamb", "Rice", "Mixed salad", "Garlic sauce"]
-    },
-    {
-      id: 4,
-      name: "Vegetarian Doner",
-      description: "Plant-based protein with fresh vegetables and tahini sauce",
-      price: 11.99,
-      image: "https://via.placeholder.com/300x200/1f2937/ffffff?text=Veggie+Doner",
-      rating: 4.5,
-      reviews: 89,
-      isPopular: false,
-      spiceLevel: "Mild",
-      ingredients: ["Plant protein", "Pita bread", "Tahini", "Vegetables", "Herbs"]
-    },
-    {
-      id: 5,
-      name: "Spicy Beef Doner",
-      description: "Marinated beef with hot spices and fresh accompaniments",
-      price: 14.99,
-      image: "https://via.placeholder.com/300x200/1f2937/ffffff?text=Beef+Doner",
-      rating: 4.6,
-      reviews: 167,
-      isPopular: true,
-      spiceLevel: "Hot",
-      ingredients: ["Beef", "Pita bread", "Hot sauce", "Pickles", "Cabbage"]
-    },
-    {
-      id: 6,
-      name: "Doner Box",
-      description: "Doner meat served over fries with special sauce",
-      price: 13.99,
-      image: "https://via.placeholder.com/300x200/1f2937/ffffff?text=Doner+Box",
-      rating: 4.4,
-      reviews: 98,
-      isPopular: false,
-      spiceLevel: "Medium",
-      ingredients: ["Mixed meat", "French fries", "Special sauce", "Cheese", "Jalapeños"]
-    }
-  ];
+  const { data: doners = [], isLoading, error } = useDoners();
+  const addToCart = useCartStore((state) => state.addToCart);
+  const addToFavourites = useFavouriteStore((state) => state.addToFavourites);
+  const removeFromFavourites = useFavouriteStore((state) => state.removeFromFavourites);
+  const isFavourite = useFavouriteStore((state) => state.isFavourite);
 
   const filteredDoners = doners.filter(doner =>
     doner.name.toLowerCase().includes(searchTerm.toLowerCase())
@@ -179,12 +112,38 @@ const Doners = () => {
       {/* Products Grid/List */}
       <section className="py-12 bg-gray-900">
         <div className="max-w-6xl mx-auto px-4">
+          {isLoading && (
+            <div className="flex justify-center items-center py-20">
+              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-400"></div>
+            </div>
+          )}
+
+          {error && (
+            <div className="bg-red-900/50 border border-red-500 text-red-200 px-4 py-3 rounded mb-6">
+              {error instanceof Error ? error.message : "Failed to load doners"}
+            </div>
+          )}
+
+          {!isLoading && !error && filteredDoners.length === 0 && (
+            <div className="text-center py-20">
+              <p className="text-gray-400 text-lg">No doners found</p>
+            </div>
+          )}
+
+          {!isLoading && !error && filteredDoners.length > 0 && (
           <div className={`grid gap-6 ${
             viewMode === 'grid' 
               ? 'grid-cols-1 md:grid-cols-2 lg:grid-cols-3' 
               : 'grid-cols-1'
           }`}>
-            {filteredDoners.map((doner) => (
+            {filteredDoners.map((doner) => {
+              const donerData = doner as typeof doner & { discount_percentage?: string; final_price?: string; image_url?: string; image?: string; is_front_page?: boolean; isPopular?: boolean; originalPrice?: number; comments?: unknown[]; reviews?: number; spiceLevel?: string };
+              const hasDiscount = donerData.discount_percentage && parseFloat(donerData.discount_percentage) > 0;
+              const price = parseFloat(String(doner.price || "0"));
+              const finalPrice = parseFloat(donerData.final_price || String(doner.price || "0"));
+              const spiceLevel = (doner as typeof doner & { spice_level?: string }).spice_level || donerData.spiceLevel || "MEDIUM";
+              
+              return (
               <Card
                 key={doner.id}
                 className={`bg-gray-800 border-gray-700 hover:border-blue-500 overflow-hidden hover:transform hover:scale-105 transition-all duration-300 ${
@@ -193,24 +152,24 @@ const Doners = () => {
               >
                 <div className={`relative ${viewMode === 'list' ? 'w-64 flex-shrink-0' : ''}`}>
                   <img
-                    src={doner.image}
+                    src={donerData.image_url || donerData.image || "https://via.placeholder.com/300x200/1f2937/ffffff?text=Doner"}
                     alt={doner.name}
                     className={`object-cover ${
                       viewMode === 'list' ? 'w-full h-full' : 'w-full h-48'
                     }`}
                   />
-                  {doner.isPopular && (
+                  {(donerData.is_front_page || donerData.isPopular) && (
                     <div className="absolute top-2 left-2 bg-blue-600 text-white px-2 py-1 rounded-full text-xs font-medium">
                       Popular
                     </div>
                   )}
-                  {doner.originalPrice && (
+                  {(hasDiscount || donerData.originalPrice) && (
                     <div className="absolute top-2 right-2 bg-red-600 text-white px-2 py-1 rounded-full text-xs font-medium">
                       Sale
                     </div>
                   )}
-                  <div className={`absolute bottom-2 left-2 px-2 py-1 rounded-full text-xs font-medium ${getSpiceLevelColor(doner.spiceLevel)} bg-gray-900/80`}>
-                    🌶️ {doner.spiceLevel}
+                  <div className={`absolute bottom-2 left-2 px-2 py-1 rounded-full text-xs font-medium ${getSpiceLevelColor(spiceLevel)} bg-gray-900/80`}>
+                    🌶️ {spiceLevel}
                   </div>
                 </div>
 
@@ -230,7 +189,7 @@ const Doners = () => {
                         <Star
                           key={i}
                           className={`w-4 h-4 ${
-                            i < Math.floor(doner.rating)
+                            i < 4
                               ? 'text-yellow-400 fill-current'
                               : 'text-gray-600'
                           }`}
@@ -238,23 +197,33 @@ const Doners = () => {
                       ))}
                     </div>
                     <span className="text-sm text-gray-400">
-                      {doner.rating} ({doner.reviews} reviews)
+                      4.5 ({(donerData.comments as unknown[])?.length || donerData.reviews || 0} reviews)
                     </span>
                   </div>
 
                   <div className="flex items-center gap-2 mb-4">
                     <span className="text-2xl font-bold text-blue-400">
-                      ${doner.price}
+                      ${finalPrice.toFixed(2)}
                     </span>
-                    {doner.originalPrice && (
+                    {hasDiscount && (
                       <span className="text-lg text-gray-500 line-through">
-                        ${doner.originalPrice}
+                        ${price.toFixed(2)}
                       </span>
                     )}
                   </div>
 
                   <div className="flex gap-2 mb-3">
-                    <Button className="flex-1 bg-blue-600 hover:bg-blue-700 text-white">
+                    <Button 
+                      className="flex-1 bg-blue-600 hover:bg-blue-700 text-white"
+                      onClick={() => addToCart({
+                        id: doner.id,
+                        name: doner.name,
+                        price: doner.price,
+                        final_price: doner.final_price,
+                        image_url: doner.image_url,
+                        category: "doner"
+                      })}
+                    >
                       <ShoppingCart className="w-4 h-4 mr-2" />
                       Add to Cart
                     </Button>
@@ -268,15 +237,35 @@ const Doners = () => {
                   
                   <Button 
                     variant="outline" 
-                    className="w-full border-red-400 text-red-400 hover:bg-red-400 hover:text-white transition-colors"
+                    onClick={() => {
+                      if (isFavourite(doner.id)) {
+                        removeFromFavourites(doner.id);
+                      } else {
+                        addToFavourites({
+                          id: doner.id,
+                          name: doner.name,
+                          price: doner.price,
+                          final_price: doner.final_price,
+                          image_url: doner.image_url,
+                          category: "doner",
+                          description: doner.description
+                        });
+                      }
+                    }}
+                    className={`w-full transition-colors ${
+                      isFavourite(doner.id)
+                        ? "border-red-400 bg-red-400 text-white hover:bg-red-500"
+                        : "border-red-400 text-red-400 hover:bg-red-400 hover:text-white"
+                    }`}
                   >
-                    <Heart className="w-4 h-4 mr-2" />
-                    Add to Favorites
+                    <Heart className={`w-4 h-4 mr-2 ${isFavourite(doner.id) ? "fill-current" : ""}`} />
+                    {isFavourite(doner.id) ? "Remove from Favorites" : "Add to Favorites"}
                   </Button>
                 </CardContent>
               </Card>
-            ))}
+            )})}
           </div>
+          )}
         </div>
       </section>
     </div>
