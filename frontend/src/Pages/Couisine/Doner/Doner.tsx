@@ -16,6 +16,7 @@ import {
 } from "lucide-react";
 import { useCartStore } from "@/Zustand/Cart/CartState";
 import { useFavouriteStore } from "@/Zustand/FavouriteProduct/FavouriteProductState";
+import CommentSection from "@/Components/Comment/CommentSection";
 
 const Doner = () => {
   const { id } = useParams();
@@ -315,6 +316,9 @@ const Doner = () => {
             </div>
           </div>
         </div>
+
+        {/* Comments Section */}
+        <CommentSection productId={doner.id} />
 
         {/* Related Products */}
         <div className="mt-16">
