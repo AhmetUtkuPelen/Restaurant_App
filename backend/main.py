@@ -24,9 +24,16 @@ from Models.PRODUCT.Doner.DonerModel import Doner
 from Models.PRODUCT.Drink.DrinkModel import Drink
 from Models.PRODUCT.Kebab.KebabModel import Kebab
 from Models.PRODUCT.Salad.SaladModel import Salad
+from Models.PRODUCT.FavouriteProduct.FavouriteProductModel import FavouriteProduct
 from Models.RESERVATION.TableModel import Table
 from Models.RESERVATION.ReservationModel import Reservation
 from Models.COMMENT.CommentModel import Comment
+from Models.ORDER.OrderModel import Order
+from Models.ORDER.OrderItemModel import OrderItem
+from Models.CART.CartModel import Cart
+from Models.CART.CartItemModel import CartItem
+from Models.PAYMENT.PaymentModel import Payment
+# Import models for SQLAdmin
 
 
 # Import Routes
@@ -43,6 +50,7 @@ from Routes.COMMENT.CommentRoutes import CommentRouter
 from Routes.CART.CartRoutes import CartRouter
 from Routes.ORDER.OrderRoutes import OrderRouter
 from Routes.PAYMENT.PaymentRoutes import PaymentRouter
+# Import Routes
 
 
 
@@ -55,10 +63,12 @@ load_dotenv()
 # GET .ENV VARIABLES
 
 
+# ENV VARIABLES #
 ENVIRONMENT = os.getenv("ENVIRONMENT", "DEVELOPMENT").upper()
 DEBUG = os.getenv("DEBUG", "False").lower() == "true"
 RELOAD = os.getenv("RELOAD", "False").lower() == "true"
 PORT = os.getenv("PORT", 8000)
+# ENV VARIABLES #
 
 
 
@@ -143,15 +153,13 @@ app.add_middleware(
 )
 
 
-# -----------------------------
-# Rate limiter (slowapi) setup
-# -----------------------------
+
+# Rate limiter (slowapi) setup #
 app.state.limiter = limiter
 app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
 app.add_middleware(SlowAPIMiddleware)
-# -----------------------------
-# Rate limiter (slowapi) setup
-# -----------------------------
+# Rate limiter (slowapi) setup #
+
 
 
 ########## SQL ADMIN CONFIG ##########
@@ -207,11 +215,47 @@ class SaladModelForAdmin(ModelView, model=Salad):
     column_filters = [Salad.name, Salad.description, Salad.price, Salad.image_url]
     column_sortable_list = [Salad.name, Salad.description, Salad.price, Salad.image_url]
 
+class FavouriteProductModelForAdmin(ModelView, model=FavouriteProduct):
+    column_list = [FavouriteProduct.id, FavouriteProduct.user_id, FavouriteProduct.product_id]
+    column_searchable_list = [FavouriteProduct.user_id, FavouriteProduct.product_id]
+    column_filters = [FavouriteProduct.user_id, FavouriteProduct.product_id]
+    column_sortable_list = [FavouriteProduct.user_id, FavouriteProduct.product_id]
+
 class CommentModelForAdmin(ModelView, model=Comment):
     column_list = [Comment.id, Comment.user_id, Comment.product_id, Comment.content, Comment.rating]
     column_searchable_list = [Comment.user_id, Comment.product_id, Comment.content, Comment.rating]
     column_filters = [Comment.user_id, Comment.product_id, Comment.content, Comment.rating]
     column_sortable_list = [Comment.user_id, Comment.product_id, Comment.content, Comment.rating]
+
+class OrderModelForAdmin(ModelView, model=Order):
+    column_list = [Order.id, Order.user_id, Order.created_at, Order.total_amount, Order.status]
+    column_searchable_list = [Order.user_id, Order.created_at, Order.total_amount, Order.status]
+    column_filters = [Order.user_id, Order.created_at, Order.total_amount, Order.status]
+    column_sortable_list = [Order.user_id, Order.created_at, Order.total_amount, Order.status]
+
+class OrderItemModelForAdmin(ModelView, model=OrderItem):
+    column_list = [OrderItem.id, OrderItem.order_id, OrderItem.product_id, OrderItem.quantity, OrderItem.unit_price, OrderItem.subtotal]
+    column_searchable_list = [OrderItem.order_id, OrderItem.product_id, OrderItem.quantity, OrderItem.unit_price]
+    column_filters = [OrderItem.order_id, OrderItem.product_id, OrderItem.quantity, OrderItem.unit_price]
+    column_sortable_list = [OrderItem.order_id, OrderItem.product_id, OrderItem.quantity, OrderItem.unit_price]
+
+class CartModelForAdmin(ModelView, model=Cart):
+    column_list = [Cart.id, Cart.user_id]
+    column_searchable_list = [Cart.user_id]
+    column_filters = [Cart.user_id]
+    column_sortable_list = [Cart.user_id]
+
+class CartItemModelForAdmin(ModelView, model=CartItem):
+    column_list = [CartItem.id, CartItem.cart_id, CartItem.product_id, CartItem.quantity]
+    column_searchable_list = [CartItem.cart_id, CartItem.product_id, CartItem.quantity]
+    column_filters = [CartItem.cart_id, CartItem.product_id, CartItem.quantity]
+    column_sortable_list = [CartItem.cart_id, CartItem.product_id, CartItem.quantity]
+
+class PaymentModelForAdmin(ModelView, model=Payment):
+    column_list = [Payment.id, Payment.user_id, Payment.amount, Payment.currency, Payment.status, Payment.provider_payment_id]
+    column_searchable_list = [Payment.user_id, Payment.amount, Payment.currency, Payment.status, Payment.provider_payment_id]
+    column_filters = [Payment.user_id, Payment.amount, Payment.currency, Payment.status, Payment.provider]
+    column_sortable_list = [Payment.user_id, Payment.amount, Payment.currency, Payment.status, Payment.created_at]
 
 
 admin.add_view(UserModelForAdmin)
@@ -223,6 +267,12 @@ admin.add_view(DrinkModelForAdmin)
 admin.add_view(KebabModelForAdmin)
 admin.add_view(SaladModelForAdmin)
 admin.add_view(CommentModelForAdmin)
+admin.add_view(OrderModelForAdmin)
+admin.add_view(OrderItemModelForAdmin)
+admin.add_view(CartModelForAdmin)
+admin.add_view(CartItemModelForAdmin)
+admin.add_view(PaymentModelForAdmin)
+admin.add_view(FavouriteProductModelForAdmin)
 
 ########## SQL ADMIN CONFIG ##########
 

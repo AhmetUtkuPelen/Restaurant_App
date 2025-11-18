@@ -1,0 +1,1 @@
+### Favourite Product Schemas __init__.py file ###

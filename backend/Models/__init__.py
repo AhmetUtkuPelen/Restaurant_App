@@ -1,10 +1,9 @@
-# Import all models in the correct order to avoid circular dependencies
-# Base models first, then models that depend on them
+### Models Root __init__.py file ###
 
 # User model
 from Models.USER.UserModel import User
 
-# Product models (base first, then specific types)
+# Product models (bstarting with Base Product for others to inherits)
 from Models.PRODUCT.BaseProduct.BaseProductModel import Product
 from Models.PRODUCT.Dessert.DessertModel import Dessert
 from Models.PRODUCT.Doner.DonerModel import Doner

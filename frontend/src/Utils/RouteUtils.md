@@ -2,39 +2,30 @@
 
 This file contains route protection utilities for the React application that work with the authentication system.
 
-## Available Route Components
+## Available Route Components (4 Types)
 
-### 1. PublicRoute
+### 1. OpenRoute
 - **Purpose**: Accessible to everyone (authenticated and non-authenticated users)
-- **Use Case**: Home page, about page, contact page, product listings
+- **Use Case**: Home page, about page, contact page, product listings, login, register
+- **Behavior**: No restrictions, everyone can access
 - **Example**:
 ```tsx
-<Route path="/" element={<PublicRoute><Home /></PublicRoute>} />
+<Route path="/" element={<OpenRoute><Home /></OpenRoute>} />
+<Route path="/login" element={<OpenRoute><Login /></OpenRoute>} />
 ```
 
-### 2. AuthRoute
-- **Purpose**: Only for non-authenticated users (redirects authenticated users away)
-- **Use Case**: Login page, register page, forgot password page
-- **Behavior**: 
-  - Shows loading spinner while checking auth status
-  - Redirects authenticated users to `/dashboard`
-- **Example**:
-```tsx
-<Route path="/login" element={<AuthRoute><Login /></AuthRoute>} />
-```
-
-### 3. ProtectedRoute
+### 2. AuthenticatedRoute
 - **Purpose**: Only for authenticated users
-- **Use Case**: Dashboard, profile, user settings, cart, orders
+- **Use Case**: Profile, user settings, cart, orders, reservations, checkout
 - **Behavior**:
   - Shows loading spinner while checking auth status
   - Redirects non-authenticated users to `/login` with return URL
 - **Example**:
 ```tsx
-<Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
+<Route path="/profile" element={<AuthenticatedRoute><Profile /></AuthenticatedRoute>} />
 ```
 
-### 4. AdminRoute
+### 3. AdminRoute
 - **Purpose**: Only for users with admin role
 - **Use Case**: Admin panel, user management, system settings
 - **Behavior**:
@@ -43,19 +34,16 @@ This file contains route protection utilities for the React application that wor
   - Shows access denied page for non-admin users
 - **Example**:
 ```tsx
-<Route path="/admin/*" element={<AdminRoute><AdminPanel /></AdminRoute>} />
+<Route path="/admin" element={<AdminRoute><AdminPanel /></AdminRoute>} />
 ```
 
-### 5. StaffRoute
-- **Purpose**: For users with staff or admin role
-- **Use Case**: Staff dashboard, order management, inventory
-- **Behavior**:
-  - Shows loading spinner while checking auth status
-  - Redirects non-authenticated users to `/login` with return URL
-  - Shows access denied page for regular users
+### 4. Error Route (NotFound)
+- **Purpose**: Handles nonexistent routes
+- **Use Case**: 404 page for invalid URLs
+- **Behavior**: Shows NotFound component
 - **Example**:
 ```tsx
-<Route path="/staff/*" element={<StaffRoute><StaffPanel /></StaffRoute>} />
+<Route path="*" element={<NotFound />} />
 ```
 
 ## Features
@@ -67,44 +55,52 @@ All protected routes show a loading spinner while checking authentication status
 Protected routes remember where the user was trying to go and redirect them there after successful login.
 
 ### Access Denied Pages
-Admin and Staff routes show user-friendly access denied messages instead of just redirecting.
+Admin routes show user-friendly access denied messages with a "Go Back" button.
 
 ### Role-Based Access
-- `user`: Can access ProtectedRoute
-- `staff`: Can access ProtectedRoute and StaffRoute
-- `admin`: Can access ProtectedRoute, StaffRoute, and AdminRoute
+- **Anyone**: Can access OpenRoute
+- **Authenticated Users**: Can access OpenRoute + AuthenticatedRoute
+- **Admin Users**: Can access OpenRoute + AuthenticatedRoute + AdminRoute
 
 ## Backend Role Mapping
 Based on your backend UserRole enum:
-- `UserRole.USER` → `'user'`
-- `UserRole.STAFF` → `'staff'`
-- `UserRole.ADMIN` → `'admin'`
+- `UserRole.USER` → `'user'` → Can access Open + Authenticated routes
+- `UserRole.STAFF` → `'staff'` → Can access Open + Authenticated routes
+- `UserRole.ADMIN` → `'admin'` → Can access Open + Authenticated + Admin routes
 
 ## Usage Tips
 
-1. **Wrap your entire routing structure** with these components
-2. **Use AuthRoute for login/register** to prevent authenticated users from seeing auth pages
-3. **Use ProtectedRoute for user-specific content** like dashboard, profile
-4. **Use AdminRoute for admin-only features** like user management
-5. **Use StaffRoute for staff features** like order management
-6. **Always handle loading states** - the components do this automatically
+1. **Use OpenRoute for public content** - Home, products, login, register
+2. **Use AuthenticatedRoute for user features** - Profile, cart, orders
+3. **Use AdminRoute for admin features** - Admin panel, user management
+4. **Always include Error route** - Handles invalid URLs with `path="*"`
+5. **Loading states are automatic** - No need to handle them manually
 
-## Example App Structure
+## Complete App Structure
 ```tsx
 <Routes>
-  {/* Public */}
-  <Route path="/" element={<PublicRoute><Home /></PublicRoute>} />
+  {/* Open Routes - Everyone can access */}
+  <Route path="/" element={<OpenRoute><Home /></OpenRoute>} />
+  <Route path="/login" element={<OpenRoute><Login /></OpenRoute>} />
+  <Route path="/products" element={<OpenRoute><Products /></OpenRoute>} />
   
-  {/* Auth only */}
-  <Route path="/login" element={<AuthRoute><Login /></AuthRoute>} />
+  {/* Authenticated Routes - Only logged-in users */}
+  <Route path="/profile" element={<AuthenticatedRoute><Profile /></AuthenticatedRoute>} />
+  <Route path="/cart" element={<AuthenticatedRoute><Cart /></AuthenticatedRoute>} />
   
-  {/* User only */}
-  <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
+  {/* Admin Routes - Only admin users */}
+  <Route path="/admin" element={<AdminRoute><AdminPanel /></AdminRoute>} />
   
-  {/* Staff + Admin */}
-  <Route path="/staff/*" element={<StaffRoute><StaffPanel /></StaffRoute>} />
-  
-  {/* Admin only */}
-  <Route path="/admin/*" element={<AdminRoute><AdminPanel /></AdminRoute>} />
+  {/* Error Route - Invalid URLs */}
+  <Route path="*" element={<NotFound />} />
 </Routes>
 ```
+
+## Security Benefits
+
+✅ **Automatic Authentication Checks** - Routes check auth status automatically  
+✅ **Role-Based Access Control** - Admin routes verify admin role  
+✅ **Return URL Preservation** - Users redirected to intended page after login  
+✅ **Loading States** - Prevents flash of unauthorized content  
+✅ **Access Denied Handling** - User-friendly error messages for unauthorized access  
+✅ **404 Handling** - Graceful handling of invalid routes

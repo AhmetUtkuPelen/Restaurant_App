@@ -41,11 +41,32 @@ const Contact = () => {
     },
   ];
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    // Handle form submission here
-    console.log("Form submitted");
+const handleSubmit = async (e: React.FormEvent) => {
+  e.preventDefault();
+
+  const formData = {
+    first_name: (document.getElementById("firstName") as HTMLInputElement).value,
+    last_name: (document.getElementById("lastName") as HTMLInputElement).value,
+    email: (document.getElementById("email") as HTMLInputElement).value,
+    phone: (document.getElementById("phone") as HTMLInputElement).value,
+    subject: (document.getElementById("subject") as HTMLSelectElement).value,
+    message: (document.getElementById("message") as HTMLTextAreaElement).value,
   };
+
+  const res = await fetch("http://localhost:8000/contact", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(formData),
+  });
+
+  const json = await res.json();
+
+  if (json.status === "ok") {
+    alert("Message sent successfully!");
+  } else {
+    alert("Error sending message.");
+  }
+};
 
   return (
     <div className="min-h-screen bg-gray-900 text-white">

@@ -1,0 +1,1 @@
+### Base Product Schemas __init__.py file ###

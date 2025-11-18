@@ -28,6 +28,8 @@ import FavouriteProducts from "./Pages/User/FavouriteProducts";
 import Checkout from "./Pages/Checkout/Checkout";
 import UserReservation from "./Pages/User/UserReservations";
 import UserOrders from "./Pages/User/UserOrders"
+import NotFound from "./Pages/NotFound/NotFound";
+import { OpenRoute, AuthenticatedRoute, AdminRoute } from "./Utils/RouteUtils";
 
 
 const queryClient = new QueryClient({
@@ -47,48 +49,39 @@ function App() {
 
         <Routes>
           {/* Open Routes - Accessible to everyone */}
+          <Route path="/" element={<OpenRoute><Home /></OpenRoute>} />
+          <Route path="/about" element={<OpenRoute><About /></OpenRoute>} />
+          <Route path="/contact" element={<OpenRoute><Contact /></OpenRoute>} />
+          <Route path="/about-dev" element={<OpenRoute><AboutDev /></OpenRoute>} />
+          <Route path="/desserts" element={<OpenRoute><Desserts /></OpenRoute>} />
+          <Route path="/desserts/:id" element={<OpenRoute><Dessert /></OpenRoute>} />
+          <Route path="/doners" element={<OpenRoute><Doners /></OpenRoute>} />
+          <Route path="/doners/:id" element={<OpenRoute><Doner /></OpenRoute>} />
+          <Route path="/drinks" element={<OpenRoute><Drinks /></OpenRoute>} />
+          <Route path="/drinks/:id" element={<OpenRoute><Drink /></OpenRoute>} />
+          <Route path="/kebabs" element={<OpenRoute><Kebabs /></OpenRoute>} />
+          <Route path="/kebabs/:id" element={<OpenRoute><Kebab /></OpenRoute>} />
+          <Route path="/salads" element={<OpenRoute><Salads /></OpenRoute>} />
+          <Route path="/salads/:id" element={<OpenRoute><Salad /></OpenRoute>} />
+          <Route path="/login" element={<OpenRoute><Login /></OpenRoute>} />
+          <Route path="/register" element={<OpenRoute><Register /></OpenRoute>} />
+          <Route path="/terms" element={<OpenRoute><Terms /></OpenRoute>} />
 
-            <Route path="/" element={<Home />} />
-            <Route path="/about" element={<About />} />
-            <Route path ='/contact' element={<Contact/>} />
-            <Route path="/about-dev" element={<AboutDev />} />
-            <Route path="/desserts" element={<Desserts />} />
-            <Route path="/desserts/:id" element={<Dessert />} />
-            <Route path="/doners" element={<Doners />} />
-            <Route path="/doners/:id" element={<Doner />} />
-            <Route path="/drinks" element={<Drinks />} />
-            <Route path="/drinks/:id" element={<Drink />} />
-            <Route path="/kebabs" element={<Kebabs />} />
-            <Route path="/kebabs/:id" element={<Kebab />} />
-            <Route path="/salads" element={<Salads />} />
-            <Route path="/salads/:id" element={<Salad />} />
-            <Route path="/login" element={<Login />} />
-            <Route path="/register" element={<Register />} />
-            <Route path="/cart" element={<Cart />} />
-            <Route path="/userOrders" element={<UserOrders />} />
-            <Route path="/terms" element={<Terms />} />
-            <Route path="/checkout" element={<Checkout />} />
-
-          {/* Protected Routes - Only for authenticated users */}
-
-            <Route path="/reservation" element={<Reservation />} />
-            <Route path="/profile" element={<Profile />} />
-            <Route path="/settings" element={<UserSettings />} />
-            <Route path="/favouriteProducts" element={<FavouriteProducts />} />
-            <Route path="/userReservations" element={<UserReservation />} />
-
-
-
-
-
+          {/* Authenticated Routes - Only for authenticated users */}
+          <Route path="/reservation" element={<AuthenticatedRoute><Reservation /></AuthenticatedRoute>} />
+          <Route path="/profile" element={<AuthenticatedRoute><Profile /></AuthenticatedRoute>} />
+          <Route path="/settings" element={<AuthenticatedRoute><UserSettings /></AuthenticatedRoute>} />
+          <Route path="/favouriteProducts" element={<AuthenticatedRoute><FavouriteProducts /></AuthenticatedRoute>} />
+          <Route path="/userReservations" element={<AuthenticatedRoute><UserReservation /></AuthenticatedRoute>} />
+          <Route path="/checkout" element={<AuthenticatedRoute><Checkout /></AuthenticatedRoute>} />
+          <Route path="/cart" element={<AuthenticatedRoute><Cart /></AuthenticatedRoute>} />
+          <Route path="/userOrders" element={<AuthenticatedRoute><UserOrders /></AuthenticatedRoute>} />
 
           {/* Admin Routes - Only for admin users */}
+          <Route path="/admin" element={<AdminRoute><Admin /></AdminRoute>} />
 
-            <Route path="/admin" element={<Admin />} />
-
-
-          {/* Error Routes */}
-          
+          {/* Error Route - For nonexistent routes */}
+          <Route path="*" element={<NotFound />} />
         </Routes>
       <Footer/>
       </BrowserRouter>

@@ -1,0 +1,1 @@
+### Favourite Product Model __init__.py file ###

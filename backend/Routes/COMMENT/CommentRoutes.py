@@ -88,6 +88,7 @@ async def get_my_comments(
 
 
 @CommentRouter.put("/{comment_id}", response_model=Dict[str, Any])
+@limiter.limit("3/minute")
 async def update_comment(
     comment_id: int,
     update_data: CommentUpdate,
