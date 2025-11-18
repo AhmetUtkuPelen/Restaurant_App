@@ -95,7 +95,7 @@ const Profile = () => {
 
           <Dialog open={isSettingsOpen} onOpenChange={setIsSettingsOpen}>
             <DialogTrigger asChild>
-              <Button className="bg-blue-600 hover:bg-blue-700 text-white">
+              <Button variant="outline" className="bg-blue-600 hover:bg-white text-white hover:text-blue-500 cursor-pointer border-blue-500">
                 <Settings className="h-4 w-4 mr-2" />
                 Account Settings
               </Button>
@@ -113,7 +113,7 @@ const Profile = () => {
           {/* Main Content */}
           <div className="lg:col-span-2">
             <Tabs defaultValue="profile" className="space-y-6">
-              <TabsList className="grid w-full grid-cols-2">
+              <TabsList className="grid w-full grid-cols-2 text-blue-600">
                 <TabsTrigger value="profile" className="flex items-center">
                   <User className="h-4 w-4 mr-2" />
                   Profile
@@ -140,7 +140,7 @@ const Profile = () => {
                         variant="outline"
                         size="sm"
                         onClick={() => setIsSettingsOpen(true)}
-                        className="border-gray-300 text-gray-700 hover:bg-gray-50"
+                        className="border-gray-300 text-white hover:text-blue-500 hover:bg-gray-50 cursor-pointer bg-blue-600"
                       >
                         <Edit3 className="h-4 w-4 mr-2" />
                         Edit
@@ -161,7 +161,7 @@ const Profile = () => {
                           </AvatarFallback>
                         </Avatar>
                         <div className="flex-1">
-                          <h2 className="text-2xl font-semibold text-gray-900">
+                          <h2 className="text-2xl font-semibold text-blue-700 uppercase">
                             {userProfile.username}
                           </h2>
                           <p className="text-gray-600">
@@ -258,7 +258,7 @@ const Profile = () => {
             {/* Account Status Card */}
             <Card className="border-gray-200 shadow-sm">
               <CardHeader className="bg-white border-b border-gray-100">
-                <CardTitle className="text-lg text-gray-900">
+                <CardTitle className="text-lg text-blue-600">
                   Account Status
                 </CardTitle>
               </CardHeader>

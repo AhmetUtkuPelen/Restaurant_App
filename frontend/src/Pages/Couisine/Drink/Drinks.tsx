@@ -1,5 +1,3 @@
-
-
 import { useState } from "react";
 import { useDrinks } from "@/hooks/useProducts";
 import { Button } from "@/Components/ui/button";
@@ -69,10 +67,6 @@ const Drinks = () => {
             <Coffee className="w-12 h-12 text-blue-400" />
             <h1 className="text-5xl md:text-6xl font-bold text-blue-400">Drinks</h1>
           </div>
-          <p className="text-xl text-gray-300 max-w-2xl mx-auto">
-            Refresh yourself with our selection of traditional and modern beverages, 
-            from authentic Turkish tea to fresh fruit juices.
-          </p>
         </div>
       </section>
 
@@ -166,7 +160,6 @@ const Drinks = () => {
                   <div className="flex items-start justify-between mb-2">
                     <h3 className="text-xl font-semibold text-white">{drink.name}</h3>
                     <button className="text-gray-400 hover:text-red-400 transition-colors">
-                      <Heart className="w-5 h-5" />
                     </button>
                   </div>
 
@@ -195,7 +188,7 @@ const Drinks = () => {
 
                   <div className="flex gap-2 mb-3">
                     <Button 
-                      className="flex-1 bg-blue-600 hover:bg-blue-700 text-white"
+                      className="flex-1 bg-blue-600 hover:bg-blue-700 text-white cursor-pointer"
                       onClick={() => addToCart({
                         id: drink.id,
                         name: drink.name,
@@ -220,7 +213,7 @@ const Drinks = () => {
                     variant="outline" 
                     onClick={() => handleToggleFavourite(drink.id)}
                     disabled={addFavouriteMutation.isPending || removeFavouriteMutation.isPending}
-                    className={`w-full transition-colors ${
+                    className={`w-full transition-colors cursor-pointer ${
                       isFavourite(drink.id)
                         ? "border-red-400 bg-red-400 text-white hover:bg-red-500"
                         : "border-red-400 text-red-400 hover:bg-red-400 hover:text-white"

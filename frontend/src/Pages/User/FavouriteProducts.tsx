@@ -103,7 +103,7 @@ const FavouriteProducts = () => {
                 variant="outline"
                 onClick={handleClearAll}
                 disabled={clearFavouritesMutation.isPending}
-                className="border-red-600 text-red-400 hover:bg-red-900/20 hover:text-red-300"
+                className="border-red-600 text-red-400 hover:bg-red-900/20 hover:text-red-300 cursor-pointer"
               >
                 {clearFavouritesMutation.isPending ? (
                   <Loader2 className="w-4 h-4 mr-2 animate-spin" />
@@ -225,7 +225,7 @@ const FavouriteProducts = () => {
                       <div className="flex gap-2">
                         <Button
                           onClick={() => handleAddToCart(product)}
-                          className="flex-1 bg-blue-600 hover:bg-blue-700 text-white"
+                          className="flex-1 bg-blue-600 hover:bg-blue-700 text-white cursor-pointer"
                         >
                           <ShoppingCart className="w-4 h-4 mr-2" />
                           Add to Cart

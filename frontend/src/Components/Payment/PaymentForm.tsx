@@ -410,7 +410,7 @@ const PaymentForm = ({
             <Button
               type="submit"
               disabled={isProcessing}
-              className="w-full bg-green-600 hover:bg-green-700 text-white py-3 text-lg"
+              className="w-full bg-green-600 hover:bg-green-700 text-white py-3 text-lg cursor-pointer"
             >
               {isProcessing ? (
                 <>

@@ -153,7 +153,7 @@ const UserReservations = () => {
               </p>
             </div>
             <Link to="/reservation">
-              <Button className="bg-blue-600 hover:bg-blue-700 text-white">
+              <Button className="bg-blue-600 hover:bg-blue-700 text-white cursor-pointer">
                 <Calendar className="h-4 w-4 mr-2" />
                 New Reservation
               </Button>
@@ -290,7 +290,7 @@ const UserReservations = () => {
                             handleCancelReservation(reservation.id)
                           }
                           disabled={cancellingId === reservation.id}
-                          className="border-red-600 text-red-400 hover:bg-red-900/20 hover:text-red-300"
+                          className="border-red-600 text-red-400 hover:bg-red-900/20 hover:text-red-300 cursor-pointer"
                         >
                           {cancellingId === reservation.id ? (
                             <>

@@ -10,43 +10,43 @@ import {
   Mail,
   Clock
 } from "lucide-react";
+import Logo from "../../assets/logo.png"
 
 const Footer = () => {
+
   const currentYear = new Date().getFullYear();
 
   const socialLinks = [
     { 
       name: "Facebook", 
-      href: "https://facebook.com", 
+      href: "https://github.com/AhmetUtkuPelen", 
       icon: <Facebook className="w-5 h-5" />,
       color: "hover:text-blue-500"
     },
     { 
       name: "Instagram", 
-      href: "https://instagram.com", 
+      href: "https://github.com/AhmetUtkuPelen", 
       icon: <Instagram className="w-5 h-5" />,
       color: "hover:text-pink-500"
     },
     { 
       name: "Twitter", 
-      href: "https://twitter.com", 
+      href: "https://github.com/AhmetUtkuPelen", 
       icon: <Twitter className="w-5 h-5" />,
       color: "hover:text-blue-400"
     },
     { 
       name: "YouTube", 
-      href: "https://youtube.com", 
+      href: "https://github.com/AhmetUtkuPelen", 
       icon: <Youtube className="w-5 h-5" />,
       color: "hover:text-red-500"
     },
   ];
 
   const quickLinks = [
-    { name: "Menu", href: "/menu" },
     { name: "About Us", href: "/about" },
-    { name: "Reservations", href: "/reservations" },
+    { name: "Reservations", href: "/userReservations" },
     { name: "Contact", href: "/contact" },
-    { name: "Privacy Policy", href: "/privacy" },
     { name: "Terms of Service", href: "/terms" },
   ];
 
@@ -59,17 +59,16 @@ const Footer = () => {
           <div className="text-center md:text-left">
             <Link to="/" className="flex items-center gap-3 mb-4 justify-center md:justify-start">
               <img 
-                src="https://via.placeholder.com/50x50/3b82f6/ffffff?text=DB" 
+                src={Logo} 
                 alt="Delicious Bites Logo"
                 className="w-12 h-12 rounded-lg"
               />
               <div>
                 <h3 className="text-xl font-bold text-blue-400">Delicious Bites</h3>
-                <p className="text-xs text-gray-400">Mediterranean Cuisine</p>
               </div>
             </Link>
             <p className="text-gray-400 mb-4 leading-relaxed">
-              Bringing authentic Mediterranean flavors to your table since 1995. 
+              Bringing authentic flavors to your table since 1995. 
               Experience the taste of tradition with every bite.
             </p>
             {/* Social Media Links */}
@@ -119,7 +118,7 @@ const Footer = () => {
               </div>
               <div className="flex items-center gap-3 justify-center md:justify-start">
                 <Phone className="w-5 h-5 text-blue-400" />
-                <p className="text-gray-400">+1 (555) 123-4567</p>
+                <p className="text-gray-400">+1 (111) 111-11 11</p>
               </div>
               <div className="flex items-center gap-3 justify-center md:justify-start">
                 <Mail className="w-5 h-5 text-blue-400" />
@@ -153,9 +152,6 @@ const Footer = () => {
 
             {/* Additional Links */}
             <div className="flex gap-6 text-sm">
-              <Link to="/privacy" className="text-gray-400 hover:text-white transition-colors">
-                Privacy Policy
-              </Link>
               <Link to="/terms" className="text-gray-400 hover:text-white transition-colors">
                 Terms of Service
               </Link>

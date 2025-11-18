@@ -132,11 +132,6 @@ const Drink = () => {
                     : "text-gray-400 hover:text-red-400"
                 }`}
               >
-                <Heart
-                  className={`w-6 h-6 ${
-                    isFavourite(drink.id) ? "fill-current" : ""
-                  }`}
-                />
               </button>
             </div>
 
@@ -179,27 +174,27 @@ const Drink = () => {
             <div className="flex items-center gap-4 mb-6">
               <span className="text-gray-300">Quantity:</span>
               <div className="flex items-center border border-gray-600 rounded-lg">
-                <button
+                <Button
                   onClick={() => setQuantity(Math.max(1, quantity - 1))}
-                  className="p-2 hover:bg-gray-700 transition-colors"
+                  className="p-2 hover:text-blue-500 transition-colors cursor-pointer"
                 >
                   <Minus className="w-4 h-4" />
-                </button>
+                </Button>
                 <span className="px-4 py-2 border-x border-gray-600">
                   {quantity}
                 </span>
-                <button
+                <Button
                   onClick={() => setQuantity(quantity + 1)}
-                  className="p-2 hover:bg-gray-700 transition-colors"
+                  className="p-2 hover:text-blue-500 transition-colors cursor-pointer"
                 >
                   <Plus className="w-4 h-4" />
-                </button>
+                </Button>
               </div>
             </div>
 
             <div className="flex gap-4 mb-4">
               <Button
-                className="flex-1 bg-blue-600 hover:bg-blue-700 text-white py-3 text-lg"
+                className="flex-1 bg-blue-600 hover:bg-blue-700 text-white py-3 text-lg cursor-pointer"
                 onClick={() =>
                   addToCart(
                     {
@@ -216,12 +211,6 @@ const Drink = () => {
               >
                 <ShoppingCart className="w-5 h-5 mr-2" />
                 Add to Cart - ${(finalPrice * quantity).toFixed(2)}
-              </Button>
-              <Button
-                variant="outline"
-                className="px-6 border-gray-600 text-gray-300 hover:bg-gray-700"
-              >
-                Buy Now
               </Button>
             </div>
 
@@ -242,7 +231,7 @@ const Drink = () => {
                   });
                 }
               }}
-              className={`w-full mb-8 transition-colors py-3 ${
+              className={`w-full mb-8 transition-colors py-3 cursor-pointer ${
                 isFavourite(drink.id)
                   ? "border-red-400 bg-red-400 text-white hover:bg-red-500"
                   : "border-red-400 text-red-400 hover:bg-red-400 hover:text-white"

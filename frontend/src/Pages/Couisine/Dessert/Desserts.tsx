@@ -1,5 +1,3 @@
-
-
 import { useState } from "react";
 import { useDesserts } from "@/hooks/useProducts";
 import { Button } from "@/Components/ui/button";
@@ -23,7 +21,7 @@ import { toast } from "sonner";
 const Desserts = () => {
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
   const [searchTerm, setSearchTerm] = useState('');
-  const [sortBy, setSortBy] = useState('name');
+
 
   const { data: desserts = [], isLoading, error } = useDesserts();
   const { data: favouritesData = [] } = useMyFavourites();
@@ -76,10 +74,6 @@ const Desserts = () => {
               Desserts
             </h1>
           </div>
-          <p className="text-xl text-gray-300 max-w-2xl mx-auto">
-            Indulge in our exquisite collection of traditional and modern desserts, 
-            crafted with the finest ingredients and authentic recipes.
-          </p>
         </div>
       </section>
 
@@ -101,16 +95,6 @@ const Desserts = () => {
 
             {/* Sort and View Controls */}
             <div className="flex items-center gap-4">
-              <select
-                value={sortBy}
-                onChange={(e) => setSortBy(e.target.value)}
-                className="px-4 py-2 bg-gray-900 border border-gray-600 rounded-lg text-white focus:outline-none focus:border-blue-400"
-              >
-                <option value="name">Sort by Name</option>
-                <option value="price">Sort by Price</option>
-                <option value="rating">Sort by Rating</option>
-                <option value="popular">Popular First</option>
-              </select>
 
               <div className="flex border border-gray-600 rounded-lg overflow-hidden">
                 <button
@@ -198,7 +182,6 @@ const Desserts = () => {
                   <div className="flex items-start justify-between mb-2">
                     <h3 className="text-xl font-semibold text-white">{dessert.name}</h3>
                     <button className="text-gray-400 hover:text-red-400 transition-colors">
-                      <Heart className="w-5 h-5" />
                     </button>
                   </div>
 
@@ -235,7 +218,7 @@ const Desserts = () => {
 
                   <div className="flex gap-2 mb-3">
                     <Button 
-                      className="flex-1 bg-blue-600 hover:bg-blue-700 text-white"
+                      className="flex-1 bg-blue-600 hover:bg-blue-700 text-white cursor-pointer"
                       onClick={() => addToCart({
                         id: dessert.id,
                         name: dessert.name,
@@ -260,7 +243,7 @@ const Desserts = () => {
                     variant="outline" 
                     onClick={() => handleToggleFavourite(dessert.id)}
                     disabled={addFavouriteMutation.isPending || removeFavouriteMutation.isPending}
-                    className={`w-full transition-colors ${
+                    className={`w-full transition-colors cursor-pointer ${
                       isFavourite(dessert.id)
                         ? "border-red-400 bg-red-400 text-white hover:bg-red-500"
                         : "border-red-400 text-red-400 hover:bg-red-400 hover:text-white"

@@ -211,7 +211,7 @@ const UserSettings = () => {
           <TabsContent value="profile">
             <Card className="border-gray-200 shadow-sm">
               <CardHeader className="bg-white border-b border-gray-100">
-                <CardTitle className="text-xl text-gray-900">
+                <CardTitle className="text-xl text-blue-600">
                   Profile Information
                 </CardTitle>
                 <CardDescription className="text-gray-600">
@@ -336,7 +336,7 @@ const UserSettings = () => {
                     <Button
                       onClick={handleSaveProfile}
                       disabled={updateProfile.isPending}
-                      className="bg-blue-600 hover:bg-blue-700 text-white px-6"
+                      className="bg-blue-600 hover:bg-blue-700 text-white px-6 cursor-pointer"
                     >
                       {updateProfile.isPending ? (
                         <>
@@ -359,7 +359,7 @@ const UserSettings = () => {
           <TabsContent value="security">
             <Card className="border-gray-200 shadow-sm">
               <CardHeader className="bg-white border-b border-gray-100">
-                <CardTitle className="text-xl text-gray-900">
+                <CardTitle className="text-xl text-blue-600">
                   Change Password
                 </CardTitle>
                 <CardDescription className="text-gray-600">

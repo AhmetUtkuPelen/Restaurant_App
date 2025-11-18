@@ -230,7 +230,7 @@ const UserOrders = () => {
                           size="sm"
                           onClick={() => handleCancelOrder(order.id)}
                           disabled={cancellingOrderId === order.id}
-                          className="border-red-600 text-red-400 hover:bg-red-900/20 hover:text-red-300"
+                          className="border-red-600 text-red-400 hover:bg-red-900/20 hover:text-red-300 cursor-pointer"
                         >
                           {cancellingOrderId === order.id ? (
                             <>

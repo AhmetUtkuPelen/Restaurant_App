@@ -14,8 +14,6 @@ import {
   Heart,
   Settings,
   LogOut,
-  Phone,
-  Clock,
   ChevronDown,
   LogIn,
   UserPlus,
@@ -24,33 +22,33 @@ import {
 import { Link } from "react-router-dom";
 import { useCartStore } from "@/Zustand/Cart/CartState";
 import { useAuthStore } from "@/Zustand/Auth/AuthState";
+import Logo from "../../assets/logo.png"
 
 const Header = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
   const [isMenuDropdownOpen, setIsMenuDropdownOpen] = useState(false);
 
-  // Get cart total items
+  // Cart total items
   const totalItems = useCartStore((state) => state.getTotalItems());
 
-  // Get authentication state
+  // Authentication state
   const isAuthenticated = useAuthStore((state) => state.isAuthenticated);
   const user = useAuthStore((state) => state.user);
   const logout = useAuthStore((state) => state.logout);
 
   const navigationLinks = [
-    { name: "Home", href: "/" },
-    { name: "About", href: "/about" },
-    { name: "Contact", href: "/contact" },
+    { name: "HOME", href: "/" },
+    { name: "ABOUT", href: "/about" },
+    { name: "CONTACT", href: "/contact" },
   ];
 
   const menuCategories = [
-    { name: "Desserts", href: "/desserts" },
-    { name: "Drinks", href: "/drinks" },
-    { name: "Salads", href: "/salads" },
-    { name: "Doners", href: "/doners" },
-    { name: "Kebabs", href: "/kebabs" },
-    { name: "Special Offers", href: "/specials" },
+    { name: "DESSERTS", href: "/desserts" },
+    { name: "DRINKS", href: "/drinks" },
+    { name: "SALADS", href: "/salads" },
+    { name: "DONERS", href: "/doners" },
+    { name: "KEBABS", href: "/kebabs" },
   ];
 
   const userMenuItems = [
@@ -79,26 +77,6 @@ const Header = () => {
 
   return (
     <header className="bg-gray-900 text-white shadow-lg sticky top-0 z-50">
-      {/* Top Bar */}
-      <div className="bg-gray-800 py-2 px-4">
-        <div className="max-w-7xl mx-auto flex justify-between items-center text-sm">
-          <div className="flex items-center gap-4">
-            <div className="flex items-center gap-2">
-              <Phone className="w-4 h-4 text-blue-400" />
-              <span>+1 (555) 123-4567</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <Clock className="w-4 h-4 text-blue-400" />
-              <span>Mon-Sun: 11:00 AM - 10:00 PM</span>
-            </div>
-          </div>
-          <div className="hidden md:block">
-            <span className="text-blue-400">
-              Free delivery on orders over $30!
-            </span>
-          </div>
-        </div>
-      </div>
 
       {/* Main Header */}
       <div className="max-w-7xl mx-auto px-4 py-4">
@@ -106,31 +84,26 @@ const Header = () => {
           {/* Logo */}
           <Link to="/" className="flex items-center gap-3">
             <img
-              src="https://via.placeholder.com/50x50/3b82f6/ffffff?text=DB"
-              alt="Delicious Bites Logo"
-              className="w-12 h-12 rounded-lg"
+              src={Logo}
+              alt="Delicious Bites Restaurant Logo"
+              className="w-24 h-12 rounded-lg"
             />
-            <div>
-              <h1 className="text-xl font-bold text-blue-400">
-                Delicious Bites
-              </h1>
-              <p className="text-xs text-gray-400">Mediterranean Cuisine</p>
-            </div>
+            <span className="text-lg font-bold text-blue-400">Delicious Bites</span>
           </Link>
 
           {/* Desktop Navigation */}
-          <nav className="hidden lg:flex items-center space-x-8">
+          <nav className="hidden lg:flex items-center text-center space-x-8">
             {navigationLinks.map((link) => (
               <Link
                 key={link.name}
                 to={link.href}
-                className="text-gray-300 hover:text-blue-400 transition-colors font-medium"
+                className="text-gray-300 hover:text-blue-400 transition-colors font-medium items-center"
               >
                 {link.name}
               </Link>
             ))}
 
-            {/* Menu Dropdown using ShadCN */}
+            {/* Menu Dropdown */}
             <DropdownMenu
               open={isMenuDropdownOpen}
               onOpenChange={setIsMenuDropdownOpen}
@@ -141,17 +114,16 @@ const Header = () => {
               >
                 <DropdownMenuTrigger asChild>
                   <Link
-                    to="/menu"
+                    to="/"
                     className="text-gray-300 hover:text-blue-400 transition-colors font-medium flex items-center gap-1 outline-none"
                     onClick={(e) => {
-                      // Allow navigation to /menu when clicking directly on the link
                       if (!isMenuDropdownOpen) {
                         return;
                       }
                       e.preventDefault();
                     }}
                   >
-                    Menu
+                    MENU
                     <ChevronDown
                       className={`w-4 h-4 transition-transform ${
                         isMenuDropdownOpen ? "rotate-180" : ""
@@ -182,18 +154,18 @@ const Header = () => {
             </DropdownMenu>
           </nav>
 
-          {/* Right Side Actions */}
+          {/* Right Side */}
           <div className="flex items-center gap-4">
-            {/* Show Cart and User Menu only if authenticated */}
+            {/* Show Cart and User Menu if authenticated */}
             {isAuthenticated ? (
               <>
-                {/* Cart Button */}
+                {/* Cart */}
                 <Link to="/cart">
                   <Button
                     variant="ghost"
-                    className="relative hover:bg-gray-800"
+                    className="relative hover:bg-blue-400 cursor-pointer"
                   >
-                    <ShoppingCart className="w-5 h-5" />
+                    <ShoppingCart className="w-6 h-6" />
                     {totalItems > 0 && (
                       <span className="absolute -top-2 -right-2 bg-blue-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">
                         {totalItems}
@@ -207,7 +179,7 @@ const Header = () => {
                   <Button
                     variant="ghost"
                     onClick={() => setIsUserMenuOpen(!isUserMenuOpen)}
-                    className="hover:bg-gray-800 flex items-center gap-2"
+                    className="hover:bg-blue-400 flex items-center gap-2 cursor-pointer"
                   >
                     <User className="w-5 h-5" />
                     {user && (
@@ -224,10 +196,10 @@ const Header = () => {
                       {user && (
                         <>
                           <div className="px-4 py-2 border-b border-gray-700">
-                            <p className="text-sm font-medium text-white">
+                            <p className="text-md font-medium text-white">
                               {user.username}
                             </p>
-                            <p className="text-xs text-gray-400">
+                            <p className="text-md text-gray-400">
                               {user.email}
                             </p>
                           </div>
@@ -246,16 +218,16 @@ const Header = () => {
                         </Link>
                       ))}
                       <hr className="my-2 border-gray-700" />
-                      <button
+                      <Button
                         onClick={() => {
                           logout();
                           setIsUserMenuOpen(false);
                         }}
-                        className="flex items-center gap-3 px-4 py-2 text-gray-300 hover:bg-gray-700 hover:text-white transition-colors w-full text-left"
+                        className="flex cursor-pointer items-center gap-3 px-4 py-2 text-red-500 hover:bg-gray-700 hover:text-white transition-colors w-full text-left"
                       >
-                        <LogOut className="w-4 h-4" />
-                        Sign Out
-                      </button>
+                        <LogOut className="w-4 h-4 text-red-500" />
+                        Log Out
+                      </Button>
                     </div>
                   )}
                 </div>
@@ -266,16 +238,16 @@ const Header = () => {
                 <Link to="/login">
                   <Button
                     variant="ghost"
-                    className="hover:bg-gray-800 flex items-center gap-2"
+                    className="hover:bg-blue-400 flex items-center gap-2 cursor-pointer"
                   >
                     <LogIn className="w-4 h-4" />
-                    <span className="hidden md:inline">Login</span>
+                    <span className="hidden md:inline">LOGIN</span>
                   </Button>
                 </Link>
                 <Link to="/register">
-                  <Button className="bg-blue-600 hover:bg-blue-700 flex items-center gap-2">
+                  <Button className="hover:bg-blue-400 cursor-pointer flex items-center gap-2">
                     <UserPlus className="w-4 h-4" />
-                    <span className="hidden md:inline">Register</span>
+                    <span className="hidden md:inline">REGISTER</span>
                   </Button>
                 </Link>
               </>
@@ -313,9 +285,6 @@ const Header = () => {
 
               {/* Mobile Menu Categories */}
               <div className="pt-2 border-t border-gray-700">
-                <p className="text-blue-400 font-medium mb-2">
-                  Menu Categories
-                </p>
                 {menuCategories.map((category) => (
                   <Link
                     key={category.name}
@@ -323,7 +292,7 @@ const Header = () => {
                     className="block text-gray-300 hover:text-blue-400 transition-colors py-2 pl-4"
                     onClick={() => setIsMenuOpen(false)}
                   >
-                    {category.name}
+                      {category.name}
                   </Link>
                 ))}
               </div>
@@ -371,7 +340,7 @@ const Header = () => {
                     ))}
 
                     {/* Logout */}
-                    <button
+                    <Button
                       onClick={() => {
                         logout();
                         setIsMenuOpen(false);
@@ -379,28 +348,27 @@ const Header = () => {
                       className="flex items-center gap-3 text-gray-300 hover:text-red-400 transition-colors py-2 w-full text-left mt-2"
                     >
                       <LogOut className="w-4 h-4" />
-                      Sign Out
-                    </button>
+                      Log Out
+                    </Button>
                   </>
                 ) : (
                   <>
                     {/* Login and Register for non-authenticated users */}
-                    <Link
-                      to="/login"
-                      className="flex items-center gap-3 text-gray-300 hover:text-blue-400 transition-colors py-2"
-                      onClick={() => setIsMenuOpen(false)}
-                    >
-                      <LogIn className="w-4 h-4" />
-                      Login
-                    </Link>
-                    <Link
-                      to="/register"
-                      className="flex items-center gap-3 text-blue-400 hover:text-blue-300 transition-colors py-2 font-medium"
-                      onClick={() => setIsMenuOpen(false)}
-                    >
-                      <UserPlus className="w-4 h-4" />
-                      Register
-                    </Link>
+                <Link to="/login">
+                  <Button
+                    variant="ghost"
+                    className="hover:bg-blue-400 flex items-center gap-2 cursor-pointer"
+                  >
+                    <LogIn className="w-4 h-4" />
+                    <span className="hidden md:inline">LOGIN</span>
+                  </Button>
+                </Link>
+                <Link to="/register">
+                  <Button className="hover:bg-blue-400 cursor-pointer flex items-center gap-2">
+                    <UserPlus className="w-4 h-4" />
+                    <span className="hidden md:inline">REGISTER</span>
+                  </Button>
+                </Link>
                   </>
                 )}
               </div>

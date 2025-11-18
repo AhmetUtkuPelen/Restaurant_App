@@ -12,21 +12,4 @@ __test__
 __test_cache__
 
 
-
-{
-  "email": "user@example.com",
-  "username": "exampleusername",
-  "image_url": "https://www.innokrea.pl/wp-content/uploads/2024/07/FastAPI.jpg",
-  "phone": "+905559991155",
-  "address": "some random street - italy - washington",
-  "role": "user",
-  "password": "Password_123!"
-}
-
-{
-  "username": "exampleusername",
-  "password": "Password_123!"
-}
-
-
 uvicorn main:app --reload --host 127.0.0.1 --port 8000

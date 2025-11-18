@@ -7,7 +7,7 @@ import {
   CarouselNext,
   CarouselPrevious,
 } from "@/Components/ui/carousel";
-import { ChefHat, Clock, MapPin, Phone, Star, Utensils } from "lucide-react";
+import { Beef, ChefHat, Clock, Dessert, Drumstick, GlassWater, MapPin, Phone, Salad, Star, Utensils } from "lucide-react";
 import RestaurantImg from "../../assets/restaurant.png";
 import { useFrontPageProducts } from "@/hooks/useProducts";
 import { Link } from "react-router-dom";
@@ -38,35 +38,41 @@ const Home = () => {
     },
   ];
 
-  const products = [
+  type Product_Categories_Links_Names_Icons = {
+    name : string;
+    Icon : React.ElementType;
+    link : string;
+  }
+  
+  const products : Product_Categories_Links_Names_Icons[] = [
     {
       name: "Desserts",
-      image: "https://via.placeholder.com/300x200/1f2937/ffffff?text=Desserts",
+      Icon: Dessert,
       link: "/desserts",
     },
     {
       name: "Drinks",
-      image: "https://via.placeholder.com/300x200/1f2937/ffffff?text=Drinks",
+      Icon: GlassWater,
       link: "/drinks",
     },
     {
       name: "Salads",
-      image: "https://via.placeholder.com/300x200/1f2937/ffffff?text=Salads",
+      Icon: Salad,
       link: "/salads",
     },
     {
       name: "Doners",
-      image: "https://via.placeholder.com/300x200/1f2937/ffffff?text=Doners",
+      Icon : Beef,
       link: "/doners",
     },
     {
       name: "Kebabs",
-      image: "https://via.placeholder.com/300x200/1f2937/ffffff?text=Kebabs",
+      Icon : Drumstick,
       link: "/kebabs",
     },
   ];
 
-  // Helper function to get product link based on category
+  // Get product link based on category
   const getProductLink = (category: string, id: number) => {
     const categoryMap: { [key: string]: string } = {
       dessert: "desserts",
@@ -80,7 +86,7 @@ const Home = () => {
 
   return (
     <div className="min-h-screen bg-gray-900 text-white">
-      {/* Hero Section */}
+      {/* Hero */}
       <section
         className="relative h-screen flex items-center justify-center bg-cover bg-center"
         style={{
@@ -92,7 +98,7 @@ const Home = () => {
             Delicious Bites
           </h1>
           <p className="text-xl md:text-2xl mb-4 text-gray-300">
-            Authentic Mediterranean Cuisine
+            Authentic Cuisine
           </p>
           <div className="flex flex-col md:flex-row items-center justify-center gap-4 mb-8 text-gray-400">
             <div className="flex items-center gap-2">
@@ -101,26 +107,32 @@ const Home = () => {
             </div>
             <div className="flex items-center gap-2">
               <Phone className="w-5 h-5" />
-              <span>+1 (555) 123-4567</span>
+              <span>+1 (111) 111-11 11</span>
             </div>
           </div>
           <div className="flex gap-4 justify-center">
-            <Button className="bg-blue-600 hover:bg-blue-700 text-white px-8 py-3 text-lg">
-              Order Now
+            <Button className="bg-blue-600  hover:text-blue-600 text-white px-8 py-3 text-lg"
+            variant="outline"
+            >
+              <Link to="/cart">
+                Order Now
+              </Link>
             </Button>
     <Link to="/reservation">
                     <Button
               variant="outline"
-              className="border-blue-400 text-blue-400 hover:bg-blue-400 hover:text-white px-8 py-3 text-lg"
+              className="bg-blue-600 hover:text-blue-600 text-white px-8 py-3 text-lg"
             >
-              Make Reservation
+              <Link to="/reservation">
+                Make A Reservation
+              </Link>
             </Button>
     </Link>
           </div>
         </div>
       </section>
 
-      {/* Features Section */}
+      {/* Features */}
       <section className="py-20 bg-gray-800">
         <div className="max-w-6xl mx-auto px-4">
           <h2 className="text-4xl font-bold text-center mb-16 text-blue-400">
@@ -154,24 +166,25 @@ const Home = () => {
             Our Menu Categories
           </h2>
           <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-6">
-            {products.map((product, index) => (
-              <Link key={index} to={product.link}>
-                <Card className="group cursor-pointer bg-gray-800 border-gray-700 hover:bg-gray-700 transition-colors overflow-hidden">
-                  <div className="relative">
-                    <img
-                      src={product.image}
-                      alt={product.name}
-                      className="w-full h-48 object-cover group-hover:scale-105 transition-transform duration-300"
-                    />
-                  </div>
-                  <CardContent className="p-4">
-                    <h3 className="text-lg font-semibold text-center text-blue-400">
-                      {product.name}
-                    </h3>
-                  </CardContent>
-                </Card>
-              </Link>
-            ))}
+{products.map((product, index) => {
+  const Icon = product.Icon;
+
+  return (
+    <Link key={index} to={product.link}>
+      <Card className="group cursor-pointer bg-gray-800 border-gray-700 hover:bg-gray-700 transition-colors overflow-hidden p-6 flex flex-col items-center space-y-4">
+        
+        <Icon className="w-12 h-12 text-blue-200 group-hover:scale-110 transition-transform" />
+
+        <CardContent className="p-0">
+          <h3 className="text-lg font-semibold text-center text-blue-500 uppercase">
+            {product.name}
+          </h3>
+        </CardContent>
+
+      </Card>
+    </Link>
+  );
+})}
           </div>
         </div>
       </section>

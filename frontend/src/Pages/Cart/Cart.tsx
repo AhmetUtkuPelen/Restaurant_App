@@ -1,26 +1,22 @@
-
-
-import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { Card, CardContent, CardHeader, CardTitle } from '@/Components/ui/card'
 import { Button } from '@/Components/ui/button'
 import { Badge } from '@/Components/ui/badge'
 import { Separator } from '@/Components/ui/separator'
-import { Input } from '@/Components/ui/input'
+
 import { 
   Minus, 
   Plus, 
   Trash2, 
   ShoppingCart,
   CreditCard,
-  Tag,
+
   ArrowLeft
 } from 'lucide-react'
 import { useCartStore } from '@/Zustand/Cart/CartState'
 
 export const Cart = () => {
   const navigate = useNavigate()
-  const [promoCode, setPromoCode] = useState('')
 
   // Get cart data and functions from Zustand store
   const cartItems = useCartStore((state) => state.items)
@@ -104,7 +100,7 @@ export const Cart = () => {
                               variant="ghost"
                               size="sm"
                               onClick={() => removeFromCart(item.id)}
-                              className="text-red-400 hover:text-red-300 hover:bg-red-900/20"
+                              className="text-red-400 hover:text-red-300 hover:bg-red-900/20 cursor-pointer"
                             >
                               <Trash2 className="h-4 w-4" />
                             </Button>
@@ -116,7 +112,7 @@ export const Cart = () => {
                                 variant="outline"
                                 size="sm"
                                 onClick={() => updateQuantity(item.id, item.quantity - 1)}
-                                className="h-8 w-8 p-0 border-slate-600 text-slate-300 hover:bg-slate-700"
+                                className="h-8 w-8 p-0 border-slate-600 text-blue-600 hover:bg-slate-700 hover:text-white cursor-pointer"
                               >
                                 <Minus className="h-4 w-4" />
                               </Button>
@@ -127,7 +123,7 @@ export const Cart = () => {
                                 variant="outline"
                                 size="sm"
                                 onClick={() => updateQuantity(item.id, item.quantity + 1)}
-                                className="h-8 w-8 p-0 border-slate-600 text-slate-300 hover:bg-slate-700"
+                                className="h-8 w-8 p-0 border-slate-600 text-blue-600 hover:bg-slate-700 hover:text-white cursor-pointer"
                               >
                                 <Plus className="h-4 w-4" />
                               </Button>
@@ -152,7 +148,7 @@ export const Cart = () => {
               <Button
                 variant="outline"
                 onClick={clearCart}
-                className="w-full border-red-600 text-red-400 hover:bg-red-900/20 hover:text-red-300"
+                className="w-full border-red-600 text-red-400 hover:bg-red-900/20 hover:text-red-300 cursor-pointer"
               >
                 <Trash2 className="h-4 w-4 mr-2" />
                 Clear Cart
@@ -161,29 +157,6 @@ export const Cart = () => {
 
             {/* Order Summary */}
             <div className="space-y-6">
-              {/* Promo Code */}
-              <Card className="bg-slate-800 border-slate-700">
-                <CardHeader>
-                  <CardTitle className="text-white flex items-center">
-                    <Tag className="h-5 w-5 mr-2 text-blue-400" />
-                    Promo Code
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-3">
-                  <Input
-                    placeholder="Enter promo code"
-                    value={promoCode}
-                    onChange={(e) => setPromoCode(e.target.value)}
-                    className="bg-slate-700 border-slate-600 text-white placeholder-slate-400"
-                  />
-                  <Button 
-                    variant="outline" 
-                    className="w-full border-slate-600 text-slate-300 hover:bg-slate-700"
-                  >
-                    Apply Code
-                  </Button>
-                </CardContent>
-              </Card>
 
               {/* Order Summary */}
               <Card className="bg-slate-800 border-slate-700">
@@ -226,7 +199,9 @@ export const Cart = () => {
                   </div>
 
                   <Link to="/checkout">
-                    <Button className="w-full bg-blue-600 hover:bg-blue-700 text-white mt-6">
+                    <Button
+                    variant="outline"
+                    className="w-full bg-blue-600 hover:bg-blue-700 text-white mt-6 mb-2 cursor-pointer hover:text-white">
                       <CreditCard className="h-4 w-4 mr-2" />
                       Proceed to Checkout
                     </Button>
@@ -235,7 +210,7 @@ export const Cart = () => {
                   <Link to="/">
                     <Button 
                       variant="outline" 
-                      className="w-full border-slate-600 text-slate-300 hover:bg-slate-700"
+                      className="w-full bg-blue-600 hover:bg-blue-700 text-white mt-6 mb-2 cursor-pointer hover:text-white"
                     >
                       Continue Shopping
                     </Button>

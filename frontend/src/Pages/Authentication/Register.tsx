@@ -13,7 +13,6 @@ import {
   EyeOff,
   User,
   ArrowRight,
-  Shield,
   CheckCircle,
   AlertCircle,
 } from "lucide-react";
@@ -98,16 +97,10 @@ const Register = () => {
         {/* Header */}
         <div className="text-center">
           <Link to="/" className="inline-flex items-center gap-3 mb-8">
-            <img
-              src="https://via.placeholder.com/60x60/3b82f6/ffffff?text=DB"
-              alt="Delicious Bites Logo"
-              className="w-15 h-15 rounded-lg"
-            />
             <div>
               <h1 className="text-2xl font-bold text-blue-400">
                 Delicious Bites
               </h1>
-              <p className="text-sm text-gray-400">Mediterranean Cuisine</p>
             </div>
           </Link>
 
@@ -116,7 +109,7 @@ const Register = () => {
               Create Account
             </h2>
             <p className="text-gray-400">
-              Join us and start your culinary journey
+              Join and start your journey
             </p>
           </div>
         </div>
@@ -341,7 +334,7 @@ const Register = () => {
                     : "bg-gray-700 text-gray-400 cursor-not-allowed"
                 }`}
               >
-                {isLoading ? "Creating Account..." : "Create Account"}
+                {isLoading ? "REGISTERING..." : "REGISTER"}
                 {!isLoading && <ArrowRight className="h-5 w-5 ml-2" />}
               </Button>
             </form>
@@ -357,22 +350,11 @@ const Register = () => {
               to="/login"
               className="text-blue-400 hover:text-blue-300 font-medium transition-colors"
             >
-              Sign in here
+              Login here
             </Link>
           </p>
         </div>
 
-        {/* Features */}
-        <div className="grid grid-cols-2 gap-4 mt-8">
-          <div className="flex items-center gap-2 text-gray-400">
-            <Shield className="w-4 h-4 text-green-400" />
-            <span className="text-sm">Secure Registration</span>
-          </div>
-          <div className="flex items-center gap-2 text-gray-400">
-            <CheckCircle className="w-4 h-4 text-blue-400" />
-            <span className="text-sm">Email Verification</span>
-          </div>
-        </div>
       </div>
     </div>
   );

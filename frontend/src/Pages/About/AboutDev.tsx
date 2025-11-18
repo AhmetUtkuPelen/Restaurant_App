@@ -1,39 +1,48 @@
 import { Card, CardContent } from "@/Components/ui/card";
 import {
-  Code,
   Database,
   Globe,
-  Layers,
   Server,
   Smartphone,
 } from "lucide-react";
+import { FaReact } from "react-icons/fa";
+import { SiTypescript } from "react-icons/si";
+import { RiTailwindCssFill } from "react-icons/ri";
+import { SiShadcnui } from "react-icons/si";
+import { FaPython } from "react-icons/fa";
+import { SiFastapi } from "react-icons/si";
+import { SiSqlalchemy } from "react-icons/si";
+import { SiPydantic } from "react-icons/si";
+
+
+
 
 const AboutDev = () => {
   const frontendTech = [
     {
       name: "React",
       description: "A JavaScript library for building user interfaces",
-      icon: <Globe className="w-8 h-8" />,
+      icon: <FaReact className="w-8 h-8" />,
       color: "text-blue-400",
     },
     {
       name: "TypeScript",
       description:
         "Typed superset of JavaScript that compiles to plain JavaScript",
-      icon: <Code className="w-8 h-8" />,
+      icon: <SiTypescript className="w-8 h-8" />,
       color: "text-blue-500",
     },
     {
       name: "TailwindCSS",
       description: "A utility-first CSS framework for rapid UI development",
-      icon: <Layers className="w-8 h-8" />,
+      icon: <RiTailwindCssFill className="w-8 h-8" />,
       color: "text-cyan-400",
     },
     {
       name: "ShadCN",
       description:
         "Beautifully designed components built with Radix UI and Tailwind CSS",
-      icon: <Smartphone className="w-8 h-8" />,
+      icon: <SiShadcnui className="w-8 h-8" />,
       color: "text-gray-400",
     },
   ];
@@ -42,33 +51,27 @@ const AboutDev = () => {
     {
       name: "Python",
       description: "High-level programming language for backend development",
-      icon: <Server className="w-8 h-8" />,
+      icon: <FaPython className="w-8 h-8" />,
       color: "text-yellow-400",
     },
     {
       name: "FastAPI",
       description: "Modern, fast web framework for building APIs with Python",
-      icon: <Globe className="w-8 h-8" />,
+      icon: <SiFastapi className="w-8 h-8" />,
       color: "text-green-400",
     },
     {
       name: "SQLAlchemy",
       description: "Python SQL toolkit and Object-Relational Mapping library",
-      icon: <Database className="w-8 h-8" />,
+      icon: <SiSqlalchemy className="w-8 h-8" />,
       color: "text-red-400",
     },
     {
       name: "Pydantic",
       description:
         "Data validation and settings management using Python type annotations",
-      icon: <Code className="w-8 h-8" />,
+      icon: <SiPydantic className="w-8 h-8" />,
       color: "text-purple-400",
-    },
-    {
-      name: "PostgreSQL",
-      description: "Advanced open source relational database",
-      icon: <Database className="w-8 h-8" />,
-      color: "text-blue-600",
     },
   ];
 
@@ -81,8 +84,7 @@ const AboutDev = () => {
             About the Developer
           </h1>
           <p className="text-xl text-gray-300 leading-relaxed">
-            Built with modern technologies for optimal performance and user
-            experience
+            An Industrial Engineer who also likes to code using modern technologies like Python and Typescript/Javascript.
           </p>
         </div>
       </section>
@@ -92,10 +94,10 @@ const AboutDev = () => {
         <div className="max-w-6xl mx-auto px-4">
           <div className="text-center mb-16">
             <h2 className="text-4xl font-bold mb-6 text-blue-400">
-              Technology Stack
+              Tech Stack
             </h2>
             <p className="text-xl text-gray-300 max-w-3xl mx-auto">
-              This restaurant application is built using cutting-edge
+              This restaurant application was built using cutting-edge modern
               technologies to ensure scalability, performance, and
               maintainability.
             </p>
@@ -107,7 +109,7 @@ const AboutDev = () => {
               <CardContent className="p-8">
                 <div className="flex items-center gap-3 mb-8">
                   <Globe className="w-8 h-8 text-blue-400" />
-                  <h3 className="text-3xl font-bold text-blue-400">Frontend</h3>
+                  <h3 className="text-3xl font-bold text-blue-400">FRONT END</h3>
                 </div>
                 <div className="space-y-6">
                   {frontendTech.map((tech, index) => (
@@ -135,7 +137,7 @@ const AboutDev = () => {
               <CardContent className="p-8">
                 <div className="flex items-center gap-3 mb-8">
                   <Server className="w-8 h-8 text-green-400" />
-                  <h3 className="text-3xl font-bold text-green-400">Backend</h3>
+                  <h3 className="text-3xl font-bold text-green-400">BACK END</h3>
                 </div>
                 <div className="space-y-6">
                   {backendTech.map((tech, index) => (
@@ -164,9 +166,6 @@ const AboutDev = () => {
       {/* Architecture Overview */}
       <section className="py-20 bg-gray-800">
         <div className="max-w-6xl mx-auto px-4">
-          <h2 className="text-4xl font-bold text-center mb-16 text-blue-400">
-            Application Architecture
-          </h2>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
             <Card className="text-center bg-gray-900 border-gray-700">
               <CardContent className="pt-6">
@@ -226,11 +225,9 @@ const AboutDev = () => {
               "Online Food Ordering System",
               "Table Reservation Management",
               "Admin Dashboard",
-              "Real-time Order Tracking",
               "Payment Integration",
               "Responsive Mobile Design",
               "SEO Optimized",
-              "Performance Monitoring",
             ].map((feature, index) => (
               <Card key={index} className="bg-gray-800 border-gray-700">
                 <CardContent className="flex items-center gap-3 p-4">

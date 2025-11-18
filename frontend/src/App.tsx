@@ -23,7 +23,6 @@ import Header from "./Components/Header/Header";
 import Footer from "./Components/Footer/Footer";
 import Admin from "./Pages/Admin/Admin";
 import { Cart } from "./Pages/Cart/Cart";
-import { FAQ } from "./Pages/About/FAQ";
 import { Terms } from "./Pages/About/Terms";
 import FavouriteProducts from "./Pages/User/FavouriteProducts";
 import Checkout from "./Pages/Checkout/Checkout";
@@ -67,7 +66,6 @@ function App() {
             <Route path="/register" element={<Register />} />
             <Route path="/cart" element={<Cart />} />
             <Route path="/userOrders" element={<UserOrders />} />
-            <Route path="/faq" element={<FAQ />} />
             <Route path="/terms" element={<Terms />} />
             <Route path="/checkout" element={<Checkout />} />
 

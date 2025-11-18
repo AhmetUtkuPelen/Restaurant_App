@@ -260,7 +260,7 @@ const Checkout = () => {
                   <Button
                     onClick={handleCreateOrder}
                     disabled={createOrderMutation.isPending}
-                    className="w-full mt-6 bg-blue-600 hover:bg-blue-700"
+                    className="w-full mt-6 bg-blue-600 hover:bg-blue-700 cursor-pointer"
                   >
                     {createOrderMutation.isPending ? (
                       <>

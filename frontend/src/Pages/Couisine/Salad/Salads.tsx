@@ -69,10 +69,6 @@ const Salads = () => {
               Salads
             </h1>
           </div>
-          <p className="text-xl text-gray-300 max-w-2xl mx-auto">
-            Fresh, healthy, and delicious salads made with the finest
-            ingredients. Perfect for a light meal or as a healthy side dish.
-          </p>
         </div>
       </section>
 
@@ -219,7 +215,6 @@ const Salads = () => {
                           {salad.name}
                         </h3>
                         <button className="text-gray-400 hover:text-red-400 transition-colors">
-                          <Heart className="w-5 h-5" />
                         </button>
                       </div>
 
@@ -263,7 +258,7 @@ const Salads = () => {
 
                       <div className="flex gap-2 mb-3">
                         <Button 
-                          className="flex-1 bg-blue-600 hover:bg-blue-700 text-white"
+                          className="flex-1 bg-blue-600 hover:bg-blue-700 text-white cursor-pointer"
                           onClick={() => addToCart({
                             id: salad.id,
                             name: salad.name,
@@ -288,7 +283,7 @@ const Salads = () => {
                         variant="outline"
                         onClick={() => handleToggleFavourite(salad.id)}
                         disabled={addFavouriteMutation.isPending || removeFavouriteMutation.isPending}
-                        className={`w-full transition-colors ${
+                        className={`w-full transition-colors cursor-pointer ${
                           isFavourite(salad.id)
                             ? "border-red-400 bg-red-400 text-white hover:bg-red-500"
                             : "border-red-400 text-red-400 hover:bg-red-400 hover:text-white"

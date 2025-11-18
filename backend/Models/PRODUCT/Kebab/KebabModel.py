@@ -5,7 +5,6 @@ from sqlalchemy.dialects.postgresql import ARRAY
 from sqlalchemy.orm import relationship
 from Models.PRODUCT.BaseProduct.BaseProductModel import Product
 from Utils.Enums.Enums import SpiceLevel, MeatType, KebabSize
-from sqlalchemy import Enum as SAEnum
 
 class Kebab(Product):
     __tablename__ = "kebabs"
