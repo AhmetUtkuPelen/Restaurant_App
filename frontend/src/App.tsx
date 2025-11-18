@@ -15,7 +15,6 @@ import Register from "./Pages/Authentication/Register";
 import Login from "./Pages/Authentication/Login";
 import Salad from "./Pages/Couisine/Salad/Salad";
 import AboutDev from "./Pages/About/AboutDev";
-import Order from "./Pages/Order/Order";
 import Reservation from "./Pages/Reservation/Reservation";
 import UserSettings from "./Pages/User/UserSettings";
 import Profile from "./Pages/User/Profile";
@@ -24,11 +23,12 @@ import Header from "./Components/Header/Header";
 import Footer from "./Components/Footer/Footer";
 import { Admin } from "./Pages/Admin/Admin";
 import { Cart } from "./Pages/Cart/Cart";
-import { OrderHistory } from "./Pages/User/OrderHistory";
 import { FAQ } from "./Pages/About/FAQ";
 import { Terms } from "./Pages/About/Terms";
 import FavouriteProducts from "./Pages/User/FavouriteProducts";
+import Checkout from "./Pages/Checkout/Checkout";
 import UserReservation from "./Pages/User/UserReservations";
+import UserOrders from "./Pages/User/UserOrders"
 
 
 const queryClient = new QueryClient({
@@ -66,14 +66,13 @@ function App() {
             <Route path="/login" element={<Login />} />
             <Route path="/register" element={<Register />} />
             <Route path="/cart" element={<Cart />} />
-            <Route path="/order_history" element={<OrderHistory />} />
+            <Route path="/userOrders" element={<UserOrders />} />
             <Route path="/faq" element={<FAQ />} />
             <Route path="/terms" element={<Terms />} />
-
+            <Route path="/checkout" element={<Checkout />} />
 
           {/* Protected Routes - Only for authenticated users */}
 
-            <Route path="/order" element={<Order />} />
             <Route path="/reservation" element={<Reservation />} />
             <Route path="/profile" element={<Profile />} />
             <Route path="/settings" element={<UserSettings />} />

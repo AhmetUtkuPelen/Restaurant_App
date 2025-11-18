@@ -13,20 +13,49 @@ import {
   Search,
   Grid3X3,
   List,
-  Coffee
+  Coffee,
+  Loader2
 } from "lucide-react";
 import { useCartStore } from "@/Zustand/Cart/CartState";
-import { useFavouriteStore } from "@/Zustand/FavouriteProduct/FavouriteProductState";
+import { useMyFavourites, useAddFavourite, useRemoveFavourite } from "@/hooks/useFavourite";
+import { toast } from "sonner";
 
 const Drinks = () => {
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
   const [searchTerm, setSearchTerm] = useState('');
 
   const { data: drinks = [], isLoading, error } = useDrinks();
+  const { data: favouritesData = [] } = useMyFavourites();
+  const addFavouriteMutation = useAddFavourite();
+  const removeFavouriteMutation = useRemoveFavourite();
   const addToCart = useCartStore((state) => state.addToCart);
-  const addToFavourites = useFavouriteStore((state) => state.addToFavourites);
-  const removeFromFavourites = useFavouriteStore((state) => state.removeFromFavourites);
-  const isFavourite = useFavouriteStore((state) => state.isFavourite);
+
+  const isFavourite = (productId: number) => {
+    return favouritesData.some(fav => fav.product_id === productId);
+  };
+
+  const getFavouriteId = (productId: number) => {
+    const fav = favouritesData.find(fav => fav.product_id === productId);
+    return fav?.id;
+  };
+
+  const handleToggleFavourite = async (productId: number) => {
+    try {
+      if (isFavourite(productId)) {
+        const favId = getFavouriteId(productId);
+        if (favId) {
+          await removeFavouriteMutation.mutateAsync(favId);
+          toast.success("Removed from favourites");
+        }
+      } else {
+        await addFavouriteMutation.mutateAsync({ product_id: productId });
+        toast.success("Added to favourites");
+      }
+    } catch (err) {
+      const error = err as { response?: { data?: { detail?: string } } };
+      toast.error(error?.response?.data?.detail || "Failed to update favourites");
+    }
+  };
 
   const filteredDrinks = drinks.filter(drink =>
     drink.name.toLowerCase().includes(searchTerm.toLowerCase())
@@ -189,28 +218,19 @@ const Drinks = () => {
                   
                   <Button 
                     variant="outline" 
-                    onClick={() => {
-                      if (isFavourite(drink.id)) {
-                        removeFromFavourites(drink.id);
-                      } else {
-                        addToFavourites({
-                          id: drink.id,
-                          name: drink.name,
-                          price: drink.price,
-                          final_price: drink.final_price,
-                          image_url: drink.image_url,
-                          category: "drink",
-                          description: drink.description
-                        });
-                      }
-                    }}
+                    onClick={() => handleToggleFavourite(drink.id)}
+                    disabled={addFavouriteMutation.isPending || removeFavouriteMutation.isPending}
                     className={`w-full transition-colors ${
                       isFavourite(drink.id)
                         ? "border-red-400 bg-red-400 text-white hover:bg-red-500"
                         : "border-red-400 text-red-400 hover:bg-red-400 hover:text-white"
                     }`}
                   >
-                    <Heart className={`w-4 h-4 mr-2 ${isFavourite(drink.id) ? "fill-current" : ""}`} />
+                    {(addFavouriteMutation.isPending || removeFavouriteMutation.isPending) ? (
+                      <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                    ) : (
+                      <Heart className={`w-4 h-4 mr-2 ${isFavourite(drink.id) ? "fill-current" : ""}`} />
+                    )}
                     {isFavourite(drink.id) ? "Remove from Favorites" : "Add to Favorites"}
                   </Button>
                 </CardContent>

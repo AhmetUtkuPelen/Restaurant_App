@@ -57,7 +57,7 @@ const Header = () => {
     { name: "Profile", href: "/profile", icon: <User className="w-4 h-4" /> },
     {
       name: "Orders",
-      href: "/orders",
+      href: "/userOrders",
       icon: <ShoppingCart className="w-4 h-4" />,
     },
     {

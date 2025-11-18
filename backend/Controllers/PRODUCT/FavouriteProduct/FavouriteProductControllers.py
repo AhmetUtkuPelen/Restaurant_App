@@ -1,5 +1,6 @@
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select, func, and_, delete
+from sqlalchemy.orm import selectinload
 from fastapi import HTTPException, status
 from typing import List, Dict, Any
 
@@ -18,7 +19,10 @@ class FavouriteProductControllers:
     ) -> List[Dict[str, Any]]:
         """A User gets his own favourite products."""
         try:
-            stmt = select(FavouriteProduct).where(
+            # Load favourites with product relationship
+            stmt = select(FavouriteProduct).options(
+                selectinload(FavouriteProduct.product)
+            ).where(
                 FavouriteProduct.user_id == current_user.id
             ).order_by(FavouriteProduct.created_at.desc())
             
@@ -28,14 +32,20 @@ class FavouriteProductControllers:
             return [
                 {
                     "id": fav.id,
+                    "user_id": fav.user_id,
                     "product_id": fav.product_id,
-                    "product_name": fav.product.name if fav.product else None,
-                    "product_price": float(fav.product.price) if fav.product and fav.product.price else None,
-                    "product_final_price": float(fav.product.final_price) if fav.product else None,
-                    "product_image_url": fav.product.image_url if fav.product else None,
-                    "created_at": fav.created_at.isoformat() if fav.created_at else None
+                    "created_at": fav.created_at.isoformat() if fav.created_at else None,
+                    "product": {
+                        "id": fav.product.id,
+                        "name": fav.product.name,
+                        "price": str(fav.product.price),
+                        "final_price": str(fav.product.final_price),
+                        "image_url": fav.product.image_url,
+                        "category": fav.product.category,
+                        "description": fav.product.description if fav.product.description else ""
+                    } if fav.product else None
                 }
-                for fav in favourites
+                for fav in favourites if fav.product is not None
             ]
         except Exception as e:
             raise HTTPException(

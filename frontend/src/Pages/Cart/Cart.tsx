@@ -225,10 +225,12 @@ export const Cart = () => {
                     </div>
                   </div>
 
-                  <Button className="w-full bg-blue-600 hover:bg-blue-700 text-white mt-6">
-                    <CreditCard className="h-4 w-4 mr-2" />
-                    Proceed to Checkout
-                  </Button>
+                  <Link to="/checkout">
+                    <Button className="w-full bg-blue-600 hover:bg-blue-700 text-white mt-6">
+                      <CreditCard className="h-4 w-4 mr-2" />
+                      Proceed to Checkout
+                    </Button>
+                  </Link>
 
                   <Link to="/">
                     <Button 

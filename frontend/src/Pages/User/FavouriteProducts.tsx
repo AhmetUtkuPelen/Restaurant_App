@@ -2,17 +2,34 @@
 import { Link } from "react-router-dom";
 import { Button } from "@/Components/ui/button";
 import { Card, CardContent } from "@/Components/ui/card";
-import { useFavouriteStore } from "@/Zustand/FavouriteProduct/FavouriteProductState";
 import { useCartStore } from "@/Zustand/Cart/CartState";
-import { Heart, ShoppingCart, Star, Trash2, ArrowLeft } from "lucide-react";
+import { Heart, ShoppingCart, Star, Trash2, ArrowLeft, Loader2 } from "lucide-react";
+import { useMyFavourites, useRemoveFavourite, useClearFavourites } from "@/hooks/useFavourite";
+import { toast } from "sonner";
 
 const FavouriteProducts = () => {
-  const favourites = useFavouriteStore((state) => state.favourites);
-  const removeFromFavourites = useFavouriteStore(
-    (state) => state.removeFromFavourites
-  );
-  const clearFavourites = useFavouriteStore((state) => state.clearFavourites);
+  const { data: favouritesData = [], isLoading, error } = useMyFavourites();
+  const removeFavouriteMutation = useRemoveFavourite();
+  const clearFavouritesMutation = useClearFavourites();
   const addToCart = useCartStore((state) => state.addToCart);
+
+  const handleRemoveFavourite = async (favouriteId: number) => {
+    try {
+      await removeFavouriteMutation.mutateAsync(favouriteId);
+      toast.success("Removed from favourites");
+    } catch {
+      toast.error("Failed to remove from favourites");
+    }
+  };
+
+  const handleClearAll = async () => {
+    try {
+      await clearFavouritesMutation.mutateAsync();
+      toast.success("All favourites cleared");
+    } catch {
+      toast.error("Failed to clear favourites");
+    }
+  };
 
   // Helper function to get product link based on category
   const getProductLink = (category: string, id: number) => {
@@ -37,6 +54,25 @@ const FavouriteProducts = () => {
     });
   };
 
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-gray-900 text-white flex items-center justify-center">
+        <Loader2 className="w-12 h-12 text-blue-400 animate-spin" />
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="min-h-screen bg-gray-900 text-white flex items-center justify-center">
+        <div className="text-center">
+          <p className="text-red-400 text-xl mb-4">Failed to load favourites</p>
+          <Button onClick={() => window.location.reload()}>Try Again</Button>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-gray-900 text-white">
       {/* Header Section */}
@@ -58,17 +94,22 @@ const FavouriteProducts = () => {
                 </h1>
               </div>
               <p className="text-xl text-gray-300">
-                {favourites.length} {favourites.length === 1 ? "item" : "items"}{" "}
+                {favouritesData.length} {favouritesData.length === 1 ? "item" : "items"}{" "}
                 saved
               </p>
             </div>
-            {favourites.length > 0 && (
+            {favouritesData.length > 0 && (
               <Button
                 variant="outline"
-                onClick={clearFavourites}
+                onClick={handleClearAll}
+                disabled={clearFavouritesMutation.isPending}
                 className="border-red-600 text-red-400 hover:bg-red-900/20 hover:text-red-300"
               >
-                <Trash2 className="w-4 h-4 mr-2" />
+                {clearFavouritesMutation.isPending ? (
+                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                ) : (
+                  <Trash2 className="w-4 h-4 mr-2" />
+                )}
                 Clear All
               </Button>
             )}
@@ -79,7 +120,7 @@ const FavouriteProducts = () => {
       {/* Favourites Grid */}
       <section className="py-12 bg-gray-900">
         <div className="max-w-6xl mx-auto px-4">
-          {favourites.length === 0 ? (
+          {favouritesData.length === 0 ? (
             <div className="text-center py-20">
               <Heart className="w-24 h-24 text-gray-700 mx-auto mb-6" />
               <h2 className="text-2xl font-bold text-white mb-4">
@@ -97,7 +138,8 @@ const FavouriteProducts = () => {
             </div>
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {favourites.map((product) => {
+              {favouritesData.map((favourite) => {
+                const product = favourite.product;
                 const hasDiscount =
                   parseFloat(product.final_price || "0") <
                   parseFloat(product.price || "0");
@@ -128,10 +170,15 @@ const FavouriteProducts = () => {
                         </div>
                       )}
                       <button
-                        onClick={() => removeFromFavourites(product.id)}
-                        className="absolute top-2 left-2 bg-red-500 hover:bg-red-600 text-white p-2 rounded-full transition-colors"
+                        onClick={() => handleRemoveFavourite(favourite.id)}
+                        disabled={removeFavouriteMutation.isPending}
+                        className="absolute top-2 left-2 bg-red-500 hover:bg-red-600 text-white p-2 rounded-full transition-colors disabled:opacity-50"
                       >
-                        <Heart className="w-4 h-4 fill-current" />
+                        {removeFavouriteMutation.isPending ? (
+                          <Loader2 className="w-4 h-4 animate-spin" />
+                        ) : (
+                          <Heart className="w-4 h-4 fill-current" />
+                        )}
                       </button>
                     </div>
 

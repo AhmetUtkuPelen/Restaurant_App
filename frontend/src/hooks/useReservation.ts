@@ -64,12 +64,13 @@ export const useCreateReservation = () => {
 
   return useMutation({
     mutationFn: async (data: ReservationCreate) => {
-      const response = await axiosInstance.post<Reservation>("/reservations", data);
+      const response = await axiosInstance.post<{ message: string; reservation: Reservation }>("/reservations", data);
       return response.data;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["reservations"] });
       queryClient.invalidateQueries({ queryKey: ["tables"] });
+      queryClient.invalidateQueries({ queryKey: ["user", "profile"] });
     },
   });
 };
@@ -97,6 +98,7 @@ export const useCancelReservation = () => {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["reservations"] });
       queryClient.invalidateQueries({ queryKey: ["tables"] });
+      queryClient.invalidateQueries({ queryKey: ["user", "profile"] });
     },
   });
 };

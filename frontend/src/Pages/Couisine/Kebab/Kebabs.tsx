@@ -13,20 +13,49 @@ import {
   Search,
   Grid3X3,
   List,
-  Flame
+  Flame,
+  Loader2
 } from "lucide-react";
 import { useCartStore } from "@/Zustand/Cart/CartState";
-import { useFavouriteStore } from "@/Zustand/FavouriteProduct/FavouriteProductState";
+import { useMyFavourites, useAddFavourite, useRemoveFavourite } from "@/hooks/useFavourite";
+import { toast } from "sonner";
 
 const Kebabs = () => {
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
   const [searchTerm, setSearchTerm] = useState('');
 
   const { data: kebabs = [], isLoading, error } = useKebabs();
+  const { data: favouritesData = [] } = useMyFavourites();
+  const addFavouriteMutation = useAddFavourite();
+  const removeFavouriteMutation = useRemoveFavourite();
   const addToCart = useCartStore((state) => state.addToCart);
-  const addToFavourites = useFavouriteStore((state) => state.addToFavourites);
-  const removeFromFavourites = useFavouriteStore((state) => state.removeFromFavourites);
-  const isFavourite = useFavouriteStore((state) => state.isFavourite);
+
+  const isFavourite = (productId: number) => {
+    return favouritesData.some(fav => fav.product_id === productId);
+  };
+
+  const getFavouriteId = (productId: number) => {
+    const fav = favouritesData.find(fav => fav.product_id === productId);
+    return fav?.id;
+  };
+
+  const handleToggleFavourite = async (productId: number) => {
+    try {
+      if (isFavourite(productId)) {
+        const favId = getFavouriteId(productId);
+        if (favId) {
+          await removeFavouriteMutation.mutateAsync(favId);
+          toast.success("Removed from favourites");
+        }
+      } else {
+        await addFavouriteMutation.mutateAsync({ product_id: productId });
+        toast.success("Added to favourites");
+      }
+    } catch (err) {
+      const error = err as { response?: { data?: { detail?: string } } };
+      toast.error(error?.response?.data?.detail || "Failed to update favourites");
+    }
+  };
 
   const filteredKebabs = kebabs.filter(kebab =>
     kebab.name.toLowerCase().includes(searchTerm.toLowerCase())
@@ -197,28 +226,19 @@ const Kebabs = () => {
                   
                   <Button 
                     variant="outline" 
-                    onClick={() => {
-                      if (isFavourite(kebab.id)) {
-                        removeFromFavourites(kebab.id);
-                      } else {
-                        addToFavourites({
-                          id: kebab.id,
-                          name: kebab.name,
-                          price: kebab.price,
-                          final_price: kebab.final_price,
-                          image_url: kebab.image_url,
-                          category: "kebab",
-                          description: kebab.description
-                        });
-                      }
-                    }}
+                    onClick={() => handleToggleFavourite(kebab.id)}
+                    disabled={addFavouriteMutation.isPending || removeFavouriteMutation.isPending}
                     className={`w-full transition-colors ${
                       isFavourite(kebab.id)
                         ? "border-red-400 bg-red-400 text-white hover:bg-red-500"
                         : "border-red-400 text-red-400 hover:bg-red-400 hover:text-white"
                     }`}
                   >
-                    <Heart className={`w-4 h-4 mr-2 ${isFavourite(kebab.id) ? "fill-current" : ""}`} />
+                    {(addFavouriteMutation.isPending || removeFavouriteMutation.isPending) ? (
+                      <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                    ) : (
+                      <Heart className={`w-4 h-4 mr-2 ${isFavourite(kebab.id) ? "fill-current" : ""}`} />
+                    )}
                     {isFavourite(kebab.id) ? "Remove from Favorites" : "Add to Favorites"}
                   </Button>
                 </CardContent>

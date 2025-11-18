@@ -56,6 +56,8 @@ class User(Base):
         """
         Returns user profile information.
         Profile exists automatically when User is created.
+        WARNING: This property should only be used when relationships are already loaded.
+        For API responses, use the controller method that properly loads relationships.
         """
         return {
             "id": self.id,
@@ -67,12 +69,12 @@ class User(Base):
             "role": self.role.value if self.role else None,
             "is_active": self.is_active,
             "created_at": self.created_at.isoformat() if self.created_at else None,
-            "favourite_products": [favourite_product.product_id for favourite_product in self.favourite_products],
-            "orders": [order.id for order in self.orders],
-            "comments": [comment.id for comment in self.comments],
-            "cart": self.cart.to_dict() if self.cart else None,
-            "reservations": [reservation.id for reservation in self.reservations],
-            "payments": [payment.id for payment in self.payments],
+            "favourite_products": [],
+            "orders": [],
+            "comments": [],
+            "cart": None,
+            "reservations": [],
+            "payments": [],
         }
 
     def update_profile(self, payload: dict):

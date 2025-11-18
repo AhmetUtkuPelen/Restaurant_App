@@ -28,6 +28,7 @@ import {
   AlertCircle,
 } from "lucide-react";
 import { useTables, useCreateReservation } from "@/hooks/useReservation";
+import PaymentForm from "@/Components/Payment/PaymentForm";
 
 interface ReservationData {
   date: string;
@@ -57,6 +58,10 @@ const Reservation = () => {
   const [currentStep, setCurrentStep] = useState(1);
   const [reservationSuccess, setReservationSuccess] = useState(false);
   const [confirmationNumber, setConfirmationNumber] = useState("");
+  const [reservationId, setReservationId] = useState<number | null>(null);
+
+  // Fixed reservation fee
+  const RESERVATION_FEE = 50; // ₺50 reservation fee
 
   // Helper function to format location
   const formatLocation = (location: string) => {
@@ -156,20 +161,28 @@ const Reservation = () => {
         `${reservationData.date}T${time24h}:00`
       ).toISOString();
 
-      await createReservation.mutateAsync({
+      const result = await createReservation.mutateAsync({
         table_id: reservationData.tableId,
         reservation_time: reservationDateTime,
         number_of_guests: reservationData.guests,
         special_requests: reservationData.specialRequests || undefined,
       });
 
-      // Generate confirmation number
-      setConfirmationNumber(`RSV-${Date.now().toString().slice(-6)}`);
-      setReservationSuccess(true);
+      setReservationId(result.reservation.id);
+      setCurrentStep(3); // Move to payment step
     } catch (error) {
       console.error("Failed to create reservation:", error);
       alert("Failed to create reservation. Please try again.");
     }
+  };
+
+  const handlePaymentSuccess = () => {
+    setConfirmationNumber(`RSV-${Date.now().toString().slice(-6)}`);
+    setReservationSuccess(true);
+  };
+
+  const handlePaymentError = (error: string) => {
+    alert(`Payment failed: ${error}`);
   };
 
   const getAvailableTables = () => {
@@ -277,7 +290,7 @@ const Reservation = () => {
 
               <div className="space-y-3">
                 <Button
-                  onClick={() => navigate("/user/reservations")}
+                  onClick={() => navigate("/userReservations")}
                   className="bg-blue-600 hover:bg-blue-700 text-white px-8 py-3 text-lg w-full"
                 >
                   View My Reservations
@@ -313,7 +326,7 @@ const Reservation = () => {
         {/* Progress Steps */}
         <div className="mb-8">
           <div className="flex items-center justify-center space-x-8">
-            {[1, 2].map((step) => (
+            {[1, 2, 3].map((step) => (
               <div key={step} className="flex items-center">
                 <div
                   className={`
@@ -338,8 +351,9 @@ const Reservation = () => {
                 >
                   {step === 1 && "Date & Time"}
                   {step === 2 && "Select Table"}
+                  {step === 3 && "Payment"}
                 </span>
-                {step < 2 && (
+                {step < 3 && (
                   <div
                     className={`w-16 h-0.5 ml-4 ${
                       currentStep > step ? "bg-blue-600" : "bg-gray-300"
@@ -563,10 +577,10 @@ const Reservation = () => {
                       {createReservation.isPending ? (
                         <>
                           <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white mr-2"></div>
-                          Processing...
+                          Creating Reservation...
                         </>
                       ) : (
-                        "Confirm Reservation"
+                        "Continue to Payment"
                       )}
                     </Button>
                   </div>
@@ -574,6 +588,84 @@ const Reservation = () => {
               )}
             </CardContent>
           </Card>
+        )}
+
+        {currentStep === 3 && reservationId && (
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            <div className="lg:col-span-2">
+              <PaymentForm
+                amount={RESERVATION_FEE}
+                reservationId={reservationId}
+                paymentType="reservation"
+                onSuccess={handlePaymentSuccess}
+                onError={handlePaymentError}
+              />
+            </div>
+
+            {/* Reservation Summary */}
+            <div>
+              <Card className="sticky top-8">
+                <CardHeader className="bg-blue-50 border-b border-blue-100">
+                  <CardTitle className="text-xl text-gray-900">
+                    Reservation Summary
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="p-6 bg-white">
+                  <div className="space-y-4">
+                    <div className="flex justify-between">
+                      <span className="text-gray-600">Date:</span>
+                      <span className="font-medium">
+                        {reservationData.date}
+                      </span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-gray-600">Time:</span>
+                      <span className="font-medium">
+                        {reservationData.time}
+                      </span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-gray-600">Guests:</span>
+                      <span className="font-medium">
+                        {reservationData.guests}
+                      </span>
+                    </div>
+
+                    {selectedTable && (
+                      <>
+                        <div className="border-t pt-4">
+                          <div className="flex justify-between mb-2">
+                            <span className="text-gray-600">Table:</span>
+                            <span className="font-medium">
+                              {selectedTable.table_number}
+                            </span>
+                          </div>
+                          <div className="flex justify-between">
+                            <span className="text-gray-600">Location:</span>
+                            <span className="font-medium">
+                              {formatLocation(selectedTable.location)}
+                            </span>
+                          </div>
+                        </div>
+                      </>
+                    )}
+
+                    <div className="border-t pt-4">
+                      <div className="flex justify-between text-lg font-semibold">
+                        <span>Reservation Fee:</span>
+                        <span className="text-blue-600">
+                          ₺{RESERVATION_FEE}
+                        </span>
+                      </div>
+                      <p className="text-sm text-gray-500 mt-1">
+                        Refundable if cancelled 24h in advance
+                      </p>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+          </div>
         )}
       </div>
     </div>

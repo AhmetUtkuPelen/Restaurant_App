@@ -153,10 +153,18 @@ class PaymentControllers:
             db.add(new_payment)
             await db.flush()
             
-            # Link orders to payment
+            # Store order IDs before linking
+            order_ids = [order.id for order in orders]
+            
+            # Link orders to payment using the association table directly
             if orders:
+                from Models.PAYMENT.PaymentModel import payment_orders
                 for order in orders:
-                    new_payment.orders.append(order)
+                    stmt = payment_orders.insert().values(
+                        payment_id=new_payment.id,
+                        order_id=order.id
+                    )
+                    await db.execute(stmt)
             
             await db.commit()
             await db.refresh(new_payment)
@@ -169,7 +177,7 @@ class PaymentControllers:
                 "message": "Payment created successfully",
                 "payment": {
                     **new_payment.to_dict(),
-                    "order_ids": [order.id for order in orders],
+                    "order_ids": order_ids,
                     "note": "This is a test payment. In production, you would be redirected to Iyzico payment page."
                 }
             }

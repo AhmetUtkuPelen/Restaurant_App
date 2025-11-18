@@ -13,10 +13,12 @@ import {
   Search,
   Grid3X3,
   List,
-  Utensils
+  Utensils,
+  Loader2
 } from "lucide-react";
 import { useCartStore } from "@/Zustand/Cart/CartState";
-import { useFavouriteStore } from "@/Zustand/FavouriteProduct/FavouriteProductState";
+import { useMyFavourites, useAddFavourite, useRemoveFavourite } from "@/hooks/useFavourite";
+import { toast } from "sonner";
 
 const Doners = () => {
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
@@ -24,10 +26,37 @@ const Doners = () => {
   const [sortBy, setSortBy] = useState('name');
 
   const { data: doners = [], isLoading, error } = useDoners();
+  const { data: favouritesData = [] } = useMyFavourites();
+  const addFavouriteMutation = useAddFavourite();
+  const removeFavouriteMutation = useRemoveFavourite();
   const addToCart = useCartStore((state) => state.addToCart);
-  const addToFavourites = useFavouriteStore((state) => state.addToFavourites);
-  const removeFromFavourites = useFavouriteStore((state) => state.removeFromFavourites);
-  const isFavourite = useFavouriteStore((state) => state.isFavourite);
+
+  const isFavourite = (productId: number) => {
+    return favouritesData.some(fav => fav.product_id === productId);
+  };
+
+  const getFavouriteId = (productId: number) => {
+    const fav = favouritesData.find(fav => fav.product_id === productId);
+    return fav?.id;
+  };
+
+  const handleToggleFavourite = async (productId: number) => {
+    try {
+      if (isFavourite(productId)) {
+        const favId = getFavouriteId(productId);
+        if (favId) {
+          await removeFavouriteMutation.mutateAsync(favId);
+          toast.success("Removed from favourites");
+        }
+      } else {
+        await addFavouriteMutation.mutateAsync({ product_id: productId });
+        toast.success("Added to favourites");
+      }
+    } catch (err) {
+      const error = err as { response?: { data?: { detail?: string } } };
+      toast.error(error?.response?.data?.detail || "Failed to update favourites");
+    }
+  };
 
   const filteredDoners = doners.filter(doner =>
     doner.name.toLowerCase().includes(searchTerm.toLowerCase())
@@ -237,28 +266,19 @@ const Doners = () => {
                   
                   <Button 
                     variant="outline" 
-                    onClick={() => {
-                      if (isFavourite(doner.id)) {
-                        removeFromFavourites(doner.id);
-                      } else {
-                        addToFavourites({
-                          id: doner.id,
-                          name: doner.name,
-                          price: doner.price,
-                          final_price: doner.final_price,
-                          image_url: doner.image_url,
-                          category: "doner",
-                          description: doner.description
-                        });
-                      }
-                    }}
+                    onClick={() => handleToggleFavourite(doner.id)}
+                    disabled={addFavouriteMutation.isPending || removeFavouriteMutation.isPending}
                     className={`w-full transition-colors ${
                       isFavourite(doner.id)
                         ? "border-red-400 bg-red-400 text-white hover:bg-red-500"
                         : "border-red-400 text-red-400 hover:bg-red-400 hover:text-white"
                     }`}
                   >
-                    <Heart className={`w-4 h-4 mr-2 ${isFavourite(doner.id) ? "fill-current" : ""}`} />
+                    {(addFavouriteMutation.isPending || removeFavouriteMutation.isPending) ? (
+                      <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                    ) : (
+                      <Heart className={`w-4 h-4 mr-2 ${isFavourite(doner.id) ? "fill-current" : ""}`} />
+                    )}
                     {isFavourite(doner.id) ? "Remove from Favorites" : "Add to Favorites"}
                   </Button>
                 </CardContent>

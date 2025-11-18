@@ -268,11 +268,59 @@ n route dependencies: Depends(UserControllers.get_current_user)
             )
 
     @staticmethod
-    async def get_user_profile(current_user: User) -> Dict[str, Any]:
+    async def get_user_profile(current_user: User, db: AsyncSession) -> Dict[str, Any]:
         """
-        Get authenticated user's profile.
+        Get authenticated user's profile with all relationships loaded.
         """
-        return current_user.user_profile
+        # Reload user with relationships (excluding favourite_products which is lazy="dynamic")
+        from Models.CART.CartModel import Cart
+        from Models.CART.CartItemModel import CartItem
+        
+        stmt = select(User).options(
+            selectinload(User.orders),
+            selectinload(User.comments),
+            selectinload(User.cart).selectinload(Cart.cart_items),
+            selectinload(User.reservations),
+            selectinload(User.payments)
+        ).where(User.id == current_user.id)
+        
+        result = await db.execute(stmt)
+        user = result.scalar_one()
+        
+        # Get favourite products count separately
+        from Models.PRODUCT.FavouriteProduct.FavouriteProductModel import FavouriteProduct
+        fav_stmt = select(FavouriteProduct.product_id).where(FavouriteProduct.user_id == user.id)
+        fav_result = await db.execute(fav_stmt)
+        favourite_product_ids = [row[0] for row in fav_result.all()]
+        
+        # Filter out cancelled reservations and orders for the count
+        from Utils.Enums.Enums import ReservationStatus, OrderStatus
+        active_reservations = [
+            reservation.id for reservation in user.reservations 
+            if reservation.status != ReservationStatus.CANCELLED
+        ]
+        active_orders = [
+            order.id for order in user.orders 
+            if order.status != OrderStatus.CANCELLED
+        ]
+        
+        return {
+            "id": user.id,
+            "username": user.username,
+            "email": user.email,
+            "image_url": user.image_url,
+            "phone": user.phone,
+            "address": user.address,
+            "role": user.role.value if user.role else None,
+            "is_active": user.is_active,
+            "created_at": user.created_at.isoformat() if user.created_at else None,
+            "favourite_products": favourite_product_ids,
+            "orders": active_orders,
+            "comments": [comment.id for comment in user.comments],
+            "cart": user.cart.to_dict() if user.cart else None,
+            "reservations": active_reservations,
+            "payments": [payment.id for payment in user.payments],
+        }
 
     @staticmethod
     async def update_user_profile(

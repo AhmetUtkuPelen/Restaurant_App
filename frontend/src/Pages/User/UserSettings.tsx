@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import {
   Card,
   CardContent,
@@ -13,23 +13,31 @@ import { Textarea } from "@/Components/ui/textarea";
 import { Avatar, AvatarFallback, AvatarImage } from "@/Components/ui/avatar";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/Components/ui/tabs";
 import { Separator } from "@/Components/ui/separator";
-import { Camera, Save, Eye, EyeOff } from "lucide-react";
-
-interface UserData {
-  username: string;
-  email: string;
-  address: string;
-  phone: string;
-  profilePicture: string;
-}
+import {
+  Camera,
+  Save,
+  Eye,
+  EyeOff,
+  AlertCircle,
+  CheckCircle,
+} from "lucide-react";
+import {
+  useUserProfile,
+  useUpdateProfile,
+  useChangePassword,
+} from "@/hooks/useUser";
 
 const UserSettings = () => {
-  const [userData, setUserData] = useState<UserData>({
-    username: "john_doe",
-    email: "john.doe@example.com",
-    address: "123 Main Street, City, State 12345",
-    phone: "+1 (555) 123-4567",
-    profilePicture: "",
+  const { data: userProfile, isLoading } = useUserProfile();
+  const updateProfile = useUpdateProfile();
+  const changePassword = useChangePassword();
+
+  const [userData, setUserData] = useState({
+    username: "",
+    email: "",
+    address: "",
+    phone: "",
+    image_url: "",
   });
 
   const [passwords, setPasswords] = useState({
@@ -44,9 +52,22 @@ const UserSettings = () => {
     confirm: false,
   });
 
-  const [isLoading, setIsLoading] = useState(false);
+  const [successMessage, setSuccessMessage] = useState("");
+  const [errorMessage, setErrorMessage] = useState("");
 
-  const handleInputChange = (field: keyof UserData, value: string) => {
+  useEffect(() => {
+    if (userProfile) {
+      setUserData({
+        username: userProfile.username,
+        email: userProfile.email,
+        address: userProfile.address || "",
+        phone: userProfile.phone || "",
+        image_url: userProfile.image_url || "",
+      });
+    }
+  }, [userProfile]);
+
+  const handleInputChange = (field: keyof typeof userData, value: string) => {
     setUserData((prev) => ({
       ...prev,
       [field]: value,
@@ -70,9 +91,10 @@ const UserSettings = () => {
     if (file) {
       const reader = new FileReader();
       reader.onload = (e) => {
+        const result = e.target?.result as string;
         setUserData((prev) => ({
           ...prev,
-          profilePicture: e.target?.result as string,
+          image_url: result,
         }));
       };
       reader.readAsDataURL(file);
@@ -80,35 +102,95 @@ const UserSettings = () => {
   };
 
   const handleSaveProfile = async () => {
-    setIsLoading(true);
-    // Simulate API call
-    await new Promise((resolve) => setTimeout(resolve, 1000));
-    setIsLoading(false);
-    // Handle success/error states here
+    try {
+      setErrorMessage("");
+      setSuccessMessage("");
+
+      const updateData: Record<string, string> = {};
+      if (userData.username !== userProfile?.username)
+        updateData.username = userData.username;
+      if (userData.email !== userProfile?.email)
+        updateData.email = userData.email;
+      if (userData.phone !== userProfile?.phone)
+        updateData.phone = userData.phone;
+      if (userData.address !== userProfile?.address)
+        updateData.address = userData.address;
+      if (userData.image_url !== userProfile?.image_url)
+        updateData.image_url = userData.image_url;
+
+      if (Object.keys(updateData).length === 0) {
+        setErrorMessage("No changes to save");
+        return;
+      }
+
+      await updateProfile.mutateAsync(updateData);
+      setSuccessMessage("Profile updated successfully!");
+      setTimeout(() => setSuccessMessage(""), 3000);
+    } catch (error) {
+      const err = error as { response?: { data?: { detail?: string } } };
+      setErrorMessage(err.response?.data?.detail || "Failed to update profile");
+    }
   };
 
   const handleChangePassword = async () => {
-    if (passwords.newPassword !== passwords.confirmPassword) {
-      alert("New passwords do not match");
-      return;
+    try {
+      setErrorMessage("");
+      setSuccessMessage("");
+
+      if (passwords.newPassword !== passwords.confirmPassword) {
+        setErrorMessage("New passwords do not match");
+        return;
+      }
+
+      if (passwords.newPassword.length < 8) {
+        setErrorMessage("Password must be at least 8 characters long");
+        return;
+      }
+
+      await changePassword.mutateAsync({
+        current_password: passwords.currentPassword,
+        new_password: passwords.newPassword,
+      });
+
+      setPasswords({
+        currentPassword: "",
+        newPassword: "",
+        confirmPassword: "",
+      });
+      setSuccessMessage("Password changed successfully!");
+      setTimeout(() => setSuccessMessage(""), 3000);
+    } catch (error) {
+      const err = error as { response?: { data?: { detail?: string } } };
+      setErrorMessage(
+        err.response?.data?.detail || "Failed to change password"
+      );
     }
-    setIsLoading(true);
-    // Simulate API call
-    await new Promise((resolve) => setTimeout(resolve, 1000));
-    setIsLoading(false);
-    setPasswords({ currentPassword: "", newPassword: "", confirmPassword: "" });
-    // Handle success/error states here
   };
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center p-12">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gray-50 py-8">
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-900">Account Settings</h1>
-          <p className="text-gray-600 mt-2">
-            Manage your account information and preferences
-          </p>
-        </div>
+        {successMessage && (
+          <div className="mb-4 p-4 bg-green-50 border border-green-200 rounded-lg flex items-center gap-2">
+            <CheckCircle className="h-5 w-5 text-green-600" />
+            <p className="text-green-800">{successMessage}</p>
+          </div>
+        )}
+
+        {errorMessage && (
+          <div className="mb-4 p-4 bg-red-50 border border-red-200 rounded-lg flex items-center gap-2">
+            <AlertCircle className="h-5 w-5 text-red-600" />
+            <p className="text-red-800">{errorMessage}</p>
+          </div>
+        )}
 
         <Tabs defaultValue="profile" className="space-y-6">
           <TabsList className="grid w-full grid-cols-2 bg-white border border-gray-200">
@@ -143,7 +225,7 @@ const UserSettings = () => {
                     <div className="relative">
                       <Avatar className="h-24 w-24 border-4 border-gray-200">
                         <AvatarImage
-                          src={userData.profilePicture}
+                          src={userData.image_url}
                           alt="Profile picture"
                         />
                         <AvatarFallback className="bg-blue-100 text-blue-600 text-xl font-semibold">
@@ -227,6 +309,7 @@ const UserSettings = () => {
                           handleInputChange("phone", e.target.value)
                         }
                         className="border-gray-300 focus:border-blue-500 focus:ring-blue-500"
+                        placeholder="+90XXXXXXXXXX"
                       />
                     </div>
 
@@ -252,10 +335,10 @@ const UserSettings = () => {
                   <div className="flex justify-end pt-4">
                     <Button
                       onClick={handleSaveProfile}
-                      disabled={isLoading}
+                      disabled={updateProfile.isPending}
                       className="bg-blue-600 hover:bg-blue-700 text-white px-6"
                     >
-                      {isLoading ? (
+                      {updateProfile.isPending ? (
                         <>
                           <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
                           Saving...
@@ -358,6 +441,10 @@ const UserSettings = () => {
                         )}
                       </button>
                     </div>
+                    <p className="text-xs text-gray-500">
+                      Must be at least 8 characters with uppercase, lowercase,
+                      digit, and special character
+                    </p>
                   </div>
 
                   <div className="space-y-2">
@@ -403,14 +490,14 @@ const UserSettings = () => {
                     <Button
                       onClick={handleChangePassword}
                       disabled={
-                        isLoading ||
+                        changePassword.isPending ||
                         !passwords.currentPassword ||
                         !passwords.newPassword ||
                         !passwords.confirmPassword
                       }
                       className="bg-blue-600 hover:bg-blue-700 text-white px-6"
                     >
-                      {isLoading ? (
+                      {changePassword.isPending ? (
                         <>
                           <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
                           Updating...

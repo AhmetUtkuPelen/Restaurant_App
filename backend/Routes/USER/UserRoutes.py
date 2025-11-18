@@ -134,11 +134,14 @@ async def refresh_access_token(
 #################
 
 @UserRouter.get("/me", response_model=UserProfileRead)
-async def get_my_profile(current_user: User = Depends(get_current_active_user)):
+async def get_my_profile(
+    current_user: User = Depends(get_current_active_user),
+    db: AsyncSession = Depends(get_db)
+):
     """
     Get current user's profile information.
     """
-    return await UserControllers.get_user_profile(current_user)
+    return await UserControllers.get_user_profile(current_user, db)
 
 
 @UserRouter.put("/me", response_model=Dict[str, Any])
