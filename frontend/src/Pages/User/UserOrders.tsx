@@ -10,11 +10,33 @@ import {
   XCircle,
   ArrowLeft,
   Package,
+  Loader2,
 } from "lucide-react";
-import { useMyOrders } from "@/hooks/useOrder";
+import { useMyOrders, useCancelOrder } from "@/hooks/useOrder";
+import { toast } from "sonner";
+import { useState } from "react";
 
 const UserOrders = () => {
   const { data: ordersData, isLoading, error } = useMyOrders();
+  const cancelOrderMutation = useCancelOrder();
+  const [cancellingOrderId, setCancellingOrderId] = useState<number | null>(null);
+
+  const handleCancelOrder = async (orderId: number) => {
+    if (!confirm("Are you sure you want to cancel this order?")) {
+      return;
+    }
+
+    setCancellingOrderId(orderId);
+    try {
+      await cancelOrderMutation.mutateAsync(orderId);
+      toast.success("Order cancelled successfully");
+    } catch (err) {
+      const error = err as { response?: { data?: { detail?: string } } };
+      toast.error(error?.response?.data?.detail || "Failed to cancel order");
+    } finally {
+      setCancellingOrderId(null);
+    }
+  };
 
   const getStatusColor = (status: string) => {
     switch (status.toLowerCase()) {
@@ -192,11 +214,38 @@ const UserOrders = () => {
                     </div>
                   )}
 
-                  <div className="flex items-center justify-between text-xs text-gray-500 pt-4 border-t border-gray-700">
-                    <span>{order.items_count || 0} item(s)</span>
-                    {order.completed_at && (
-                      <span>Completed: {formatDate(order.completed_at)}</span>
-                    )}
+                  <div className="flex items-center justify-between pt-4 border-t border-gray-700">
+                    <span className="text-xs text-gray-500">
+                      {order.items_count || 0} item(s)
+                    </span>
+                    <div className="flex items-center gap-3">
+                      {order.completed_at && (
+                        <span className="text-xs text-gray-500">
+                          Completed: {formatDate(order.completed_at)}
+                        </span>
+                      )}
+                      {order.status.toLowerCase() === "pending" && (
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => handleCancelOrder(order.id)}
+                          disabled={cancellingOrderId === order.id}
+                          className="border-red-600 text-red-400 hover:bg-red-900/20 hover:text-red-300"
+                        >
+                          {cancellingOrderId === order.id ? (
+                            <>
+                              <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                              Cancelling...
+                            </>
+                          ) : (
+                            <>
+                              <XCircle className="h-4 w-4 mr-2" />
+                              Cancel Order
+                            </>
+                          )}
+                        </Button>
+                      )}
+                    </div>
                   </div>
                 </CardContent>
               </Card>

@@ -115,3 +115,19 @@ export const useUpdateOrderStatus = () => {
     },
   });
 };
+
+// Cancel order
+export const useCancelOrder = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (orderId: number) => {
+      const response = await axiosInstance.post(`/orders/${orderId}/cancel`);
+      return response.data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["orders"] });
+      queryClient.invalidateQueries({ queryKey: ["user", "profile"] });
+    },
+  });
+};

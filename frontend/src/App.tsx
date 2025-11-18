@@ -21,7 +21,7 @@ import Profile from "./Pages/User/Profile";
 import Contact from "./Pages/Contact/Contact";
 import Header from "./Components/Header/Header";
 import Footer from "./Components/Footer/Footer";
-import { Admin } from "./Pages/Admin/Admin";
+import Admin from "./Pages/Admin/Admin";
 import { Cart } from "./Pages/Cart/Cart";
 import { FAQ } from "./Pages/About/FAQ";
 import { Terms } from "./Pages/About/Terms";
