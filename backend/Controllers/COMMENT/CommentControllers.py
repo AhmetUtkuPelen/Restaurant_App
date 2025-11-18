@@ -1,5 +1,6 @@
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select, func, and_
+from sqlalchemy.orm import selectinload
 from fastapi import HTTPException, status
 from typing import List, Dict, Any
 from datetime import datetime, timezone
@@ -217,7 +218,9 @@ class CommentControllers:
             if not include_inactive:
                 conditions.append(Comment.is_active == True)
             
-            stmt = select(Comment).where(and_(*conditions)).order_by(Comment.created_at.desc())
+            stmt = select(Comment).options(
+                selectinload(Comment.product)
+            ).where(and_(*conditions)).order_by(Comment.created_at.desc())
             result = await db.execute(stmt)
             comments = result.scalars().all()
             
@@ -241,7 +244,10 @@ class CommentControllers:
     ) -> Dict[str, Any]:
         """Public: Get a single comment by ID."""
         try:
-            stmt = select(Comment).where(
+            stmt = select(Comment).options(
+                selectinload(Comment.user),
+                selectinload(Comment.product)
+            ).where(
                 and_(
                     Comment.id == comment_id,
                     Comment.is_active == True
@@ -303,8 +309,10 @@ class CommentControllers:
             count_result = await db.execute(count_stmt)
             total = count_result.scalar()
             
-            # Get comments
-            stmt = select(Comment).where(
+            # Get comments with user relationship loaded
+            stmt = select(Comment).options(
+                selectinload(Comment.user)
+            ).where(
                 and_(
                     Comment.product_id == product_id,
                     Comment.is_active == True
@@ -372,7 +380,9 @@ class CommentControllers:
             if not include_inactive:
                 conditions.append(Comment.is_active == True)
             
-            stmt = select(Comment).where(and_(*conditions)).order_by(Comment.created_at.desc())
+            stmt = select(Comment).options(
+                selectinload(Comment.product)
+            ).where(and_(*conditions)).order_by(Comment.created_at.desc())
             result = await db.execute(stmt)
             comments = result.scalars().all()
             
@@ -442,8 +452,11 @@ class CommentControllers:
             count_result = await db.execute(count_stmt)
             total = count_result.scalar()
             
-            # Get comments
-            stmt = select(Comment).offset(skip).limit(limit).order_by(Comment.created_at.desc())
+            # Get comments with relationships loaded
+            stmt = select(Comment).options(
+                selectinload(Comment.user),
+                selectinload(Comment.product)
+            ).offset(skip).limit(limit).order_by(Comment.created_at.desc())
             if conditions:
                 stmt = stmt.where(and_(*conditions))
             
