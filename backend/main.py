@@ -1,6 +1,7 @@
 import uvicorn
-from fastapi import FastAPI
+from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
+from starlette.responses import RedirectResponse
 from Database.Database import init_db, engine, sync_engine
 from contextlib import asynccontextmanager
 import os
@@ -153,7 +154,12 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-
+# Session middleware for admin authentication
+from starlette.middleware.sessions import SessionMiddleware
+app.add_middleware(
+    SessionMiddleware,
+    secret_key=os.getenv("JWT_SECRET_KEY") or os.getenv("SECRET_KEY", "your-secret-key-change-in-production")
+)
 
 # Rate limiter (slowapi) setup #
 app.state.limiter = limiter
@@ -164,8 +170,19 @@ app.add_middleware(SlowAPIMiddleware)
 
 
 ########## SQL ADMIN CONFIG ##########
+from Utils.AdminAuth.AdminAuth import AdminAuthBackend
 
-admin = Admin(app, sync_engine)
+authentication_backend = AdminAuthBackend(
+    secret_key=os.getenv("JWT_SECRET_KEY", "your-secret-key")
+)
+
+admin = Admin(
+    app, 
+    sync_engine,
+    authentication_backend=authentication_backend,
+    base_url="/admin",
+    title="Restaurant Admin Dashboard"
+)
 
 # SQLAdmin syntax: pass model as parameter in class definition
 class UserModelForAdmin(ModelView, model=User):
@@ -305,15 +322,42 @@ app.include_router(ContactFormRouter)
 # -----------------------------
 # Root + Health Endpoints
 # -----------------------------
-@app.get("/", tags=["Health"])
-async def root():
-    return {
-        "status": "ok",
-        "service": "Restaurant_Service",
-        "environment": ENVIRONMENT,
-        "message": "Running smoothly 🚀",
-    }
+from fastapi.responses import HTMLResponse
 
+@app.get("/", response_class=HTMLResponse, include_in_schema=False)
+async def root():
+    return """
+    <!DOCTYPE html>
+    <html>
+    <head>
+        <title>Restaurant API</title>
+        <style>
+            body { font-family: Arial, sans-serif; max-width: 800px; margin: 50px auto; padding: 20px; }
+            .card { border: 1px solid #ddd; border-radius: 8px; padding: 20px; margin: 20px 0; }
+            a { color: #0066cc; text-decoration: none; }
+            a:hover { text-decoration: underline; }
+        </style>
+    </head>
+    <body>
+        <h1>🍽️ Restaurant Service API</h1>
+        <div class="card">
+            <h2>Admin Dashboard</h2>
+            <p>Access the admin dashboard to manage your restaurant:</p>
+            <p><a href="/admin" style="font-size: 18px;">→ Go to Admin Dashboard</a></p>
+            <p><small>Login with your admin credentials</small></p>
+        </div>
+        <div class="card">
+            <h2>API Documentation</h2>
+            <p><a href="/docs">→ Interactive API Docs (Swagger)</a></p>
+            <p><a href="/redoc">→ API Documentation (ReDoc)</a></p>
+        </div>
+        <div class="card">
+            <h2>Health Check</h2>
+            <p><a href="/health">→ Service Health Status</a></p>
+        </div>
+    </body>
+    </html>
+    """
 
 @app.get("/health", tags=["Monitoring"])
 async def health_check():

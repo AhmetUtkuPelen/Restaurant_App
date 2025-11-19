@@ -86,6 +86,23 @@ export const useMyReservations = () => {
   });
 };
 
+// Update a reservation
+export const useUpdateReservation = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async ({ reservationId, data }: { reservationId: number; data: Partial<ReservationCreate> }) => {
+      const response = await axiosInstance.put(`/reservations/${reservationId}`, data);
+      return response.data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["reservations"] });
+      queryClient.invalidateQueries({ queryKey: ["tables"] });
+      queryClient.invalidateQueries({ queryKey: ["user", "profile"] });
+    },
+  });
+};
+
 // Cancel a reservation
 export const useCancelReservation = () => {
   const queryClient = useQueryClient();

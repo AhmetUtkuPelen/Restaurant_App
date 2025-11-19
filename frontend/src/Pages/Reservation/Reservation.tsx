@@ -133,21 +133,20 @@ const Reservation = () => {
   const convertTo24Hour = (time12h: string) => {
     const [time, modifier] = time12h.split(" ");
     const [hoursStr, minutes] = time.split(":");
-    let hours = hoursStr;
+    let hours = parseInt(hoursStr, 10);
 
-    if (hours === "12") {
-      hours = "00";
+    if (modifier === "AM") {
+      if (hours === 12) {
+        hours = 0; // 12 AM is 00:00
+      }
+    } else if (modifier === "PM") {
+      if (hours !== 12) {
+        hours += 12; // 1 PM is 13:00, 2 PM is 14:00, etc.
+      }
+      // 12 PM stays as 12
     }
 
-    if (modifier === "PM" && hours !== "12") {
-      hours = String(parseInt(hours, 10) + 12);
-    }
-
-    if (modifier === "AM" && hours === "12") {
-      hours = "00";
-    }
-
-    return `${hours.padStart(2, "0")}:${minutes}`;
+    return `${hours.toString().padStart(2, "0")}:${minutes}`;
   };
 
   const handleSubmitReservation = async () => {
@@ -157,10 +156,8 @@ const Reservation = () => {
       // Convert 12-hour time to 24-hour format
       const time24h = convertTo24Hour(reservationData.time);
 
-      // Combine date and time into ISO datetime string
-      const reservationDateTime = new Date(
-        `${reservationData.date}T${time24h}:00`
-      ).toISOString();
+      // Combine date and time into ISO datetime string (without timezone conversion)
+      const reservationDateTime = `${reservationData.date}T${time24h}:00`;
 
       const result = await createReservation.mutateAsync({
         table_id: reservationData.tableId,

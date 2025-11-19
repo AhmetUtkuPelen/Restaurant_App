@@ -13,17 +13,21 @@ import {
   XCircle,
   Trash2,
   ArrowLeft,
+  Edit,
 } from "lucide-react";
 import {
   useMyReservations,
   useCancelReservation,
+  type Reservation,
 } from "@/hooks/useReservation";
+import { UpdateReservationDialog } from "@/Components/Reservation/UpdateReservationDialog";
 import { toast } from "sonner";
 
 const UserReservations = () => {
   const { data: reservations = [], isLoading, error } = useMyReservations();
   const cancelReservation = useCancelReservation();
   const [cancellingId, setCancellingId] = useState<number | null>(null);
+  const [editingReservation, setEditingReservation] = useState<Reservation | null>(null);
 
   const handleCancelReservation = async (reservationId: number) => {
     toast.warning("Are you sure?", {
@@ -297,27 +301,38 @@ const UserReservations = () => {
                       </div>
 
                       {canCancel && (
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() =>
-                            handleCancelReservation(reservation.id)
-                          }
-                          disabled={cancellingId === reservation.id}
-                          className="border-red-600 text-red-400 hover:bg-red-900/20 hover:text-red-300 cursor-pointer"
-                        >
-                          {cancellingId === reservation.id ? (
-                            <>
-                              <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-red-400 mr-2"></div>
-                              Cancelling...
-                            </>
-                          ) : (
-                            <>
-                              <Trash2 className="h-4 w-4 mr-2" />
-                              Cancel
-                            </>
-                          )}
-                        </Button>
+                        <div className="flex gap-2">
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => setEditingReservation(reservation)}
+                            className="border-blue-600 text-blue-400 hover:bg-blue-900/20 hover:text-blue-300 cursor-pointer"
+                          >
+                            <Edit className="h-4 w-4 mr-2" />
+                            Update
+                          </Button>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() =>
+                              handleCancelReservation(reservation.id)
+                            }
+                            disabled={cancellingId === reservation.id}
+                            className="border-red-600 text-red-400 hover:bg-red-900/20 hover:text-red-300 cursor-pointer"
+                          >
+                            {cancellingId === reservation.id ? (
+                              <>
+                                <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-red-400 mr-2"></div>
+                                Cancelling...
+                              </>
+                            ) : (
+                              <>
+                                <Trash2 className="h-4 w-4 mr-2" />
+                                Cancel
+                              </>
+                            )}
+                          </Button>
+                        </div>
                       )}
                     </div>
                   </CardContent>
@@ -325,6 +340,15 @@ const UserReservations = () => {
               );
             })}
           </div>
+        )}
+
+        {/* Update Reservation Dialog */}
+        {editingReservation && (
+          <UpdateReservationDialog
+            reservation={editingReservation}
+            open={!!editingReservation}
+            onOpenChange={(open) => !open && setEditingReservation(null)}
+          />
         )}
       </div>
     </div>

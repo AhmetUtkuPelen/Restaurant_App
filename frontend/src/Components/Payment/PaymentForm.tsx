@@ -13,10 +13,6 @@ import {
 } from "@/Components/ui/select";
 import { Separator } from "@/Components/ui/separator";
 import { CreditCard, Lock } from "lucide-react";
-import {
-  SuccessfulTestCards,
-  ErrorGeneratingTestCards,
-} from "@/Constants/TestCards";
 import { useCreatePayment } from "@/hooks/usePayment";
 import { usePaymentStore } from "@/Zustand/Payment/PaymentState";
 import { toast } from "sonner";
@@ -48,31 +44,14 @@ const PaymentForm = ({
     cvc: "",
     cardHolderName: "",
     contactName: "",
-    city: "Istanbul",
-    country: "Turkey",
+    city: "",
+    country: "",
     address: "",
     zipCode: "",
   });
 
-  const [showTestCards, setShowTestCards] = useState(false);
-
   const handleInputChange = (field: string, value: string) => {
     setFormData((prev) => ({ ...prev, [field]: value }));
-  };
-
-  const handleTestCardSelect = (cardNumber: string) => {
-    setFormData((prev) => ({
-      ...prev,
-      cardNumber: cardNumber.replace(/\s/g, ""),
-      expiryMonth: "12",
-      expiryYear: "2030",
-      cvc: "123",
-      cardHolderName: "Test User",
-      contactName: "Test User",
-      address: "Test Address 123",
-      zipCode: "34000",
-    }));
-    setShowTestCards(false);
   };
 
   const formatCardNumber = (value: string) => {
@@ -161,76 +140,20 @@ const PaymentForm = ({
 
   return (
     <div className="space-y-6">
-      {/* Test Cards Section */}
+      {/* Demo Payment Notice */}
       <Card className="border-blue-200 bg-blue-50">
-        <CardHeader className="pb-3">
-          <div className="flex items-center justify-between">
-            <CardTitle className="text-lg text-blue-900 flex items-center">
-              <CreditCard className="h-5 w-5 mr-2" />
-              Test Cards Available
-            </CardTitle>
-            <Button
-              type="button"
-              variant="outline"
-              size="sm"
-              onClick={() => setShowTestCards(!showTestCards)}
-              className="border-blue-300 text-blue-700 hover:bg-blue-100"
-            >
-              {showTestCards ? "Hide" : "Show"} Test Cards
-            </Button>
-          </div>
-        </CardHeader>
-        {showTestCards && (
-          <CardContent className="pt-0">
-            <div className="space-y-4">
-              <div>
-                <h4 className="font-medium text-green-800 mb-2">
-                  ✅ Successful Test Cards
-                </h4>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
-                  {SuccessfulTestCards.slice(0, 6).map((card, index) => (
-                    <button
-                      key={index}
-                      type="button"
-                      onClick={() => handleTestCardSelect(card.cardNumber)}
-                      className="text-left p-2 rounded border border-green-200 hover:bg-green-50 transition-colors"
-                    >
-                      <div className="font-mono text-sm">
-                        {formatCardNumber(card.cardNumber)}
-                      </div>
-                      <div className="text-xs text-gray-600">
-                        {card.bank} - {card.cardAssociation}
-                      </div>
-                    </button>
-                  ))}
-                </div>
-              </div>
-
-              <div>
-                <h4 className="font-medium text-red-800 mb-2">
-                  ❌ Error Test Cards
-                </h4>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
-                  {ErrorGeneratingTestCards.slice(0, 4).map((card, index) => (
-                    <button
-                      key={index}
-                      type="button"
-                      onClick={() => handleTestCardSelect(card.cardNumber)}
-                      className="text-left p-2 rounded border border-red-200 hover:bg-red-50 transition-colors"
-                    >
-                      <div className="font-mono text-sm">
-                        {formatCardNumber(card.cardNumber)}
-                      </div>
-                      <div className="text-xs text-red-600">
-                        {card.description}
-                      </div>
-                    </button>
-                  ))}
-                </div>
-              </div>
+        <CardContent className="p-4">
+          <div className="flex items-start gap-3">
+            <CreditCard className="h-5 w-5 text-blue-600 mt-0.5" />
+            <div>
+              <h4 className="font-medium text-blue-900 mb-1">Demo Payment System</h4>
+              <p className="text-sm text-blue-700">
+                This is a demonstration payment system. You can enter any card details to test the checkout process. 
+                No real charges will be made.
+              </p>
             </div>
-          </CardContent>
-        )}
+          </div>
+        </CardContent>
       </Card>
 
       {/* Payment Form */}
