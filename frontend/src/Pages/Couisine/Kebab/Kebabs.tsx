@@ -17,10 +17,15 @@ import {
 import { useCartStore } from "@/Zustand/Cart/CartState";
 import { useMyFavourites, useAddFavourite, useRemoveFavourite } from "@/hooks/useFavourite";
 import { toast } from "sonner";
+import { useNavigate } from "react-router-dom";
+import { useIsAuthenticated } from "@/Zustand/Auth/AuthState";
 
 const Kebabs = () => {
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
   const [searchTerm, setSearchTerm] = useState('');
+
+  const navigate = useNavigate();
+  const isAuthenticated = useIsAuthenticated();
 
   const { data: kebabs = [], isLoading, error } = useKebabs();
   const { data: favouritesData = [] } = useMyFavourites();
@@ -58,6 +63,38 @@ const Kebabs = () => {
   const filteredKebabs = kebabs.filter(kebab =>
     kebab.name.toLowerCase().includes(searchTerm.toLowerCase())
   );
+
+   const handleAddToCart = (product: {
+     id: number;
+     name: string;
+     price: string;
+     final_price: string;
+     image_url: string;
+   }, category: string) => {
+     if (!isAuthenticated) {
+       toast.error("Please login to add items to cart", {
+         description: "You need to be logged in to add items to your cart.",
+         action: {
+           label: "Login",
+           onClick: () => navigate("/login"),
+         },
+       });
+       return;
+     }
+
+     addToCart({
+       id: product.id,
+       name: product.name,
+       price: product.price,
+       final_price: product.final_price,
+       image_url: product.image_url,
+       category: category,
+     });
+     
+     toast.success("Added to cart!", {
+       description: `${product.name} added to your cart.`,
+     });
+   };
 
   return (
     <div className="min-h-screen bg-gray-900 text-white">
@@ -195,17 +232,16 @@ const Kebabs = () => {
                   </div>
 
                   <div className="flex gap-2 mb-3">
-                    <Button 
-                      className="flex-1 bg-blue-600 hover:bg-blue-700 text-white cursor-pointer"
-                      onClick={() => addToCart({
-                        id: kebab.id,
-                        name: kebab.name,
-                        price: kebab.price,
-                        final_price: kebab.final_price,
-                        image_url: kebab.image_url,
-                        category: "kebab"
-                      })}
-                    >
+   <Button 
+     className="flex-1 bg-blue-600 hover:bg-blue-700 text-white cursor-pointer"
+     onClick={() => handleAddToCart({
+       id: kebab.id,
+       name: kebab.name,
+       price: kebab.price,
+       final_price: kebab.final_price,
+       image_url: kebab.image_url,
+     }, "kebab")}
+   >
                       <ShoppingCart className="w-4 h-4 mr-2" />
                       Add to Cart
                     </Button>

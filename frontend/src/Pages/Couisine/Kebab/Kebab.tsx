@@ -16,10 +16,16 @@ import {
 import { useCartStore } from "@/Zustand/Cart/CartState";
 import { useFavouriteStore } from "@/Zustand/FavouriteProduct/FavouriteProductState";
 import CommentSection from "@/Components/Comment/CommentSection";
+import { useNavigate } from "react-router-dom";
+import { useIsAuthenticated } from "@/Zustand/Auth/AuthState";
+import { toast } from "sonner";
 
 const Kebab = () => {
   const { id } = useParams();
   const [quantity, setQuantity] = useState(1);
+
+  const navigate = useNavigate();
+  const isAuthenticated = useIsAuthenticated();
 
   const { data: kebab, isLoading, error } = useKebab(parseInt(id || "0"));
   const { data: products = [] } = useKebabs();
@@ -30,6 +36,34 @@ const Kebab = () => {
     (state) => state.removeFromFavourites
   );
   const isFavourite = useFavouriteStore((state) => state.isFavourite);
+
+   const handleAddToCart = () => {
+     if (!isAuthenticated) {
+       toast.error("Please login to add items to cart", {
+         description: "You need to be logged in to add items to your cart.",
+         action: {
+           label: "Login",
+           onClick: () => navigate("/login"),
+         },
+       });
+       return;
+     }
+
+     addToCart(
+       {
+         id: kebab!.id,
+         name: kebab!.name,
+         price: kebab!.price,
+         final_price: kebab!.final_price,
+         image_url: kebab!.image_url,
+         category: "kebab",
+       },
+       quantity
+     );
+     toast.success("Added to cart!", {
+       description: `${quantity} x ${kebab!.name} added to your cart.`,
+     });
+   };
 
   if (isLoading) {
     return (
@@ -184,20 +218,8 @@ const Kebab = () => {
             <div className="flex gap-4 mb-4">
               <Button
                 className="flex-1 bg-blue-600 hover:bg-blue-700 text-white py-3 text-lg cursor-pointer"
-                onClick={() =>
-                  addToCart(
-                    {
-                      id: kebab.id,
-                      name: kebab.name,
-                      price: kebab.price,
-                      final_price: kebab.final_price,
-                      image_url: kebab.image_url,
-                      category: "kebab",
-                    },
-                    quantity
-                  )
-                }
-              >
+                onClick={handleAddToCart}
+                >
                 <ShoppingCart className="w-5 h-5 mr-2" />
                 Add to Cart - ${(finalPrice * quantity).toFixed(2)}
               </Button>
@@ -206,8 +228,20 @@ const Kebab = () => {
             <Button
               variant="outline"
               onClick={() => {
+                if (!isAuthenticated) {
+                  toast.error("Please login to manage favorites", {
+                    description: "You need to be logged in to add items to your favorites.",
+                    action: {
+                      label: "Login",
+                      onClick: () => navigate("/login"),
+                    },
+                  });
+                  return;
+                }
+                
                 if (isFavourite(kebab.id)) {
                   removeFromFavourites(kebab.id);
+                  toast.success("Removed from favorites");
                 } else {
                   addToFavourites({
                     id: kebab.id,
@@ -218,6 +252,7 @@ const Kebab = () => {
                     category: "kebab",
                     description: kebab.description,
                   });
+                  toast.success("Added to favorites");
                 }
               }}
               className={`w-full mb-8 transition-colors py-3 cursor-pointer ${

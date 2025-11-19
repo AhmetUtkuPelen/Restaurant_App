@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Button } from "@/Components/ui/button";
-import { Link, useParams } from "react-router-dom";
+import { Link, useParams, useNavigate } from "react-router-dom";
 import { useDessert, useDesserts } from "@/hooks/useProducts";
 import {
   Heart,
@@ -15,10 +15,13 @@ import {
 } from "lucide-react";
 import { useCartStore } from "@/Zustand/Cart/CartState";
 import { useFavouriteStore } from "@/Zustand/FavouriteProduct/FavouriteProductState";
+import { useIsAuthenticated } from "@/Zustand/Auth/AuthState";
+import { toast } from "sonner";
 import CommentSection from "@/Components/Comment/CommentSection";
 
 const Dessert = () => {
   const { id } = useParams();
+  const navigate = useNavigate();
   const [quantity, setQuantity] = useState(1);
 
   const { data: dessert, isLoading, error } = useDessert(parseInt(id!));
@@ -30,6 +33,35 @@ const Dessert = () => {
     (state) => state.removeFromFavourites
   );
   const isFavourite = useFavouriteStore((state) => state.isFavourite);
+  const isAuthenticated = useIsAuthenticated();
+
+  const handleAddToCart = () => {
+    if (!isAuthenticated) {
+      toast.error("Please login to add items to cart", {
+        description: "You need to be logged in to add items to your cart.",
+        action: {
+          label: "Login",
+          onClick: () => navigate("/login"),
+        },
+      });
+      return;
+    }
+
+    addToCart(
+      {
+        id: dessert!.id,
+        name: dessert!.name,
+        price: dessert!.price,
+        final_price: dessert!.final_price,
+        image_url: dessert!.image_url,
+        category: "dessert",
+      },
+      quantity
+    );
+    toast.success("Added to cart!", {
+      description: `${quantity} x ${dessert!.name} added to your cart.`,
+    });
+  };
 
   if (isLoading) {
     return (
@@ -126,8 +158,20 @@ const Dessert = () => {
               </div>
               <button
                 onClick={() => {
+                  if (!isAuthenticated) {
+                    toast.error("Please login to manage favorites", {
+                      description: "You need to be logged in to add items to your favorites.",
+                      action: {
+                        label: "Login",
+                        onClick: () => navigate("/login"),
+                      },
+                    });
+                    return;
+                  }
+                  
                   if (isFavourite(dessert.id)) {
                     removeFromFavourites(dessert.id);
+                    toast.success("Removed from favorites");
                   } else {
                     addToFavourites({
                       id: dessert.id,
@@ -138,6 +182,7 @@ const Dessert = () => {
                       category: "dessert",
                       description: dessert.description,
                     });
+                    toast.success("Added to favorites");
                   }
                 }}
                 className={`p-2 rounded-full transition-colors ${
@@ -229,19 +274,7 @@ const Dessert = () => {
             <div className="flex gap-4 mb-4">
               <Button
                 className="flex-1 bg-blue-600 hover:bg-blue-700 text-white py-3 text-lg cursor-pointer"
-                onClick={() =>
-                  addToCart(
-                    {
-                      id: dessert.id,
-                      name: dessert.name,
-                      price: dessert.price,
-                      final_price: dessert.final_price,
-                      image_url: dessert.image_url,
-                      category: "dessert",
-                    },
-                    quantity
-                  )
-                }
+                onClick={handleAddToCart}
               >
                 <ShoppingCart className="w-5 h-5 mr-2" />
                 Add to Cart - ${(finalPrice * quantity).toFixed(2)}
@@ -252,8 +285,20 @@ const Dessert = () => {
             <Button
               variant="outline"
               onClick={() => {
+                if (!isAuthenticated) {
+                  toast.error("Please login to manage favorites", {
+                    description: "You need to be logged in to add items to your favorites.",
+                    action: {
+                      label: "Login",
+                      onClick: () => navigate("/login"),
+                    },
+                  });
+                  return;
+                }
+                
                 if (isFavourite(dessert.id)) {
                   removeFromFavourites(dessert.id);
+                  toast.success("Removed from favorites");
                 } else {
                   addToFavourites({
                     id: dessert.id,
@@ -264,6 +309,7 @@ const Dessert = () => {
                     category: "dessert",
                     description: dessert.description,
                   });
+                  toast.success("Added to favorites");
                 }
               }}
               className={`w-full mb-8 transition-colors py-3 cursor-pointer ${

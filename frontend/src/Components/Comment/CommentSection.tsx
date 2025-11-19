@@ -12,6 +12,7 @@ import {
 } from "@/hooks/useComment";
 import { toast } from "sonner";
 import { useAuthStore } from "@/Zustand/Auth/AuthState";
+import { Link } from "react-router-dom";
 
 interface CommentSectionProps {
   productId: number;
@@ -221,9 +222,11 @@ const CommentSection = ({ productId }: CommentSectionProps) => {
         <Card className="bg-gray-800 border-gray-700 mb-8">
           <CardContent className="p-6 text-center">
             <p className="text-gray-400 mb-4">Please login to write a review</p>
-            <Button className="bg-blue-600 hover:bg-blue-700 text-white">
+          <Link to={`/login`}>
+            <Button className="bg-blue-600 hover:bg-blue-700 text-white cursor-pointer">
               Login
             </Button>
+          </Link>
           </CardContent>
         </Card>
       )}
