@@ -13,7 +13,7 @@ logger = logging.getLogger(__name__)
 
 async def seed_kebabs():
     """
-    Seed kebab products into the database if they don't already exist.
+    Seed kebab products into the database if they don't already exist. IF tyhey Exist Skip
     """
     async with AsyncSessionLocal() as session:
         try:
@@ -57,7 +57,7 @@ async def seed_kebabs():
                     "tags": ["beef", "kofte", "seasoned", "patties"],
                     "price": Decimal('48.00'),
                     "discount_percentage": Decimal('0.00'),
-                    "image_url": "https://www.askchefdennis.com/wp-content/uploads/2023/05/kabobs-hero-10.jpg",
+                    "image_url": "https://www.billyparisi.com/wp-content/uploads/2020/10/kofta-1.jpg",
                     "is_active": True,
                     "is_front_page": True,
                     "size": KebabSize.MEDIUM,
@@ -89,7 +89,7 @@ async def seed_kebabs():
                     "tags": ["lamb", "chops", "herbs", "garlic"],
                     "price": Decimal('65.00'),
                     "discount_percentage": Decimal('0.00'),
-                    "image_url": "https://www.allrecipes.com/thmb/UyqfGvJaY5Lc42IXE05BCk777-M=/750x0/filters:no_upscale():max_bytes(150000):strip_icc():format(webp)/74037-lamb-chops-with-balsamic-reduction-DDMFS-step-4x3-158-cc81d0fe528c4b07be2d7031e152f70b.jpg",
+                    "image_url": "https://www.floatingkitchen.net/wp-content/uploads/2016/08/Grilled-Lamb-Chops-2.jpg",
                     "is_active": True,
                     "is_front_page": True,
                     "size": KebabSize.MEDIUM,
@@ -105,7 +105,7 @@ async def seed_kebabs():
                     "tags": ["chicken", "wings", "marinated", "sauce"],
                     "price": Decimal('38.00'),
                     "discount_percentage": Decimal('5.00'),
-                    "image_url": "https://www.seriouseats.com/thmb/sIOuVwloHBpNS413mL97jGZO4ac=/750x0/filters:no_upscale():max_bytes(150000):strip_icc():format(webp)/__opt__aboutcom__coeus__resources__content_migration__serious_eats__seriouseats.com__2019__07__20190618-grilled-turkish-chicken-wings-vicky-wasik-13-6f722c8e117f4d6ab1b99ec8340de765.jpg",
+                    "image_url": "https://assets.epicurious.com/photos/57acca5b54c3581a438c5cee/16:9/w_1920,c_limit/chicken-wings-on-skewer-11082016-1.jpg",
                     "is_active": True,
                     "is_front_page": False,
                     "size": KebabSize.SMALL,
@@ -184,13 +184,13 @@ async def seed_kebabs():
             skipped_count = 0
             
             for kebab_data in kebabs_data:
-                # Check if kebab already exists
+                ## Check if kebab already exists or not ###
                 stmt = select(Kebab).where(Kebab.name == kebab_data["name"])
                 result = await session.execute(stmt)
                 existing_kebab = result.scalar_one_or_none()
                 
                 if existing_kebab:
-                    logger.info(f"Kebab '{kebab_data['name']}' already exists. Skipping.")
+                    logger.info(f" Kebab '{kebab_data['name']}' already exists. Skipping. ")
                     skipped_count += 1
                     continue
                 
@@ -214,18 +214,18 @@ async def seed_kebabs():
                 
                 session.add(new_kebab)
                 created_count += 1
-                logger.info(f"Created kebab: {kebab_data['name']}")
+                logger.info(f" Created kebab: {kebab_data['name']} ")
             
             await session.commit()
             
-            logger.info(f"Kebab seeding completed. Created: {created_count}, Skipped: {skipped_count}")
+            logger.info(f" Kebab seeding completed. Created: {created_count}, Skipped: {skipped_count} ")
             
             if created_count > 0:
                 print("\n" + "="*60)
-                print("KEBABS SEEDED SUCCESSFULLY!")
+                print(" KEBABS HAVE BEEN SEEDED SUCCESSFULLY! ")
                 print("="*60)
-                print(f"✅ Created {created_count} new kebabs")
-                print(f"⏭️  Skipped {skipped_count} existing kebabs")
+                print(f"  Created {created_count} new kebabs  ")
+                print(f"  Skipped {skipped_count} existing kebabs  ")
                 print("="*60 + "\n")
             
             return {
@@ -237,29 +237,28 @@ async def seed_kebabs():
             
         except Exception as e:
             await session.rollback()
-            logger.error(f"Error seeding kebabs: {str(e)}")
+            logger.error(f" Error seeding kebabs: {str(e)} ")
             raise
 
 
 async def main():
-    """Main function to run the kebab seeding script."""
+    """Main function for running the kebab seeding script."""
     try:
-        logger.info("Starting kebab seeding...")
+        logger.info(" Starting kebab seeding... ")
         result = await seed_kebabs()
-        logger.info(f"Kebab seeding completed: {result}")
+        logger.info(f" Kebab seeding completed: {result} ")
     except Exception as e:
-        logger.error(f"Kebab seeding failed: {str(e)}")
+        logger.error(f" Kebab seeding failed: {str(e)} ")
         raise
     finally:
         await engine.dispose()
 
 
 if __name__ == "__main__":
-    # Configure logging
     logging.basicConfig(
         level=logging.INFO,
         format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
     )
     
-    # Run the seeding
+    ### Run the seeding ###
     asyncio.run(main())

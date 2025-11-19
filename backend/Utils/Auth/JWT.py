@@ -9,14 +9,13 @@ from jose import JWTError, jwt
 from jose.exceptions import ExpiredSignatureError, JWTClaimsError
 from dotenv import load_dotenv
 
-# Configure logging
+## logging config ##
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
-# Load environment variables from .env file
 load_dotenv()
 
-# JWT Configuration
+###### JWT Configuration - get .env fields #######
 SECRET_KEY = os.getenv("JWT_SECRET_KEY", os.getenv("SECRET_KEY", "your-default-secret-key-for-dev"))
 ALGORITHM = os.getenv("JWT_ALGORITHM", "HS256")
 ACCESS_TOKEN_EXPIRE_MINUTES = int(os.getenv("ACCESS_TOKEN_EXPIRE_MINUTES", 30))
@@ -24,8 +23,9 @@ REFRESH_TOKEN_EXPIRE_DAYS = int(os.getenv("REFRESH_TOKEN_EXPIRE_DAYS", 7))
 ISSUER = os.getenv("JWT_ISSUER", "ecommerce-api")
 AUDIENCE = os.getenv("JWT_AUDIENCE", "ecommerce-client")
 
+
 class TokenError(Exception):
-    """Base exception for token related errors"""
+    """Base exception class for token related errors"""
     def __init__(self, message: str = "Token validation failed", error_code: str = "token_error", **kwargs):
         self.message = message
         self.error_code = error_code
@@ -33,7 +33,6 @@ class TokenError(Exception):
         super().__init__(self.message)
         
     def to_dict(self) -> dict:
-        """Convert error to dictionary for API responses"""
         return {
             "error": self.error_code,
             "message": self.message,
@@ -45,8 +44,9 @@ class TokenError(Exception):
         return f"{self.message} ({self.error_code}){f' - {details}' if details else ''}"
 
 
+
 class TokenExpiredError(TokenError):
-    """Raised when a token has expired"""
+    """ Raises when a token has expired """
     def __init__(self, message: str = "Token has expired", **kwargs):
         super().__init__(
             message=message,
@@ -55,8 +55,9 @@ class TokenExpiredError(TokenError):
         )
 
 
+
 class TokenInvalidError(TokenError):
-    """Raised when a token is invalid"""
+    """ Raises when a token is invalid """
     def __init__(self, message: str = "Invalid token", reason: str = None, **kwargs):
         details = {"reason": reason} if reason else {}
         details.update(kwargs)
@@ -66,6 +67,10 @@ class TokenInvalidError(TokenError):
             **details
         )
 
+
+
+
+
 def create_access_token(
     data: Dict[str, Any], 
     expires_delta: Optional[timedelta] = None,
@@ -73,17 +78,10 @@ def create_access_token(
 ) -> str:
     """
     Creates an access token with all required claims.
-    
-    Args:
-        data (Dict[str, Any]): Data to be encoded in the token. Must contain 'sub'.
-        expires_delta (Optional[timedelta]): Custom expiration time.
-        additional_claims (Optional[Dict[str, Any]]): Additional claims to include.
         
-    Returns:
-        str: The encoded access token.
+    Returns : str: The encoded access token.
         
-    Raises:
-        TokenError: If token creation fails or required claims are missing.
+    Raises : TokenError: If token creation fails or required claims are missing.
     """
     try:
         # Validate required data
@@ -99,27 +97,23 @@ def create_access_token(
         else:
             expire = now + timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
         
-        # Add standard claims - ensure all required claims are present
         to_encode.update({
             "exp": expire,
             "iat": now,
             "iss": ISSUER,
             "aud": AUDIENCE,
-            "sub": str(data["sub"]),  # Ensure sub is string
-            "jti": str(uuid.uuid4()),  # JWT ID for blacklisting
+            "sub": str(data["sub"]),
+            "jti": str(uuid.uuid4()),
             "token_type": "access",
-            "nbf": now,  # Not before - token is valid from now
+            "nbf": now,
         })
         
-        # Ensure role is included if provided in data
         if "role" in data:
             to_encode["role"] = data["role"]
         
-        # Add any additional claims
         if additional_claims:
             to_encode.update(additional_claims)
         
-        # Validate that we have all required claims
         required_claims = ["sub", "exp", "iat", "iss", "aud", "jti", "token_type"]
         missing_claims = [claim for claim in required_claims if claim not in to_encode]
         if missing_claims:
@@ -136,7 +130,6 @@ def create_access_token(
         return encoded_token
         
     except TokenError:
-        # Re-raise TokenError as-is
         raise
     except Exception as e:
         logger.error(f"Unexpected error creating access token: {str(e)}", exc_info=True)
@@ -147,21 +140,17 @@ def create_access_token(
         )
 
 
+
+
 def create_refresh_token(data: Dict[str, Any]) -> str:
     """
     Creates a refresh token with all required claims.
-    
-    Args:
-        data (Dict[str, Any]): Data to be encoded in the token. Must contain 'sub'.
         
-    Returns:
-        str: The encoded refresh token.
+    Returns : str: The encoded refresh token.
         
-    Raises:
-        TokenError: If token creation fails or required claims are missing.
+    Raises : TokenError: If token creation fails or required claims are missing.
     """
     try:
-        # Validate required data
         if not data.get("sub"):
             raise TokenError("Missing required 'sub' claim for refresh token creation")
         
@@ -169,19 +158,17 @@ def create_refresh_token(data: Dict[str, Any]) -> str:
         now = datetime.now(timezone.utc)
         expire = now + timedelta(days=REFRESH_TOKEN_EXPIRE_DAYS)
         
-        # Add standard claims - ensure all required claims are present
         to_encode.update({
             "exp": expire,
             "iat": now,
             "iss": ISSUER,
             "aud": AUDIENCE,
-            "sub": str(data["sub"]),  # Ensure sub is string
-            "jti": str(uuid.uuid4()),  # JWT ID for blacklisting
+            "sub": str(data["sub"]),
+            "jti": str(uuid.uuid4()),
             "token_type": "refresh",
-            "nbf": now,  # Not before - token is valid from now
+            "nbf": now,
         })
         
-        # Validate that we have all required claims
         required_claims = ["sub", "exp", "iat", "iss", "aud", "jti", "token_type"]
         missing_claims = [claim for claim in required_claims if claim not in to_encode]
         if missing_claims:
@@ -198,7 +185,6 @@ def create_refresh_token(data: Dict[str, Any]) -> str:
         return encoded_token
         
     except TokenError:
-        # Re-raise TokenError as-is
         raise
     except Exception as e:
         logger.error(f"Unexpected error creating refresh token: {str(e)}", exc_info=True)
@@ -209,31 +195,26 @@ def create_refresh_token(data: Dict[str, Any]) -> str:
         )
 
 
+
+
+
 async def decode_access_token(token: str) -> Dict[str, Any]:
     """
     Decodes and validates an access token with comprehensive error handling.
-    
-    Args:
-        token (str): The JWT token to decode.
         
-    Returns:
-        Dict[str, Any]: The decoded token payload.
+    Returns : Dict[str, Any]: The decoded token payload.
         
-    Raises:
-        TokenExpiredError: If the token has expired.
-        TokenInvalidError: If the token is invalid or malformed.
-        TokenError: For other token-related errors.
+    Raises: TokenExpiredError: If the token has expired. TokenInvalidError: If the token is invalid or malformed. TokenError: For other token-related errors.
     """
     try:
-        # Validate input
         if not token or not isinstance(token, str):
             raise TokenInvalidError("Token must be a non-empty string")
         
-        # Remove 'Bearer ' prefix if present
+        ### Remove 'Bearer' prefix if present ###
         if token.startswith('Bearer '):
             token = token[7:]
         
-        # Decode the token with comprehensive validation
+        ### Decode the token ###
         payload = jwt.decode(
             token,
             SECRET_KEY,
@@ -251,13 +232,10 @@ async def decode_access_token(token: str) -> Dict[str, Any]:
             }
         )
         
-        # Additional validation for token structure and claims
         _validate_token_claims(payload)
         
-        # Ensure timezone-aware datetime operations for any datetime fields
         now = datetime.now(timezone.utc)
         
-        # Check if token is not yet valid (nbf claim)
         if "nbf" in payload:
             nbf = datetime.fromtimestamp(payload["nbf"], tz=timezone.utc)
             if now < nbf:
@@ -280,15 +258,13 @@ async def decode_access_token(token: str) -> Dict[str, Any]:
         
     except ExpiredSignatureError as e:
         logger.warning(f"Token has expired: {str(e)}")
-        # Extract expiration time if available
         expired_at = None
         try:
-            # Try to decode without verification to get expiration time
             unverified_payload = jwt.decode(token, options={"verify_signature": False})
             if "exp" in unverified_payload:
                 expired_at = datetime.fromtimestamp(unverified_payload["exp"], tz=timezone.utc).isoformat()
         except Exception:
-            pass  # Ignore errors when trying to get expiration time
+            pass
             
         raise TokenExpiredError(
             "Your session has expired. Please log in again.",
@@ -305,7 +281,6 @@ async def decode_access_token(token: str) -> Dict[str, Any]:
         )
         
     except TokenError:
-        # Re-raise our custom token errors as-is
         raise
         
     except JWTError as e:
@@ -336,28 +311,20 @@ async def decode_access_token(token: str) -> Dict[str, Any]:
 async def decode_refresh_token(token: str) -> Dict[str, Any]:
     """
     Decodes and validates a refresh token with comprehensive error handling.
-    
-    Args:
-        token (str): The JWT refresh token to decode.
         
-    Returns:
-        Dict[str, Any]: The decoded token payload.
+    Returns : Dict[str, Any]: The decoded token payload.
         
-    Raises:
-        TokenExpiredError: If the token has expired.
-        TokenInvalidError: If the token is invalid or malformed.
-        TokenError: For other token-related errors.
+    Raises : TokenExpiredError: If the token has expired. TokenInvalidError: If the token is invalid or malformed. TokenError: For other token-related errors.
     """
     try:
-        # Validate input
         if not token or not isinstance(token, str):
             raise TokenInvalidError("Token must be a non-empty string")
         
-        # Remove 'Bearer ' prefix if present
+        #### Remove 'Bearer ' prefix if present ###
         if token.startswith('Bearer '):
             token = token[7:]
         
-        # Decode the token with comprehensive validation
+        ### Decode the token ###
         payload = jwt.decode(
             token,
             SECRET_KEY,
@@ -375,10 +342,9 @@ async def decode_refresh_token(token: str) -> Dict[str, Any]:
             }
         )
         
-        # Additional validation for token structure and claims
         _validate_token_claims(payload)
         
-        # Verify token type is refresh token
+        # Verify token type is refresh token #
         if payload.get("token_type") != "refresh":
             raise TokenInvalidError(
                 "Invalid token type",
@@ -391,15 +357,13 @@ async def decode_refresh_token(token: str) -> Dict[str, Any]:
         
     except ExpiredSignatureError as e:
         logger.warning(f"Refresh token has expired: {str(e)}")
-        # Extract expiration time if available
         expired_at = None
         try:
-            # Try to decode without verification to get expiration time
             unverified_payload = jwt.decode(token, options={"verify_signature": False})
             if "exp" in unverified_payload:
                 expired_at = datetime.fromtimestamp(unverified_payload["exp"], tz=timezone.utc).isoformat()
         except Exception:
-            pass  # Ignore errors when trying to get expiration time
+            pass
             
         raise TokenExpiredError(
             "Your refresh token has expired. Please log in again.",
@@ -416,7 +380,6 @@ async def decode_refresh_token(token: str) -> Dict[str, Any]:
         )
         
     except TokenError:
-        # Re-raise our custom token errors as-is
         raise
         
     except JWTError as e:
@@ -444,17 +407,15 @@ async def decode_refresh_token(token: str) -> Dict[str, Any]:
         )
 
 
+
+
 def _validate_token_claims(payload: Dict[str, Any]) -> None:
     """
     Validates the structure and content of token claims.
-    
-    Args:
-        payload (Dict[str, Any]): The decoded token payload.
         
-    Raises:
-        TokenInvalidError: If required claims are missing or invalid.
+    Raises : TokenInvalidError: If required claims are missing or invalid.
     """
-    # Check required claims
+
     required_claims = ["sub", "exp", "iat", "iss", "aud", "jti", "token_type"]
     missing_claims = [claim for claim in required_claims if claim not in payload]
     if missing_claims:
@@ -464,7 +425,6 @@ def _validate_token_claims(payload: Dict[str, Any]) -> None:
             missing_claims=missing_claims
         )
     
-    # Validate claim types and values
     if not isinstance(payload.get("sub"), str) or not payload["sub"]:
         raise TokenInvalidError(
             "Invalid subject claim",
@@ -477,7 +437,6 @@ def _validate_token_claims(payload: Dict[str, Any]) -> None:
             reason="JWT ID (jti) must be a non-empty string"
         )
     
-    # Validate numeric timestamp claims
     for claim in ["exp", "iat"]:
         if not isinstance(payload.get(claim), (int, float)):
             raise TokenInvalidError(
@@ -485,7 +444,6 @@ def _validate_token_claims(payload: Dict[str, Any]) -> None:
                 reason=f"{claim} must be a numeric timestamp"
             )
     
-    # Validate issuer and audience
     if payload["iss"] != ISSUER:
         raise TokenInvalidError(
             "Invalid issuer",
@@ -503,16 +461,16 @@ def _validate_token_claims(payload: Dict[str, Any]) -> None:
         )
 
 
+
+
 def validate_jwt_configuration() -> None:
     """
     Validates JWT configuration at startup to ensure all required settings are present.
     
-    Raises:
-        ValueError: If required JWT configuration is missing or invalid.
+    Raises : ValueError: If required JWT configuration is missing or invalid.
     """
     errors = []
     
-    # Check required configuration
     if not SECRET_KEY or SECRET_KEY == "your-default-secret-key-for-dev":
         errors.append("JWT_SECRET_KEY must be set to a secure value")
     
@@ -548,19 +506,15 @@ def validate_jwt_configuration() -> None:
 def get_token_info(token: str) -> Dict[str, Any]:
     """
     Gets basic information about a token without full validation (for debugging).
-    
-    Args:
-        token (str): The JWT token to inspect.
         
-    Returns:
-        Dict[str, Any]: Basic token information or error details.
+    Returns : Dict[str, Any]: Basic token information or error details.
     """
     try:
-        # Remove 'Bearer ' prefix if present
+        ### Remove 'Bearer ' prefix if present ###
         if token.startswith('Bearer '):
             token = token[7:]
         
-        # Decode without verification to get basic info
+        # Decode without verification #
         payload = jwt.decode(
             token, 
             key="", 
@@ -583,13 +537,12 @@ def get_token_info(token: str) -> Dict[str, Any]:
             "jti": payload.get("jti")
         }
         
-        # Add expiration info if available
+        # Add expiration info #
         if "exp" in payload:
             exp_time = datetime.fromtimestamp(payload["exp"], tz=timezone.utc)
             info["expires_at"] = exp_time.isoformat()
             info["is_expired"] = datetime.now(timezone.utc) > exp_time
         
-        # Add issued at info if available
         if "iat" in payload:
             iat_time = datetime.fromtimestamp(payload["iat"], tz=timezone.utc)
             info["issued_at"] = iat_time.isoformat()

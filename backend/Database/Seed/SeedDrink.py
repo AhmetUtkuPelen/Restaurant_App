@@ -13,7 +13,7 @@ logger = logging.getLogger(__name__)
 
 async def seed_drinks():
     """
-    Seed drink products into the database if they don't already exist.
+    Seed drink products into the database if they don't already exist. If They Exist Skip
     """
     async with AsyncSessionLocal() as session:
         try:
@@ -129,7 +129,7 @@ async def seed_drinks():
                     "tags": ["tea", "iced", "lemon", "refreshing"],
                     "price": Decimal('13.00'),
                     "discount_percentage": Decimal('0.00'),
-                    "image_url": "https://bakingamoment.com/wp-content/uploads/2024/05/IMG_3367-iced-tea.jpg",
+                    "image_url": "https://assets.tmecosys.com/image/upload/t_web_rdp_recipe_584x480/img/recipe/ras/Assets/CDF24C7E-A2E7-47D0-9EC5-F0739C43EDB2/Derivates/F4448BFD-A561-4E1A-80AA-DA9FC99B2694.jpg",
                     "is_active": True,
                     "is_front_page": False,
                     "size": DrinkSize.LARGE,
@@ -142,7 +142,7 @@ async def seed_drinks():
                     "tags": ["pomegranate", "antioxidant", "healthy", "fresh"],
                     "price": Decimal('25.00'),
                     "discount_percentage": Decimal('0.00'),
-                    "image_url": "https://healthynibblesandbits.com/wp-content/uploads/2016/11/How-to-Make-Pomegranate-Juice.jpg",
+                    "image_url": "https://www.healthdigest.com/img/gallery/when-you-drink-pomegranate-juice-every-day-this-is-what-happens/intro-1637350355.webp",
                     "is_active": True,
                     "is_front_page": False,
                     "size": DrinkSize.MEDIUM,
@@ -154,13 +154,13 @@ async def seed_drinks():
             skipped_count = 0
             
             for drink_data in drinks_data:
-                # Check if drink already exists
+                ## Check if drink already exists or not ###
                 stmt = select(Drink).where(Drink.name == drink_data["name"])
                 result = await session.execute(stmt)
                 existing_drink = result.scalar_one_or_none()
                 
                 if existing_drink:
-                    logger.info(f"Drink '{drink_data['name']}' already exists. Skipping.")
+                    logger.info(f" Drink '{drink_data['name']}' already exists. Skipping. ")
                     skipped_count += 1
                     continue
                 
@@ -181,18 +181,18 @@ async def seed_drinks():
                 
                 session.add(new_drink)
                 created_count += 1
-                logger.info(f"Created drink: {drink_data['name']}")
+                logger.info(f" Created drink: {drink_data['name']} ")
             
             await session.commit()
             
-            logger.info(f"Drink seeding completed. Created: {created_count}, Skipped: {skipped_count}")
+            logger.info(f" Drink seeding completed. Created: {created_count}, Skipped: {skipped_count} ")
             
             if created_count > 0:
                 print("\n" + "="*60)
-                print("DRINKS SEEDED SUCCESSFULLY!")
+                print(" DRINKS HAVE BEEN SEEDED SUCCESSFULLY! ")
                 print("="*60)
-                print(f"✅ Created {created_count} new drinks")
-                print(f"⏭️  Skipped {skipped_count} existing drinks")
+                print(f" Created {created_count} new drinks  ")
+                print(f"  Skipped {skipped_count} existing drinks  ")
                 print("="*60 + "\n")
             
             return {
@@ -209,24 +209,23 @@ async def seed_drinks():
 
 
 async def main():
-    """Main function to run the drink seeding script."""
+    """Main function for running the drink seeding script."""
     try:
-        logger.info("Starting drink seeding...")
+        logger.info(" Starting drink seeding... ")
         result = await seed_drinks()
-        logger.info(f"Drink seeding completed: {result}")
+        logger.info(f" Drink seeding completed: {result} ")
     except Exception as e:
-        logger.error(f"Drink seeding failed: {str(e)}")
+        logger.error(f" Drink seeding failed: {str(e)} ")
         raise
     finally:
         await engine.dispose()
 
 
 if __name__ == "__main__":
-    # Configure logging
     logging.basicConfig(
         level=logging.INFO,
         format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
     )
     
-    # Run the seeding
+    ### Run the seeding ###
     asyncio.run(main())

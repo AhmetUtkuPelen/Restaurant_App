@@ -9,7 +9,7 @@ from typing import Optional
 
 ContactFormRouter = APIRouter(prefix="/api", tags=["Contact"])
 
-# Initialize Resend
+### Initialize Resend for email provider ####
 resend_api_key = os.getenv("RESEND_API_KEY")
 email_to = os.getenv("EMAIL_TO")
 

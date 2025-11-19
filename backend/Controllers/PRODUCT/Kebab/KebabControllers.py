@@ -17,7 +17,7 @@ class KebabControllers:
         include_inactive: bool = False,
         db: AsyncSession = None
     ) -> Dict[str, Any]:
-        """Get all kebabs with pagination."""
+        """Get all kebabs with pagination"""
         try:
             conditions = []
             if not include_inactive:
@@ -50,7 +50,7 @@ class KebabControllers:
 
     @staticmethod
     async def get_single_kebab(kebab_id: int, db: AsyncSession) -> Dict[str, Any]:
-        """Get a single kebab by ID."""
+        """Get a single kebab by ID"""
         try:
             stmt = select(Kebab).where(Kebab.id == kebab_id)
             result = await db.execute(stmt)
@@ -71,13 +71,13 @@ class KebabControllers:
                 detail=f"Failed to fetch kebab: {str(e)}"
             )
 
-    ####
-    # ADMIN RELATED ENDPOINTS - REQUIRES ADMIN USER
-    ####
+    #################################################
+    # ADMIN RELATED ENDPOINTS - REQUIRES ADMIN USER #
+    #################################################
 
     @staticmethod
     async def create_new_kebab(kebab_data: KebabCreate, db: AsyncSession) -> Dict[str, Any]:
-        """Admin: Create a new kebab."""
+        """Admin : Create a new kebab"""
         try:
             stmt = select(Kebab).where(Kebab.name == kebab_data.name)
             result = await db.execute(stmt)
@@ -129,7 +129,7 @@ class KebabControllers:
         update_data: KebabUpdate,
         db: AsyncSession
     ) -> Dict[str, Any]:
-        """Admin: Update existing kebab."""
+        """Admin : Update existing kebab"""
         try:
             stmt = select(Kebab).where(Kebab.id == kebab_id)
             result = await db.execute(stmt)
@@ -172,7 +172,7 @@ class KebabControllers:
 
     @staticmethod
     async def hard_delete_kebab(kebab_id: int, db: AsyncSession) -> Dict[str, str]:
-        """Admin: Permanently delete kebab."""
+        """Admin : Permanently delete kebab"""
         try:
             stmt = select(Kebab).where(Kebab.id == kebab_id)
             result = await db.execute(stmt)
@@ -199,7 +199,7 @@ class KebabControllers:
 
     @staticmethod
     async def soft_delete_kebab(kebab_id: int, db: AsyncSession) -> Dict[str, Any]:
-        """Admin: Soft delete kebab (deactivate)."""
+        """Admin : Soft delete kebab (deactivate)"""
         try:
             stmt = select(Kebab).where(Kebab.id == kebab_id)
             result = await db.execute(stmt)

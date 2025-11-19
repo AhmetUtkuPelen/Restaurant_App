@@ -14,8 +14,8 @@ class OrderItem(Base):
     order_id = Column(Integer, ForeignKey("orders.id", ondelete="CASCADE"), nullable=False)
     product_id = Column(Integer, ForeignKey("products.id", ondelete="CASCADE"), nullable=False)
     quantity = Column(Integer, nullable=False, default=1)
-    unit_price = Column(Numeric(10, 2), nullable=False)  # Price at time of order
-    subtotal = Column(Numeric(10, 2), nullable=False)  # quantity * unit_price
+    unit_price = Column(Numeric(10, 2), nullable=False)
+    subtotal = Column(Numeric(10, 2), nullable=False)
     created_at = Column(DateTime, server_default=func.now())
 
     # Relationships

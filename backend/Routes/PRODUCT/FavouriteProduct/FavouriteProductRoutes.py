@@ -12,9 +12,9 @@ from Routes.USER.UserRoutes import get_current_active_user, require_admin
 FavouriteProductRouter = APIRouter(prefix="/favourites", tags=["Favourites"])
 
 
-# ============================================
-# USER ROUTES
-# ============================================
+# ============================================ #
+            # USER ROUTES #
+# ============================================ #
 
 @FavouriteProductRouter.get("/my-favourites", response_model=List[Dict[str, Any]])
 async def get_my_favourite_products(
@@ -45,6 +45,7 @@ async def add_favourite_product(
     - **product_id**: ID of the product to add to favourites
     
     Cannot add the same product twice.
+    Rate limited to 20 requests per minute for security.
     """
     return await FavouriteProductControllers.create_favourite_product(
         current_user, favourite_data, db
@@ -74,15 +75,13 @@ async def clear_all_favourites(
 ):
     """
     User: Remove all products from your favourites.
-    
-    WARNING: This will clear your entire favourites list!
     """
     return await FavouriteProductControllers.remove_all_favourite_products(current_user, db)
 
 
-# ============================================
-# ADMIN ROUTES
-# ============================================
+# ============================================ #
+            # ADMIN ROUTES #
+# ============================================ #
 
 @FavouriteProductRouter.get("/admin/user/{user_id}", response_model=List[Dict[str, Any]], dependencies=[Depends(require_admin)])
 async def get_user_favourites(
@@ -92,7 +91,7 @@ async def get_user_favourites(
     """
     Admin: Get a specific user's favourite products.
     
-    Returns list of user's favourites with product details.
+    List of user's favourites with product details.
     """
     return await FavouriteProductControllers.admin_gets_user_favourite_products(user_id, db)
 
@@ -101,8 +100,7 @@ async def get_user_favourites(
 async def get_favourites_statistics(db: AsyncSession = Depends(get_db)):
     """
     Admin: Get favourite products statistics.
-    
-    Returns:
+
     - Total favourites count
     - Unique users with favourites
     - Unique products favourited

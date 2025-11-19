@@ -8,7 +8,7 @@ class CartItem(Base):
 
     __table_args__ = (
         CheckConstraint('quantity >= 1', name='check_cartitem_quantity_positive'),
-        UniqueConstraint('cart_id', 'product_id', name='unique_cart_product'),  # optional: prevents duplicate lines for same product in cart
+        UniqueConstraint('cart_id', 'product_id', name='unique_cart_product'),
     )
 
     id = Column(Integer, primary_key=True, autoincrement=True)

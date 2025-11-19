@@ -46,7 +46,7 @@ const Contact = () => {
     {
       icon: <Phone className="w-6 h-6" />,
       title: "Phone",
-      details: ["+1 (555) 123-4567", "Call us anytime"],
+      details: ["+1 (111) 111-11 11", "Call us anytime"],
       color: "text-green-400",
     },
     {
@@ -319,7 +319,7 @@ const handleChange = (
               {/* Google Map */}
               <div className="bg-gray-900 rounded-lg overflow-hidden mb-6">
                 <iframe
-                  src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3022.9663095343008!2d-74.00425878459418!3d40.74844097932681!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x89c259a9b3117469%3A0xd134e199a405a163!2sEmpire%20State%20Building!5e0!3m2!1sen!2sus!4v1635959542165!5m2!1sen!2sus"
+                  src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d50013.53788535637!2d27.12915445!3d38.42192095!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x14bbd8e2fece48eb%3A0xafa58b890c33632a!2zS29uYWsvxLB6bWly!5e0!3m2!1str!2str!4v1763569596688!5m2!1str!2str"
                   width="100%"
                   height="400"
                   style={{ border: 0 }}

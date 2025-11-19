@@ -20,10 +20,10 @@ class ReservationControllers:
         db: AsyncSession
     ) -> Dict[str, Any]:
         """
-        User: Create a new reservation if table is available. IF Table is not available throw an error
+        User : Create a new reservation if table is available. IF Table is not available throw an error
         """
         try:
-            # Check if table exists
+            #### Check if table exists or not ####
             table_stmt = select(Table).where(Table.id == reservation_data.table_id)
             table_result = await db.execute(table_stmt)
             table = table_result.scalar_one_or_none()
@@ -40,14 +40,14 @@ class ReservationControllers:
                     detail="Table is not available"
                 )
             
-            # Check table capacity
+            #### Check table capacity ####
             if reservation_data.number_of_guests > table.capacity:
                 raise HTTPException(
                     status_code=status.HTTP_400_BAD_REQUEST,
                     detail=f"Table capacity is {table.capacity}, but {reservation_data.number_of_guests} guests requested"
                 )
             
-            # Check time slot availability
+            #### Check time slot availability ####
             is_available = await ReservationControllers._check_time_slot_availability(
                 reservation_data.table_id,
                 reservation_data.reservation_time,
@@ -60,7 +60,7 @@ class ReservationControllers:
                     detail="Table is not available at the requested time"
                 )
             
-            # Create reservation
+            #### Create reservation ####
             new_reservation = Reservation(
                 user_id=current_user.id,
                 table_id=reservation_data.table_id,
@@ -95,14 +95,14 @@ class ReservationControllers:
         exclude_reservation_id: int = None
     ) -> bool:
         """
-        Helper: Check if time slot is available (2-hour window).
+        Check if time slot is available (2-hour time window).
         """
         try:
-            # Define time window (2 hours before and after)
+            #### Define time window (2 hours before and after) ####
             window_start = reservation_time - timedelta(hours=2)
             window_end = reservation_time + timedelta(hours=2)
             
-            # Build query conditions
+            #### query conditions ####
             conditions = [
                 Reservation.table_id == table_id,
                 Reservation.status.in_([ReservationStatus.PENDING, ReservationStatus.CONFIRMED]),
@@ -110,7 +110,7 @@ class ReservationControllers:
                 Reservation.reservation_time <= window_end
             ]
             
-            # Exclude specific reservation if updating
+            #### Exclude specific reservation if updating ####
             if exclude_reservation_id:
                 conditions.append(Reservation.id != exclude_reservation_id)
             
@@ -130,10 +130,10 @@ class ReservationControllers:
         db: AsyncSession
     ) -> Dict[str, Any]:
         """
-        User: Update their own reservation if table is available. If Table is not available throw an error
+        User : Update his/her own reservation if table is available. If Table is not available throw an error
         """
         try:
-            # Get reservation
+            #### Get reservation ####
             stmt = select(Reservation).where(Reservation.id == reservation_id)
             result = await db.execute(stmt)
             reservation = result.scalar_one_or_none()
@@ -144,21 +144,21 @@ class ReservationControllers:
                     detail="Reservation not found"
                 )
             
-            # Check ownership
+            #### Check ownership ####
             if reservation.user_id != current_user.id:
                 raise HTTPException(
                     status_code=status.HTTP_403_FORBIDDEN,
                     detail="You can only update your own reservations"
                 )
             
-            # Can't update cancelled reservations
+            #### Cant update cancelled reservations ####
             if reservation.status == ReservationStatus.CANCELLED:
                 raise HTTPException(
                     status_code=status.HTTP_400_BAD_REQUEST,
                     detail="Cannot update cancelled reservation"
                 )
             
-            # If changing table, check new table
+            #### If changing table, check new table ####
             if update_data.table_id and update_data.table_id != reservation.table_id:
                 table_stmt = select(Table).where(Table.id == update_data.table_id)
                 table_result = await db.execute(table_stmt)
@@ -176,7 +176,7 @@ class ReservationControllers:
                         detail="Table is not available"
                     )
                 
-                # Check capacity
+                #### Check capacity ####
                 guests = update_data.number_of_guests or reservation.number_of_guests
                 if guests > table.capacity:
                     raise HTTPException(
@@ -184,7 +184,7 @@ class ReservationControllers:
                         detail=f"Table capacity is {table.capacity}, but {guests} guests requested"
                     )
             
-            # If changing time or table, check availability
+            #### If changing time or table, check availability ####
             if update_data.reservation_time or update_data.table_id:
                 check_table_id = update_data.table_id or reservation.table_id
                 check_time = update_data.reservation_time or reservation.reservation_time
@@ -202,7 +202,7 @@ class ReservationControllers:
                         detail="Table is not available at the requested time"
                     )
             
-            # Update fields
+            #### Update fields ####
             update_dict = update_data.model_dump(exclude_unset=True)
             for key, value in update_dict.items():
                 setattr(reservation, key, value)
@@ -230,7 +230,7 @@ class ReservationControllers:
         db: AsyncSession
     ) -> Dict[str, str]:
         """
-        User: Cancel their own reservation.
+        User : Cancel his/her own reservation
         """
         try:
             stmt = select(Reservation).where(Reservation.id == reservation_id)
@@ -243,14 +243,14 @@ class ReservationControllers:
                     detail="Reservation not found"
                 )
             
-            # Check ownership
+            #### Check ownership ####
             if reservation.user_id != current_user.id:
                 raise HTTPException(
                     status_code=status.HTTP_403_FORBIDDEN,
                     detail="You can only cancel your own reservations"
                 )
             
-            # Check if already cancelled
+            #### Check if already cancelled or not ####
             if reservation.status == ReservationStatus.CANCELLED:
                 raise HTTPException(
                     status_code=status.HTTP_400_BAD_REQUEST,
@@ -277,7 +277,7 @@ class ReservationControllers:
         db: AsyncSession = None
     ) -> List[Dict[str, Any]]:
         """
-        User: Get all their own reservations.
+        User : Get all their own reservations
         """
         try:
             conditions = [Reservation.user_id == current_user.id]
@@ -303,7 +303,7 @@ class ReservationControllers:
         db: AsyncSession
     ) -> Dict[str, Any]:
         """
-        User: Get a single reservation by ID (must be their own).
+        User : Get a single reservation by ID (must be their own)
         """
         try:
             stmt = select(Reservation).where(Reservation.id == reservation_id)
@@ -316,7 +316,7 @@ class ReservationControllers:
                     detail="Reservation not found"
                 )
             
-            # Check ownership
+            #### Check ownership ####
             if reservation.user_id != current_user.id:
                 raise HTTPException(
                     status_code=status.HTTP_403_FORBIDDEN,
@@ -332,9 +332,9 @@ class ReservationControllers:
                 detail=f"Failed to fetch reservation: {str(e)}"
             )
 
-    # ============================================
-    # ADMIN FUNCTIONS
-    # ============================================
+    #### ============================================ ####
+    #### ADMIN FUNCTIONS ####
+    #### ============================================ ####
 
     @staticmethod
     async def get_all_reservations(
@@ -344,22 +344,22 @@ class ReservationControllers:
         db: AsyncSession = None
     ) -> Dict[str, Any]:
         """
-        Admin: Get all reservations with pagination and filtering.
+        Admin : Get all reservations with pagination and filtering
         """
         try:
-            # Build query
+            #### Build query ####
             conditions = []
             if status_filter:
                 conditions.append(Reservation.status == status_filter)
             
-            # Get total count
+            #### Get total count ####
             count_stmt = select(func.count(Reservation.id))
             if conditions:
                 count_stmt = count_stmt.where(and_(*conditions))
             count_result = await db.execute(count_stmt)
             total = count_result.scalar()
             
-            # Get reservations
+            #### Get reservations ####
             stmt = select(Reservation).order_by(Reservation.reservation_time.desc()).offset(skip).limit(limit)
             if conditions:
                 stmt = stmt.where(and_(*conditions))
@@ -385,7 +385,7 @@ class ReservationControllers:
         db: AsyncSession
     ) -> Dict[str, Any]:
         """
-        Admin: Confirm a pending reservation.
+        Admin : Confirm a pending reservation
         """
         try:
             stmt = select(Reservation).where(Reservation.id == reservation_id)
@@ -433,10 +433,10 @@ class ReservationControllers:
         db: AsyncSession
     ) -> List[Dict[str, Any]]:
         """
-        Admin: Get all reservations for a specific date.
+        Admin : Get all reservations for a specific date
         """
         try:
-            # Get start and end of day
+            #### Get start and end of day ####
             start_of_day = date.replace(hour=0, minute=0, second=0, microsecond=0)
             end_of_day = date.replace(hour=23, minute=59, second=59, microsecond=999999)
             
@@ -463,7 +463,7 @@ class ReservationControllers:
         db: AsyncSession = None
     ) -> List[Dict[str, Any]]:
         """
-        Admin: Get upcoming reservations for next X days.
+        Admin : Get upcoming reservations for next X days
         """
         try:
             now = datetime.now(timezone.utc)
@@ -490,15 +490,15 @@ class ReservationControllers:
     @staticmethod
     async def get_reservation_statistics(db: AsyncSession) -> Dict[str, Any]:
         """
-        Admin: Get reservation statistics.
+        Admin: Get reservation statistics
         """
         try:
-            # Total reservations
+            #### Total reservations ####
             total_stmt = select(func.count(Reservation.id))
             total_result = await db.execute(total_stmt)
             total = total_result.scalar()
             
-            # By status
+            #### By status ####
             pending_stmt = select(func.count(Reservation.id)).where(Reservation.status == ReservationStatus.PENDING)
             pending_result = await db.execute(pending_stmt)
             pending = pending_result.scalar()
@@ -511,7 +511,7 @@ class ReservationControllers:
             cancelled_result = await db.execute(cancelled_stmt)
             cancelled = cancelled_result.scalar()
             
-            # Upcoming reservations (next 7 days)
+            #### Upcoming reservations (for next 7 days) ####
             now = datetime.now(timezone.utc)
             upcoming_end = now + timedelta(days=7)
             upcoming_stmt = select(func.count(Reservation.id)).where(
@@ -524,7 +524,7 @@ class ReservationControllers:
             upcoming_result = await db.execute(upcoming_stmt)
             upcoming = upcoming_result.scalar()
             
-            # Today's reservations
+            #### Today's reservations ####
             start_of_day = now.replace(hour=0, minute=0, second=0, microsecond=0)
             end_of_day = now.replace(hour=23, minute=59, second=59, microsecond=999999)
             today_stmt = select(func.count(Reservation.id)).where(

@@ -4,6 +4,7 @@ from decimal import Decimal
 from datetime import datetime
 from Utils.Enums.Enums import PaymentStatus
 
+
 model_conf = ConfigDict(from_attributes=True, orm_mode=True, json_encoders={Decimal: lambda v: str(v)})
 
 

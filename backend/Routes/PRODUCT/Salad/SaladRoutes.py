@@ -11,9 +11,9 @@ from Routes.USER.UserRoutes import require_admin
 SaladRouter = APIRouter(prefix="/salads", tags=["Salads"])
 
 
-# ============================================
-# PUBLIC ROUTES
-# ============================================
+# ============================================ #
+            # PUBLIC ROUTES #
+# ============================================ #
 
 @SaladRouter.get("/", response_model=Dict[str, Any])
 async def get_all_salads(
@@ -43,9 +43,9 @@ async def get_salad_by_id(
     return await SaladControllers.get_single_salad(salad_id, db)
 
 
-# ============================================
-# ADMIN ROUTES
-# ============================================
+# ============================================ #
+            # ADMIN ROUTES #
+# ============================================ #
 
 @SaladRouter.post("/", status_code=status.HTTP_201_CREATED, response_model=Dict[str, Any], dependencies=[Depends(require_admin)])
 @limiter.limit("10/minute")
@@ -63,6 +63,7 @@ async def create_salad(
     - **is_vegan**: Whether salad is vegan
     - **is_alergic**: Whether salad contains allergens
     - **calories**: Calorie count
+    - 10 requests per minute for security.
     """
     return await SaladControllers.create_new_salad(salad_data, db)
 
@@ -88,8 +89,6 @@ async def delete_salad(
 ):
     """
     Admin: Permanently delete salad.
-    
-    WARNING: This action cannot be undone!
     """
     return await SaladControllers.hard_delete_salad(salad_id, db)
 
@@ -100,8 +99,6 @@ async def deactivate_salad(
     db: AsyncSession = Depends(get_db)
 ):
     """
-    Admin: Soft delete salad (deactivate).
-    
-    Sets is_active to false and records deletion timestamp.
+    Admin: Soft delete salad , is_active (deactivate).
     """
     return await SaladControllers.soft_delete_salad(salad_id, db)

@@ -12,9 +12,9 @@ from Routes.USER.UserRoutes import get_current_active_user, require_admin, requi
 CommentRouter = APIRouter(prefix="/comments", tags=["Comments"])
 
 
-# ============================================
-# PUBLIC ROUTES
-# ============================================
+# ============================================ #
+            # PUBLIC ROUTES #
+# ============================================ #
 
 @CommentRouter.get("/product/{product_id}", response_model=Dict[str, Any])
 async def get_product_comments(
@@ -24,14 +24,14 @@ async def get_product_comments(
     db: AsyncSession = Depends(get_db)
 ):
     """
-    Get all active comments for a specific product.
+    Get all active comments for a specific product by ID.
     
     - **product_id**: ID of the product
     - **skip**: Number of records to skip (default: 0)
     - **limit**: Maximum records to return (default: 100, max: 500)
     
     Returns comments with average rating and total count.
-    Public endpoint - no authentication required.
+    Public endpoint.
     """
     return await CommentControllers.get_comments_by_product_id(product_id, skip, limit, db)
 
@@ -44,14 +44,14 @@ async def get_comment_by_id(
     """
     Get a single comment by ID.
     
-    Public endpoint - no authentication required.
+    Public endpoint.
     """
     return await CommentControllers.get_single_comment(comment_id, db)
 
 
-# ============================================
-# USER ROUTES
-# ============================================
+# ============================================ #
+            # USER ROUTES #
+# ============================================ #
 
 @CommentRouter.post("/", status_code=status.HTTP_201_CREATED, response_model=Dict[str, Any])
 @limiter.limit("10/minute")
@@ -68,7 +68,7 @@ async def create_comment(
     - **content**: Comment text (1-1000 characters)
     - **rating**: Optional rating (1-5 stars)
     
-    Rate limited to 10 comments per minute.
+    Rate limited to 10 comments per minute for security.
     """
     return await CommentControllers.create_comment(current_user, comment_data, db)
 
@@ -82,7 +82,7 @@ async def get_my_comments(
     """
     User: Get all your own comments.
     
-    - **include_inactive**: Include deleted comments (default: false)
+    - **include_inactive**: Include deleted comments
     """
     return await CommentControllers.get_user_own_comments(current_user, include_inactive, db)
 
@@ -98,9 +98,9 @@ async def update_comment(
     User: Update your own comment.
     
     - **content**: Updated comment text (optional)
-    - **rating**: Updated rating (optional, 1-5 stars)
+    - **rating**: Updated rating (optional,stars)
     
-    You can only update your own active comments.
+    Can only update your own active comments.
     """
     return await CommentControllers.update_comment(current_user, comment_id, update_data, db)
 
@@ -115,7 +115,6 @@ async def delete_comment(
     User: Soft delete your own comment.
     
     Sets the comment as inactive but keeps it in the database.
-    You can only delete your own comments.
     """
     return await CommentControllers.delete_comment(current_user, comment_id, db)
 
@@ -129,16 +128,15 @@ async def permanently_delete_comment(
     """
     User: Permanently delete your own comment.
     
-    WARNING: This action cannot be undone!
     Completely removes the comment from the database.
     You can only permanently delete your own comments.
     """
     return await CommentControllers.hard_delete_own_comment(current_user, comment_id, db)
 
 
-# ============================================
-# ADMIN/STAFF ROUTES
-# ============================================
+# ============================================ #
+        # ADMIN/STAFF ROUTES #
+# ============================================ #
 
 @CommentRouter.get("/admin/all", response_model=Dict[str, Any], dependencies=[Depends(require_staff_or_admin)])
 async def get_all_comments(
@@ -148,11 +146,11 @@ async def get_all_comments(
     db: AsyncSession = Depends(get_db)
 ):
     """
-    Admin/Staff: Get all comments with pagination.
+    Admin : Get all comments with pagination.
     
     - **skip**: Number of records to skip (default: 0)
     - **limit**: Maximum records to return (default: 100, max: 500)
-    - **include_inactive**: Include deleted comments (default: false)
+    - **include_inactive**: Include deleted comments
     """
     return await CommentControllers.get_all_comments(skip, limit, include_inactive, db)
 
@@ -164,10 +162,10 @@ async def get_user_comments(
     db: AsyncSession = Depends(get_db)
 ):
     """
-    Admin/Staff: Get all comments by a specific user.
+    Admin : Get all comments by a specific user.
     
     - **user_id**: ID of the user
-    - **include_inactive**: Include deleted comments (default: false)
+    - **include_inactive**: Include deleted comments
     """
     return await CommentControllers.get_all_comments_by_user_id(user_id, include_inactive, db)
 
@@ -207,7 +205,6 @@ async def admin_delete_comment(
     """
     Admin: Permanently delete any comment.
     
-    WARNING: This action cannot be undone!
     Completely removes the comment from the database.
     """
     return await CommentControllers.hard_delete_comment(comment_id, db)

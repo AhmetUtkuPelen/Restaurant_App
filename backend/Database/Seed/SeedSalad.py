@@ -12,7 +12,7 @@ logger = logging.getLogger(__name__)
 
 async def seed_salads():
     """
-    Seed salad products into the database if they don't already exist.
+    Seed salad products into the database if they don't already exist. IF they exist Skip
     """
     async with AsyncSessionLocal() as session:
         try:
@@ -66,7 +66,7 @@ async def seed_salads():
                     "tags": ["chicken", "grilled", "avocado", "protein"],
                     "price": Decimal('42.00'),
                     "discount_percentage": Decimal('0.00'),
-                    "image_url": "https://www.foodandwine.com/thmb/WkyD5Fp_j3uc-dKBRtyOMsJVQBM=/750x0/filters:no_upscale():max_bytes(150000):strip_icc():format(webp)/Grilled-Chicken-Salad-With-Herby-Tahini-Dressing-FT-RECIPE0524-dda3f00310fb42ea9c9265605acb72e8.jpeg",
+                    "image_url": "https://www.afarmgirlsdabbles.com/wp-content/uploads/2010/07/Southwest-Salad38454.jpg",
                     "is_active": True,
                     "is_front_page": True,
                     "size": "large",
@@ -81,7 +81,7 @@ async def seed_salads():
                     "tags": ["quinoa", "power", "nutritious", "vegan"],
                     "price": Decimal('38.00'),
                     "discount_percentage": Decimal('5.00'),
-                    "image_url": "https://www.eatingwell.com/thmb/ZHPKeCIKgaOzynFsH5To3WSeIA0=/750x0/filters:no_upscale():max_bytes(150000):strip_icc():format(webp)/50950891-570434216f8b4118aaba4b2d74ac1436.jpg",
+                    "image_url": "https://qualitygreens.com/image/w600/files/5e287636-4610-42ad-830b-6d63d8b0b5a5.png",
                     "is_active": True,
                     "is_front_page": False,
                     "is_vegan": True,
@@ -95,7 +95,7 @@ async def seed_salads():
                     "tags": ["arugula", "peppery", "pine-nuts", "light"],
                     "price": Decimal('26.00'),
                     "discount_percentage": Decimal('0.00'),
-                    "image_url": "https://therealfooddietitians.com/wp-content/uploads/2017/03/Arugula-Salad_LowRes-013-730x1095.jpg",
+                    "image_url": "https://www.healthygffamily.com/wp-content/uploads/2024/01/72DBC6A0-0BCB-4E76-9DA9-975F5CC88C6F-720x720.jpg",
                     "is_active": True,
                     "is_front_page": False,
                     "is_vegan": True,
@@ -109,7 +109,7 @@ async def seed_salads():
                     "tags": ["tuna", "protein", "eggs", "omega-3"],
                     "price": Decimal('45.00'),
                     "discount_percentage": Decimal('0.00'),
-                    "image_url": "https://healthyrecipesblogs.com/wp-content/uploads/2024/12/tuna-salad-featured-2024.jpg",
+                    "image_url": "https://i2.wp.com/www.downshiftology.com/wp-content/uploads/2020/04/Tuna-Salad-6-1024x1536.jpg",
                     "is_active": True,
                     "is_front_page": False,
                     "is_vegan": False,
@@ -123,7 +123,7 @@ async def seed_salads():
                     "tags": ["caprese", "mozzarella", "basil", "italian"],
                     "price": Decimal('35.00'),
                     "discount_percentage": Decimal('0.00'),
-                    "image_url": "https://natashaskitchen.com/wp-content/uploads/2019/08/Caprese-Salad-6.jpg",
+                    "image_url": "https://www.fromachefskitchen.com/wp-content/uploads/2024/07/Caprese-Pasta-Salad.jpeg",
                     "is_active": True,
                     "is_front_page": True,
                     "is_vegan": False,
@@ -165,7 +165,7 @@ async def seed_salads():
                     "tags": ["protein", "power", "chicken", "eggs"],
                     "price": Decimal('48.00'),
                     "discount_percentage": Decimal('12.00'),
-                    "image_url": "https://www.lemontreedwelling.com/wp-content/uploads/2017/04/Power-Salad-5d.jpg",
+                    "image_url": "https://www.shaykeerecipes.com/wp-content/uploads/2025/11/chickpea-egg-power-salad.jpg",
                     "is_active": True,
                     "is_front_page": False,
                     "is_vegan": False,
@@ -178,13 +178,13 @@ async def seed_salads():
             skipped_count = 0
             
             for salad_data in salads_data:
-                # Check if salad already exists
+                ### Check if salad already exists or not ###
                 stmt = select(Salad).where(Salad.name == salad_data["name"])
                 result = await session.execute(stmt)
                 existing_salad = result.scalar_one_or_none()
                 
                 if existing_salad:
-                    logger.info(f"Salad '{salad_data['name']}' already exists. Skipping.")
+                    logger.info(f" Salad '{salad_data['name']}' already exists. Skipping. ")
                     skipped_count += 1
                     continue
                 
@@ -206,18 +206,18 @@ async def seed_salads():
                 
                 session.add(new_salad)
                 created_count += 1
-                logger.info(f"Created salad: {salad_data['name']}")
+                logger.info(f" Created salad: {salad_data['name']} ")
             
             await session.commit()
             
-            logger.info(f"Salad seeding completed. Created: {created_count}, Skipped: {skipped_count}")
+            logger.info(f" Salad seeding completed. Created: {created_count}, Skipped: {skipped_count} ")
             
             if created_count > 0:
                 print("\n" + "="*60)
-                print("SALADS SEEDED SUCCESSFULLY!")
+                print(" SALADS HAVE BEEN SEEDED SUCCESSFULLY! ")
                 print("="*60)
-                print(f"✅ Created {created_count} new salads")
-                print(f"⏭️  Skipped {skipped_count} existing salads")
+                print(f"  Created {created_count} new salads  ")
+                print(f"  Skipped {skipped_count} existing salads  ")
                 print("="*60 + "\n")
             
             return {
@@ -229,29 +229,28 @@ async def seed_salads():
             
         except Exception as e:
             await session.rollback()
-            logger.error(f"Error seeding salads: {str(e)}")
+            logger.error(f" Error seeding salads: {str(e)} ")
             raise
 
 
 async def main():
-    """Main function to run the salad seeding script."""
+    """Main function for running the salad seeding script."""
     try:
-        logger.info("Starting salad seeding...")
+        logger.info(" Starting salad seeding... ")
         result = await seed_salads()
-        logger.info(f"Salad seeding completed: {result}")
+        logger.info(f" Salad seeding completed: {result} ")
     except Exception as e:
-        logger.error(f"Salad seeding failed: {str(e)}")
+        logger.error(f" Salad seeding failed: {str(e)} ")
         raise
     finally:
         await engine.dispose()
 
 
 if __name__ == "__main__":
-    # Configure logging
     logging.basicConfig(
         level=logging.INFO,
         format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
     )
     
-    # Run the seeding
+    ### Run the seeding ###
     asyncio.run(main())

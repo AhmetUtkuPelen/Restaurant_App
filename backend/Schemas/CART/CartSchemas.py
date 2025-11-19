@@ -36,7 +36,7 @@ class CartBase(BaseModel):
 
 class CartCreate(BaseModel):
     model_config = model_conf
-    pass  # Cart is auto-created for user
+    pass
 
 
 class CartRead(CartBase):

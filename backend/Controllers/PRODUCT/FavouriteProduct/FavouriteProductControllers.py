@@ -17,9 +17,9 @@ class FavouriteProductControllers:
         current_user: User,
         db: AsyncSession
     ) -> List[Dict[str, Any]]:
-        """A User gets his own favourite products."""
+        """A User gets his/her own favourite products"""
         try:
-            # Load favourites with product relationship
+            #### Load favourites with product relationship ####
             stmt = select(FavouriteProduct).options(
                 selectinload(FavouriteProduct.product)
             ).where(
@@ -59,9 +59,9 @@ class FavouriteProductControllers:
         favourite_data: FavouriteProductCreate,
         db: AsyncSession
     ) -> Dict[str, Any]:
-        """A User picks a product as his favourite product."""
+        """A User picks a product as his/her favourite product."""
         try:
-            # Check if product exists
+            #### Check if product exists or not ####
             product_stmt = select(Product).where(Product.id == favourite_data.product_id)
             product_result = await db.execute(product_stmt)
             product = product_result.scalar_one_or_none()
@@ -72,7 +72,7 @@ class FavouriteProductControllers:
                     detail="Product not found"
                 )
             
-            # Check if already favourited
+            #### Check if product was already favourited ####
             check_stmt = select(FavouriteProduct).where(
                 and_(
                     FavouriteProduct.user_id == current_user.id,
@@ -88,7 +88,7 @@ class FavouriteProductControllers:
                     detail="Product is already in your favourites"
                 )
             
-            # Create favourite
+            #### Create favourite ####
             new_favourite = FavouriteProduct(
                 user_id=current_user.id,
                 product_id=favourite_data.product_id
@@ -122,7 +122,7 @@ class FavouriteProductControllers:
         favourite_id: int,
         db: AsyncSession
     ) -> Dict[str, str]:
-        """A User removes a single favourite product from his favourite products."""
+        """A User removes a single favourite product from his/her favourite products"""
         try:
             stmt = select(FavouriteProduct).where(
                 and_(
@@ -157,7 +157,7 @@ class FavouriteProductControllers:
         current_user: User,
         db: AsyncSession
     ) -> Dict[str, str]:
-        """A User removes all favourite products from his favourite products."""
+        """A User removes all favourite products from his/her favourite products"""
         try:
             stmt = delete(FavouriteProduct).where(
                 FavouriteProduct.user_id == current_user.id
@@ -177,15 +177,17 @@ class FavouriteProductControllers:
                 detail=f"Failed to remove all favourite products: {str(e)}"
             )
 
-    ### ADMIN ENDPOINT ###
+    ##############################
+        # ADMIN ENDPOINT #
+    ##############################
     @staticmethod
     async def admin_gets_user_favourite_products(
         user_id: int,
         db: AsyncSession
     ) -> List[Dict[str, Any]]:
-        """Admin user gets a user's favourite products."""
+        """Admin user gets a user's favourite products"""
         try:
-            # Check if user exists
+            #### Check if user exists or not ####
             user_stmt = select(User).where(User.id == user_id)
             user_result = await db.execute(user_stmt)
             user = user_result.scalar_one_or_none()
@@ -226,24 +228,24 @@ class FavouriteProductControllers:
     async def admin_gets_favourite_products_statistics(
         db: AsyncSession
     ) -> Dict[str, Any]:
-        """Admin user gets favourite products statistics."""
+        """Admin user gets favourite products statistics"""
         try:
-            # Total favourites
+            #### Total favourites ####
             total_stmt = select(func.count(FavouriteProduct.id))
             total_result = await db.execute(total_stmt)
             total_favourites = total_result.scalar()
             
-            # Unique users with favourites
+            #### Unique users with favourites ####
             unique_users_stmt = select(func.count(func.distinct(FavouriteProduct.user_id)))
             unique_users_result = await db.execute(unique_users_stmt)
             unique_users = unique_users_result.scalar()
             
-            # Unique products favourited
+            #### Unique products favourited ####
             unique_products_stmt = select(func.count(func.distinct(FavouriteProduct.product_id)))
             unique_products_result = await db.execute(unique_products_stmt)
             unique_products = unique_products_result.scalar()
             
-            # Most favourited products (top 10)
+            #### Most favourited products (top 10) ####
             most_favourited_stmt = select(
                 FavouriteProduct.product_id,
                 func.count(FavouriteProduct.id).label('count')
@@ -252,7 +254,7 @@ class FavouriteProductControllers:
             most_favourited_result = await db.execute(most_favourited_stmt)
             most_favourited_raw = most_favourited_result.all()
             
-            # Get product details for most favourited
+            #### Get product details for most favourited ####
             most_favourited = []
             for product_id, count in most_favourited_raw:
                 product_stmt = select(Product).where(Product.id == product_id)

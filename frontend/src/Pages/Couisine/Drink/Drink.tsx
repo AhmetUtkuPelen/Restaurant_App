@@ -13,10 +13,10 @@ import {
   Droplets,
 } from "lucide-react";
 import { useCartStore } from "@/Zustand/Cart/CartState";
-import { useFavouriteStore } from "@/Zustand/FavouriteProduct/FavouriteProductState";
 import CommentSection from "@/Components/Comment/CommentSection";
 import { useNavigate } from "react-router-dom";
 import { useIsAuthenticated } from "@/Zustand/Auth/AuthState";
+import { useMyFavourites, useAddFavourite, useRemoveFavourite } from "@/hooks/useFavourite";
 import { toast } from "sonner";
 
 const Drink = () => {
@@ -30,11 +30,18 @@ const Drink = () => {
   const { data: products = [] } = useDrinks();
 
   const addToCart = useCartStore((state) => state.addToCart);
-  const addToFavourites = useFavouriteStore((state) => state.addToFavourites);
-  const removeFromFavourites = useFavouriteStore(
-    (state) => state.removeFromFavourites
-  );
-  const isFavourite = useFavouriteStore((state) => state.isFavourite);
+  const { data: favouritesData = [] } = useMyFavourites();
+  const addFavouriteMutation = useAddFavourite();
+  const removeFavouriteMutation = useRemoveFavourite();
+
+  const isFavourite = (productId: number) => {
+    return favouritesData.some(fav => fav.product_id === productId);
+  };
+
+  const getFavouriteId = (productId: number) => {
+    const fav = favouritesData.find(fav => fav.product_id === productId);
+    return fav?.id;
+  };
 
    const handleAddToCart = () => {
      if (!isAuthenticated) {
@@ -145,7 +152,7 @@ const Drink = () => {
                 <p className="text-gray-400 mb-4">Drinks</p>
               </div>
               <button
-                onClick={() => {
+                onClick={async () => {
                   if (!isAuthenticated) {
                     toast.error("Please login to manage favorites", {
                       description: "You need to be logged in to add items to your favorites.",
@@ -157,22 +164,23 @@ const Drink = () => {
                     return;
                   }
                   
-                  if (isFavourite(drink.id)) {
-                    removeFromFavourites(drink.id);
-                    toast.success("Removed from favorites");
-                  } else {
-                    addToFavourites({
-                      id: drink.id,
-                      name: drink.name,
-                      price: drink.price,
-                      final_price: drink.final_price,
-                      image_url: drink.image_url,
-                      category: "drink",
-                      description: drink.description,
-                    });
-                    toast.success("Added to favorites");
+                  try {
+                    if (isFavourite(drink.id)) {
+                      const favId = getFavouriteId(drink.id);
+                      if (favId) {
+                        await removeFavouriteMutation.mutateAsync(favId);
+                        toast.success("Removed from favorites");
+                      }
+                    } else {
+                      await addFavouriteMutation.mutateAsync({ product_id: drink.id });
+                      toast.success("Added to favorites");
+                    }
+                  } catch (err) {
+                    const error = err as { response?: { data?: { detail?: string } } };
+                    toast.error(error?.response?.data?.detail || "Failed to update favorites");
                   }
                 }}
+                disabled={addFavouriteMutation.isPending || removeFavouriteMutation.isPending}
                 className={`p-2 rounded-full transition-colors ${
                   isFavourite(drink.id)
                     ? "text-red-400 bg-red-400/20"
@@ -251,7 +259,7 @@ const Drink = () => {
 
             <Button
               variant="outline"
-              onClick={() => {
+              onClick={async () => {
                 if (!isAuthenticated) {
                   toast.error("Please login to manage favorites", {
                     description: "You need to be logged in to add items to your favorites.",
@@ -263,22 +271,23 @@ const Drink = () => {
                   return;
                 }
                 
-                if (isFavourite(drink.id)) {
-                  removeFromFavourites(drink.id);
-                  toast.success("Removed from favorites");
-                } else {
-                  addToFavourites({
-                    id: drink.id,
-                    name: drink.name,
-                    price: drink.price,
-                    final_price: drink.final_price,
-                    image_url: drink.image_url,
-                    category: "drink",
-                    description: drink.description,
-                  });
-                  toast.success("Added to favorites");
+                try {
+                  if (isFavourite(drink.id)) {
+                    const favId = getFavouriteId(drink.id);
+                    if (favId) {
+                      await removeFavouriteMutation.mutateAsync(favId);
+                      toast.success("Removed from favorites");
+                    }
+                  } else {
+                    await addFavouriteMutation.mutateAsync({ product_id: drink.id });
+                    toast.success("Added to favorites");
+                  }
+                } catch (err) {
+                  const error = err as { response?: { data?: { detail?: string } } };
+                  toast.error(error?.response?.data?.detail || "Failed to update favorites");
                 }
               }}
+              disabled={addFavouriteMutation.isPending || removeFavouriteMutation.isPending}
               className={`w-full mb-8 transition-colors py-3 cursor-pointer ${
                 isFavourite(drink.id)
                   ? "border-red-400 bg-red-400 text-white hover:bg-red-500"

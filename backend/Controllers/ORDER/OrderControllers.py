@@ -18,9 +18,9 @@ from Utils.Enums.Enums import OrderStatus
 
 class OrderControllers:
     
-    # ============================================
-    # USER CONTROLLERS
-    # ============================================
+    #### ============================================ ####
+    #### USER CONTROLLERS ####
+    #### ============================================ ####
     
     @staticmethod
     async def user_get_all_orders(
@@ -30,19 +30,19 @@ class OrderControllers:
         status_filter: Optional[OrderStatus] = None,
         db: AsyncSession = None
     ) -> Dict[str, Any]:
-        """User: Get all their own orders."""
+        """User : Get all his/her own orders """
         try:
             conditions = [Order.user_id == current_user.id]
             
             if status_filter:
                 conditions.append(Order.status == status_filter)
             
-            # Get total count
+            #### Get total count ####
             count_stmt = select(func.count(Order.id)).where(and_(*conditions))
             count_result = await db.execute(count_stmt)
             total = count_result.scalar()
             
-            # Get orders
+            #### Get orders ####
             stmt = select(Order).options(
                 selectinload(Order.order_items).selectinload(OrderItem.product)
             ).where(and_(*conditions)).offset(skip).limit(limit).order_by(Order.created_at.desc())
@@ -74,7 +74,7 @@ class OrderControllers:
         order_id: int,
         db: AsyncSession
     ) -> Dict[str, Any]:
-        """User: Get single order by ID (must be their own)."""
+        """User : Get single order by ID (must be his/her own) """
         try:
             stmt = select(Order).options(
                 selectinload(Order.order_items).selectinload(OrderItem.product)
@@ -89,14 +89,14 @@ class OrderControllers:
                     detail="Order not found"
                 )
             
-            # Check ownership
+            #### Check ownership of Order ####
             if order.user_id != current_user.id:
                 raise HTTPException(
                     status_code=status.HTTP_403_FORBIDDEN,
                     detail="You can only view your own orders"
                 )
             
-            # Build detailed response
+            #### Build detailed response ####
             order_items_detailed = []
             for item in order.order_items:
                 order_items_detailed.append({
@@ -124,9 +124,9 @@ class OrderControllers:
         order_data: OrderCreate,
         db: AsyncSession
     ) -> Dict[str, Any]:
-        """User: Create order from cart or explicit items."""
+        """User : Create order from cart or explicit items """
         try:
-            # Get user's cart
+            #### Get user's cart ####
             cart_stmt = select(Cart).options(
                 selectinload(Cart.cart_items).selectinload(CartItem.product)
             ).where(Cart.user_id == current_user.id)
@@ -140,21 +140,21 @@ class OrderControllers:
                     detail="Cart is empty. Add items to cart before creating an order."
                 )
             
-            # Validate all products are active
+            #### Validate all products are active or not ####
             for cart_item in cart.cart_items:
                 if not cart_item.product or not cart_item.product.is_active:
                     raise HTTPException(
                         status_code=status.HTTP_400_BAD_REQUEST,
-                        detail=f"Product '{cart_item.product.name if cart_item.product else 'Unknown'}' is no longer available"
+                        detail=f"Product '{cart_item.product.name if cart_item.product else 'Unknown'}' is no longer available !"
                     )
             
-            # Calculate total
+            #### Calculate total ####
             total_amount = Decimal('0.00')
             for cart_item in cart.cart_items:
                 subtotal = cart_item.product.final_price * Decimal(cart_item.quantity)
                 total_amount += subtotal
             
-            # Create order
+            #### Create order ####
             new_order = Order(
                 user_id=current_user.id,
                 status=OrderStatus.PENDING,
@@ -164,9 +164,9 @@ class OrderControllers:
             )
             
             db.add(new_order)
-            await db.flush()  # Get order ID
+            await db.flush()
             
-            # Create order items from cart
+            #### Create order items from cart ####
             for cart_item in cart.cart_items:
                 unit_price = cart_item.product.final_price
                 subtotal = unit_price * Decimal(cart_item.quantity)
@@ -180,14 +180,14 @@ class OrderControllers:
                 )
                 db.add(order_item)
             
-            # Clear cart after order creation
+            #### Clear cart after order creation ####
             delete_stmt = delete(CartItem).where(CartItem.cart_id == cart.id)
             await db.execute(delete_stmt)
             
             await db.commit()
             await db.refresh(new_order)
             
-            # Load order items for response
+            #### Load order items for response ####
             stmt = select(Order).options(
                 selectinload(Order.order_items).selectinload(OrderItem.product)
             ).where(Order.id == new_order.id)
@@ -214,7 +214,7 @@ class OrderControllers:
         update_data: OrderUpdate,
         db: AsyncSession
     ) -> Dict[str, Any]:
-        """User: Update their own order (limited fields)."""
+        """User : Update his/her own order """
         try:
             stmt = select(Order).where(Order.id == order_id)
             result = await db.execute(stmt)
@@ -226,21 +226,21 @@ class OrderControllers:
                     detail="Order not found"
                 )
             
-            # Check ownership
+            #### Check ownership of the Order ####
             if order.user_id != current_user.id:
                 raise HTTPException(
                     status_code=status.HTTP_403_FORBIDDEN,
                     detail="You can only update your own orders"
                 )
             
-            # Users can only update pending orders
+            #### Users can only update pending orders ####
             if order.status != OrderStatus.PENDING:
                 raise HTTPException(
                     status_code=status.HTTP_400_BAD_REQUEST,
                     detail="Can only update pending orders"
                 )
             
-            # Users can only update delivery address and special instructions
+            #### Users can only update delivery address and special instructions ####
             if update_data.delivery_address is not None:
                 order.delivery_address = update_data.delivery_address
             
@@ -269,7 +269,7 @@ class OrderControllers:
         order_id: int,
         db: AsyncSession
     ) -> Dict[str, str]:
-        """User: Cancel their own order."""
+        """User : Cancel his/her own order """
         try:
             stmt = select(Order).where(Order.id == order_id)
             result = await db.execute(stmt)
@@ -281,14 +281,14 @@ class OrderControllers:
                     detail="Order not found"
                 )
             
-            # Check ownership
+            #### Check ownership of the Order ####
             if order.user_id != current_user.id:
                 raise HTTPException(
                     status_code=status.HTTP_403_FORBIDDEN,
                     detail="You can only cancel your own orders"
                 )
             
-            # Can only cancel pending orders
+            #### Can only cancel pending orders ####
             if order.status != OrderStatus.PENDING:
                 raise HTTPException(
                     status_code=status.HTTP_400_BAD_REQUEST,
@@ -298,7 +298,7 @@ class OrderControllers:
             order.status = OrderStatus.CANCELLED
             await db.commit()
             
-            return {"message": "Order cancelled successfully"}
+            return {"message": "Order cancelled successfully !"}
         except HTTPException:
             raise
         except Exception as e:
@@ -308,9 +308,9 @@ class OrderControllers:
                 detail=f"Failed to cancel order: {str(e)}"
             )
 
-    # ============================================
-    # ADMIN CONTROLLERS
-    # ============================================
+    #### ============================================ ####
+    #### ADMIN CONTROLLERS ####
+    #### ============================================ ####
 
     @staticmethod
     async def admin_get_all_orders(
@@ -319,20 +319,20 @@ class OrderControllers:
         status_filter: Optional[OrderStatus] = None,
         db: AsyncSession = None
     ) -> Dict[str, Any]:
-        """Admin: Get all orders with pagination."""
+        """Admin : Get all orders with pagination """
         try:
             conditions = []
             if status_filter:
                 conditions.append(Order.status == status_filter)
             
-            # Get total count
+            #### Get total count ####
             count_stmt = select(func.count(Order.id))
             if conditions:
                 count_stmt = count_stmt.where(and_(*conditions))
             count_result = await db.execute(count_stmt)
             total = count_result.scalar()
             
-            # Get orders
+            #### Get orders ####
             stmt = select(Order).options(
                 selectinload(Order.order_items).selectinload(OrderItem.product),
                 selectinload(Order.user)
@@ -365,7 +365,7 @@ class OrderControllers:
 
     @staticmethod
     async def admin_get_order_by_id(order_id: int, db: AsyncSession) -> Dict[str, Any]:
-        """Admin: Get any order by ID."""
+        """Admin : Get any order by ID """
         try:
             stmt = select(Order).options(
                 selectinload(Order.order_items).selectinload(OrderItem.product),
@@ -381,7 +381,7 @@ class OrderControllers:
                     detail="Order not found"
                 )
             
-            # Build detailed response
+            #### Build detailed response ####
             order_items_detailed = []
             for item in order.order_items:
                 order_items_detailed.append({
@@ -412,9 +412,9 @@ class OrderControllers:
         limit: int = 100,
         db: AsyncSession = None
     ) -> Dict[str, Any]:
-        """Admin: Get all orders for a specific user."""
+        """Admin : Get all orders for a specific user """
         try:
-            # Check if user exists
+            #### Check if user exists or not ####
             user_stmt = select(User).where(User.id == user_id)
             user_result = await db.execute(user_stmt)
             user = user_result.scalar_one_or_none()
@@ -425,12 +425,12 @@ class OrderControllers:
                     detail="User not found"
                 )
             
-            # Get total count
+            #### Get total count ####
             count_stmt = select(func.count(Order.id)).where(Order.user_id == user_id)
             count_result = await db.execute(count_stmt)
             total = count_result.scalar()
             
-            # Get orders
+            #### Get orders ####
             stmt = select(Order).options(
                 selectinload(Order.order_items).selectinload(OrderItem.product)
             ).where(Order.user_id == user_id).offset(skip).limit(limit).order_by(Order.created_at.desc())
@@ -460,7 +460,7 @@ class OrderControllers:
         update_data: OrderUpdate,
         db: AsyncSession
     ) -> Dict[str, Any]:
-        """Admin: Update any order (including status)."""
+        """Admin : Update any order (includes status) """
         try:
             stmt = select(Order).where(Order.id == order_id)
             result = await db.execute(stmt)
@@ -472,12 +472,12 @@ class OrderControllers:
                     detail="Order not found"
                 )
             
-            # Update fields
+            #### Update fields ####
             update_dict = update_data.model_dump(exclude_unset=True)
             for key, value in update_dict.items():
                 setattr(order, key, value)
             
-            # Set completed_at if status changed to completed
+            #### Set completed_at if status changed to completed ####
             if update_data.status == OrderStatus.COMPLETED and not order.completed_at:
                 order.completed_at = datetime.now(timezone.utc)
             
@@ -499,7 +499,7 @@ class OrderControllers:
 
     @staticmethod
     async def admin_cancels_order(order_id: int, db: AsyncSession) -> Dict[str, str]:
-        """Admin: Cancel any order."""
+        """Admin : Cancel any order """
         try:
             stmt = select(Order).where(Order.id == order_id)
             result = await db.execute(stmt)
@@ -532,14 +532,14 @@ class OrderControllers:
 
     @staticmethod
     async def admin_get_order_statistics(db: AsyncSession) -> Dict[str, Any]:
-        """Admin: Get comprehensive order statistics."""
+        """Admin : Get comprehensive order statistics """
         try:
-            # Total orders
+            #### Total orders ####
             total_stmt = select(func.count(Order.id))
             total_result = await db.execute(total_stmt)
             total_orders = total_result.scalar()
             
-            # Orders by status
+            #### Orders by status ####
             pending_stmt = select(func.count(Order.id)).where(Order.status == OrderStatus.PENDING)
             pending_result = await db.execute(pending_stmt)
             pending = pending_result.scalar()
@@ -552,23 +552,23 @@ class OrderControllers:
             cancelled_result = await db.execute(cancelled_stmt)
             cancelled = cancelled_result.scalar()
             
-            # Total revenue (completed orders only)
+            #### Total revenue (completed orders only) ####
             revenue_stmt = select(func.sum(Order.total_amount)).where(Order.status == OrderStatus.COMPLETED)
             revenue_result = await db.execute(revenue_stmt)
             total_revenue = revenue_result.scalar() or Decimal('0.00')
             
-            # Average order value
+            #### Average order value ####
             avg_stmt = select(func.avg(Order.total_amount)).where(Order.status == OrderStatus.COMPLETED)
             avg_result = await db.execute(avg_stmt)
             avg_order_value = avg_result.scalar() or Decimal('0.00')
             
-            # Today's orders
+            #### Today's orders ####
             today_start = datetime.now(timezone.utc).replace(hour=0, minute=0, second=0, microsecond=0)
             today_stmt = select(func.count(Order.id)).where(Order.created_at >= today_start)
             today_result = await db.execute(today_stmt)
             today_orders = today_result.scalar()
             
-            # This month's orders
+            #### This month's orders ####
             month_start = datetime.now(timezone.utc).replace(day=1, hour=0, minute=0, second=0, microsecond=0)
             month_stmt = select(func.count(Order.id)).where(Order.created_at >= month_start)
             month_result = await db.execute(month_stmt)
@@ -601,9 +601,9 @@ class OrderControllers:
         product_id: int,
         db: AsyncSession
     ) -> Dict[str, Any]:
-        """Admin: Get order statistics for a specific product."""
+        """Admin : Get order statistics for a specific product by ID """
         try:
-            # Check if product exists
+            #### Check if product exists or not ####
             product_stmt = select(Product).where(Product.id == product_id)
             product_result = await db.execute(product_stmt)
             product = product_result.scalar_one_or_none()
@@ -614,17 +614,17 @@ class OrderControllers:
                     detail="Product not found"
                 )
             
-            # Total times ordered
+            #### Total times ordered ####
             count_stmt = select(func.count(OrderItem.id)).where(OrderItem.product_id == product_id)
             count_result = await db.execute(count_stmt)
             times_ordered = count_result.scalar()
             
-            # Total quantity sold
+            #### Total quantity sold ####
             qty_stmt = select(func.sum(OrderItem.quantity)).where(OrderItem.product_id == product_id)
             qty_result = await db.execute(qty_stmt)
             total_quantity = qty_result.scalar() or 0
             
-            # Total revenue from this product
+            #### Total revenue from this product ####
             revenue_stmt = select(func.sum(OrderItem.subtotal)).where(OrderItem.product_id == product_id)
             revenue_result = await db.execute(revenue_stmt)
             total_revenue = revenue_result.scalar() or Decimal('0.00')
@@ -649,9 +649,9 @@ class OrderControllers:
         user_id: int,
         db: AsyncSession
     ) -> Dict[str, Any]:
-        """Admin: Get order statistics for a specific user."""
+        """Admin : Get order statistics for a specific user by ID"""
         try:
-            # Check if user exists
+            #### Check if user exists ####
             user_stmt = select(User).where(User.id == user_id)
             user_result = await db.execute(user_stmt)
             user = user_result.scalar_one_or_none()
@@ -662,26 +662,26 @@ class OrderControllers:
                     detail="User not found"
                 )
             
-            # Total orders
+            #### Total orders ####
             total_stmt = select(func.count(Order.id)).where(Order.user_id == user_id)
             total_result = await db.execute(total_stmt)
             total_orders = total_result.scalar()
             
-            # Completed orders
+            #### Completed orders ####
             completed_stmt = select(func.count(Order.id)).where(
                 and_(Order.user_id == user_id, Order.status == OrderStatus.COMPLETED)
             )
             completed_result = await db.execute(completed_stmt)
             completed_orders = completed_result.scalar()
             
-            # Total spent
+            #### Total spent ####
             spent_stmt = select(func.sum(Order.total_amount)).where(
                 and_(Order.user_id == user_id, Order.status == OrderStatus.COMPLETED)
             )
             spent_result = await db.execute(spent_stmt)
             total_spent = spent_result.scalar() or Decimal('0.00')
             
-            # Average order value
+            #### Average order value ####
             avg_value = Decimal('0.00')
             if completed_orders > 0:
                 avg_value = total_spent / Decimal(completed_orders)
@@ -708,23 +708,23 @@ class OrderControllers:
         end_date: datetime,
         db: AsyncSession
     ) -> Dict[str, Any]:
-        """Admin: Get order statistics for a date range."""
+        """Admin : Get order statistics for a date range """
         try:
-            # Validate date range
+            #### Validate date range ####
             if start_date > end_date:
                 raise HTTPException(
                     status_code=status.HTTP_400_BAD_REQUEST,
                     detail="Start date must be before end date"
                 )
             
-            # Total orders in range
+            #### Total orders in range ####
             total_stmt = select(func.count(Order.id)).where(
                 and_(Order.created_at >= start_date, Order.created_at <= end_date)
             )
             total_result = await db.execute(total_stmt)
             total_orders = total_result.scalar()
             
-            # Completed orders in range
+            #### Completed orders in range ####
             completed_stmt = select(func.count(Order.id)).where(
                 and_(
                     Order.created_at >= start_date,
@@ -735,7 +735,7 @@ class OrderControllers:
             completed_result = await db.execute(completed_stmt)
             completed_orders = completed_result.scalar()
             
-            # Revenue in range
+            #### Revenue in range ####
             revenue_stmt = select(func.sum(Order.total_amount)).where(
                 and_(
                     Order.created_at >= start_date,

@@ -17,7 +17,7 @@ class DessertControllers:
         include_inactive: bool = False,
         db: AsyncSession = None
     ) -> Dict[str, Any]:
-        """Get all desserts with pagination."""
+        """Get all desserts with pagination"""
         try:
             conditions = []
             if not include_inactive:
@@ -52,7 +52,7 @@ class DessertControllers:
 
     @staticmethod
     async def get_single_dessert(dessert_id: int, db: AsyncSession) -> Dict[str, Any]:
-        """Get a single dessert by ID."""
+        """Get a single dessert by ID"""
         try:
             stmt = select(Dessert).where(Dessert.id == dessert_id)
             result = await db.execute(stmt)
@@ -73,15 +73,15 @@ class DessertControllers:
                 detail=f"Failed to fetch dessert: {str(e)}"
             )
 
-    ####
-    # ADMIN RELATED ENDPOINTS - REQUIRES ADMIN USER
-    ####
+    ##################################################
+    # ADMIN RELATED ENDPOINTS - REQUIRES ADMIN USER #
+    ##################################################
 
     @staticmethod
     async def create_new_dessert(dessert_data: DessertCreate, db: AsyncSession) -> Dict[str, Any]:
-        """Admin: Create a new dessert."""
+        """Admin: Create a new dessert """
         try:
-            # Check if name already exists
+            #### Check if name already exists or not ####
             stmt = select(Dessert).where(Dessert.name == dessert_data.name)
             result = await db.execute(stmt)
             existing = result.scalar_one_or_none()
@@ -92,7 +92,7 @@ class DessertControllers:
                     detail="Dessert with this name already exists"
                 )
             
-            # Create new dessert
+            #### Create new dessert ####
             new_dessert = Dessert(
                 name=dessert_data.name,
                 description=dessert_data.description,
@@ -132,7 +132,7 @@ class DessertControllers:
         update_data: DessertUpdate,
         db: AsyncSession
     ) -> Dict[str, Any]:
-        """Admin: Update existing dessert."""
+        """Admin : Update existing dessert"""
         try:
             stmt = select(Dessert).where(Dessert.id == dessert_id)
             result = await db.execute(stmt)
@@ -144,7 +144,7 @@ class DessertControllers:
                     detail="Dessert not found"
                 )
             
-            # Check name uniqueness if being changed
+            #### Check name uniqueness if being changed ####
             if update_data.name and update_data.name != dessert.name:
                 check_stmt = select(Dessert).where(Dessert.name == update_data.name)
                 check_result = await db.execute(check_stmt)
@@ -154,7 +154,7 @@ class DessertControllers:
                         detail="Dessert with this name already exists"
                     )
             
-            # Update fields
+            #### Update fields ####
             update_dict = update_data.model_dump(exclude_unset=True)
             for key, value in update_dict.items():
                 setattr(dessert, key, value)
@@ -177,7 +177,7 @@ class DessertControllers:
 
     @staticmethod
     async def hard_delete_dessert(dessert_id: int, db: AsyncSession) -> Dict[str, str]:
-        """Admin: Permanently delete dessert."""
+        """Admin : Permanently delete dessert"""
         try:
             stmt = select(Dessert).where(Dessert.id == dessert_id)
             result = await db.execute(stmt)
@@ -204,7 +204,7 @@ class DessertControllers:
 
     @staticmethod
     async def soft_delete_dessert(dessert_id: int, db: AsyncSession) -> Dict[str, Any]:
-        """Admin: Soft delete dessert (deactivate)."""
+        """Admin : Soft delete dessert (deactivate)"""
         try:
             stmt = select(Dessert).where(Dessert.id == dessert_id)
             result = await db.execute(stmt)

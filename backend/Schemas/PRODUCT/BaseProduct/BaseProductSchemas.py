@@ -6,7 +6,10 @@ from decimal import Decimal
 model_conf = ConfigDict(from_attributes=True, orm_mode=True, json_encoders={Decimal: lambda v: str(v)})
 
 
-### BASE PRODUCT SCHEMA ###
+###################################
+# ----- BASE PRODUCT SCHEMA ----- # 
+##################################
+
 class ProductBase(BaseModel):
     model_config = model_conf
     name: str = Field(..., min_length=1, max_length=200)
@@ -26,13 +29,19 @@ class ProductBase(BaseModel):
         return Decimal(str(v)) if not isinstance(v, Decimal) else v
 
 
-### BASE PRODUCT CREATE SCHEMA ###
+##########################################
+# ----- BASE PRODUCT CREATE SCHEMA ----- #
+##########################################
+
 class ProductBaseCreate(ProductBase):
     model_config = model_conf
     pass
 
 
-### BASE PRODUCT UPDATE SCHEMA ###
+##########################################
+# ----- BASE PRODUCT UPDATE SCHEMA ----- #
+##########################################
+
 class ProductBaseUpdate(BaseModel):
     model_config = model_conf
     name: Optional[str] = Field(None, min_length=1, max_length=200)
@@ -52,7 +61,10 @@ class ProductBaseUpdate(BaseModel):
         return Decimal(str(v)) if not isinstance(v, Decimal) else v
 
 
-### BASE PRODUCT READ SCHEMA ###
+########################################
+# ----- BASE PRODUCT READ SCHEMA ----- #
+########################################
+
 class ProductBaseRead(ProductBase):
     model_config = model_conf
     id: int
@@ -64,7 +76,10 @@ class ProductBaseRead(ProductBase):
     comments: List[int] = Field(default_factory=list)
 
 
-### BASE PRODUCT IN DB SCHEMA ###
+#########################################
+# ----- BASE PRODUCT IN DB SCHEMA ----- #
+#########################################
+
 class ProductBaseInDb(ProductBaseRead):
     model_config = model_conf
     pass

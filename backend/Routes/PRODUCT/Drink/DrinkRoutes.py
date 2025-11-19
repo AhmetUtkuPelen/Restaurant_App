@@ -11,9 +11,9 @@ from Routes.USER.UserRoutes import require_admin
 DrinkRouter = APIRouter(prefix="/drinks", tags=["Drinks"])
 
 
-# ============================================
-# PUBLIC ROUTES
-# ============================================
+# ============================================ #
+            # PUBLIC ROUTES #
+# ============================================ #
 
 @DrinkRouter.get("/", response_model=Dict[str, Any])
 async def get_all_drinks(
@@ -43,9 +43,9 @@ async def get_drink_by_id(
     return await DrinkControllers.get_single_drink(drink_id, db)
 
 
-# ============================================
-# ADMIN ROUTES
-# ============================================
+# ============================================ #
+            # ADMIN ROUTES #
+# ============================================ #
 
 @DrinkRouter.post("/", status_code=status.HTTP_201_CREATED, response_model=Dict[str, Any], dependencies=[Depends(require_admin)])
 @limiter.limit("10/minute")
@@ -62,6 +62,7 @@ async def create_drink(
     - **price**: Price (must be >= 0)
     - **size**: small, medium, or large
     - **is_acidic**: Whether drink is acidic
+    - 10 requests per minute for security.
     """
     return await DrinkControllers.create_new_drink(drink_data, db)
 
@@ -87,8 +88,6 @@ async def delete_drink(
 ):
     """
     Admin: Permanently delete drink.
-    
-    WARNING: This action cannot be undone!
     """
     return await DrinkControllers.hard_delete_drink(drink_id, db)
 
@@ -99,8 +98,6 @@ async def deactivate_drink(
     db: AsyncSession = Depends(get_db)
 ):
     """
-    Admin: Soft delete drink (deactivate).
-    
-    Sets is_active to false and records deletion timestamp.
+    Admin: Soft delete drink , is_active (deactivate).
     """
     return await DrinkControllers.soft_delete_drink(drink_id, db)

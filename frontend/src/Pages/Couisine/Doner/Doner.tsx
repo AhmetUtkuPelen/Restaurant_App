@@ -15,8 +15,8 @@ import {
   Flame,
 } from "lucide-react";
 import { useCartStore } from "@/Zustand/Cart/CartState";
-import { useFavouriteStore } from "@/Zustand/FavouriteProduct/FavouriteProductState";
 import { useIsAuthenticated } from "@/Zustand/Auth/AuthState";
+import { useMyFavourites, useAddFavourite, useRemoveFavourite } from "@/hooks/useFavourite";
 import { toast } from "sonner";
 import CommentSection from "@/Components/Comment/CommentSection";
 
@@ -29,12 +29,19 @@ const Doner = () => {
   const { data: products = [] } = useDoners();
 
   const addToCart = useCartStore((state) => state.addToCart);
-  const addToFavourites = useFavouriteStore((state) => state.addToFavourites);
-  const removeFromFavourites = useFavouriteStore(
-    (state) => state.removeFromFavourites
-  );
-  const isFavourite = useFavouriteStore((state) => state.isFavourite);
+  const { data: favouritesData = [] } = useMyFavourites();
+  const addFavouriteMutation = useAddFavourite();
+  const removeFavouriteMutation = useRemoveFavourite();
   const isAuthenticated = useIsAuthenticated();
+
+  const isFavourite = (productId: number) => {
+    return favouritesData.some(fav => fav.product_id === productId);
+  };
+
+  const getFavouriteId = (productId: number) => {
+    const fav = favouritesData.find(fav => fav.product_id === productId);
+    return fav?.id;
+  };
 
   const handleAddToCart = () => {
     if (!isAuthenticated) {
@@ -154,7 +161,7 @@ const Doner = () => {
                 <p className="text-gray-400 mb-4">Doner Kebabs</p>
               </div>
               <button
-                onClick={() => {
+                onClick={async () => {
                   if (!isAuthenticated) {
                     toast.error("Please login to manage favorites", {
                       description: "You need to be logged in to add items to your favorites.",
@@ -166,22 +173,23 @@ const Doner = () => {
                     return;
                   }
                   
-                  if (isFavourite(doner.id)) {
-                    removeFromFavourites(doner.id);
-                    toast.success("Removed from favorites");
-                  } else {
-                    addToFavourites({
-                      id: doner.id,
-                      name: doner.name,
-                      price: doner.price,
-                      final_price: doner.final_price,
-                      image_url: doner.image_url,
-                      category: "doner",
-                      description: doner.description,
-                    });
-                    toast.success("Added to favorites");
+                  try {
+                    if (isFavourite(doner.id)) {
+                      const favId = getFavouriteId(doner.id);
+                      if (favId) {
+                        await removeFavouriteMutation.mutateAsync(favId);
+                        toast.success("Removed from favorites");
+                      }
+                    } else {
+                      await addFavouriteMutation.mutateAsync({ product_id: doner.id });
+                      toast.success("Added to favorites");
+                    }
+                  } catch (err) {
+                    const error = err as { response?: { data?: { detail?: string } } };
+                    toast.error(error?.response?.data?.detail || "Failed to update favorites");
                   }
                 }}
+                disabled={addFavouriteMutation.isPending || removeFavouriteMutation.isPending}
                 className={`p-2 rounded-full transition-colors ${
                   isFavourite(doner.id)
                     ? "text-red-400 bg-red-400/20"
@@ -274,7 +282,7 @@ const Doner = () => {
 
             <Button
               variant="outline"
-              onClick={() => {
+              onClick={async () => {
                 if (!isAuthenticated) {
                   toast.error("Please login to manage favorites", {
                     description: "You need to be logged in to add items to your favorites.",
@@ -286,22 +294,23 @@ const Doner = () => {
                   return;
                 }
                 
-                if (isFavourite(doner.id)) {
-                  removeFromFavourites(doner.id);
-                  toast.success("Removed from favorites");
-                } else {
-                  addToFavourites({
-                    id: doner.id,
-                    name: doner.name,
-                    price: doner.price,
-                    final_price: doner.final_price,
-                    image_url: doner.image_url,
-                    category: "doner",
-                    description: doner.description,
-                  });
-                  toast.success("Added to favorites");
+                try {
+                  if (isFavourite(doner.id)) {
+                    const favId = getFavouriteId(doner.id);
+                    if (favId) {
+                      await removeFavouriteMutation.mutateAsync(favId);
+                      toast.success("Removed from favorites");
+                    }
+                  } else {
+                    await addFavouriteMutation.mutateAsync({ product_id: doner.id });
+                    toast.success("Added to favorites");
+                  }
+                } catch (err) {
+                  const error = err as { response?: { data?: { detail?: string } } };
+                  toast.error(error?.response?.data?.detail || "Failed to update favorites");
                 }
               }}
+              disabled={addFavouriteMutation.isPending || removeFavouriteMutation.isPending}
               className={`w-full mb-8 transition-colors py-3 cursor-pointer ${
                 isFavourite(doner.id)
                   ? "border-red-400 bg-red-400 text-white hover:bg-red-500"

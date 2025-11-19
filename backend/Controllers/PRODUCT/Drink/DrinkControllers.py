@@ -17,7 +17,7 @@ class DrinkControllers:
         include_inactive: bool = False,
         db: AsyncSession = None
     ) -> Dict[str, Any]:
-        """Get all drinks with pagination."""
+        """Get all drinks with pagination"""
         try:
             conditions = []
             if not include_inactive:
@@ -50,7 +50,7 @@ class DrinkControllers:
 
     @staticmethod
     async def get_single_drink(drink_id: int, db: AsyncSession) -> Dict[str, Any]:
-        """Get a single drink by ID."""
+        """Get a single drink by ID"""
         try:
             stmt = select(Drink).where(Drink.id == drink_id)
             result = await db.execute(stmt)
@@ -71,13 +71,13 @@ class DrinkControllers:
                 detail=f"Failed to fetch drink: {str(e)}"
             )
 
-    ####
-    # ADMIN RELATED ENDPOINTS - REQUIRES ADMIN USER
-    ####
+    #################################################
+    # ADMIN RELATED ENDPOINTS - REQUIRES ADMIN USER #
+    #################################################
 
     @staticmethod
     async def create_new_drink(drink_data: DrinkCreate, db: AsyncSession) -> Dict[str, Any]:
-        """Admin: Create a new drink."""
+        """Admin : Create a new drink"""
         try:
             stmt = select(Drink).where(Drink.name == drink_data.name)
             result = await db.execute(stmt)
@@ -126,7 +126,7 @@ class DrinkControllers:
         update_data: DrinkUpdate,
         db: AsyncSession
     ) -> Dict[str, Any]:
-        """Admin: Update existing drink."""
+        """Admin : Update existing drink"""
         try:
             stmt = select(Drink).where(Drink.id == drink_id)
             result = await db.execute(stmt)
@@ -169,7 +169,7 @@ class DrinkControllers:
 
     @staticmethod
     async def hard_delete_drink(drink_id: int, db: AsyncSession) -> Dict[str, str]:
-        """Admin: Permanently delete drink."""
+        """Admin : Permanently delete drink"""
         try:
             stmt = select(Drink).where(Drink.id == drink_id)
             result = await db.execute(stmt)
@@ -196,7 +196,7 @@ class DrinkControllers:
 
     @staticmethod
     async def soft_delete_drink(drink_id: int, db: AsyncSession) -> Dict[str, Any]:
-        """Admin: Soft delete drink (deactivate)."""
+        """Admin : Soft delete drink (deactivate)"""
         try:
             stmt = select(Drink).where(Drink.id == drink_id)
             result = await db.execute(stmt)

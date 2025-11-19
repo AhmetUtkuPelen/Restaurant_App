@@ -13,10 +13,10 @@ import {
   Award,
 } from "lucide-react";
 import { useCartStore } from "@/Zustand/Cart/CartState";
-import { useFavouriteStore } from "@/Zustand/FavouriteProduct/FavouriteProductState";
 import CommentSection from "@/Components/Comment/CommentSection";
 import { useNavigate } from "react-router-dom";
 import { useIsAuthenticated } from "@/Zustand/Auth/AuthState";
+import { useMyFavourites, useAddFavourite, useRemoveFavourite } from "@/hooks/useFavourite";
 import { toast } from "sonner";
 
 const Salad = () => {
@@ -30,11 +30,18 @@ const Salad = () => {
   const { data: products = [] } = useSalads();
 
   const addToCart = useCartStore((state) => state.addToCart);
-  const addToFavourites = useFavouriteStore((state) => state.addToFavourites);
-  const removeFromFavourites = useFavouriteStore(
-    (state) => state.removeFromFavourites
-  );
-  const isFavourite = useFavouriteStore((state) => state.isFavourite);
+  const { data: favouritesData = [] } = useMyFavourites();
+  const addFavouriteMutation = useAddFavourite();
+  const removeFavouriteMutation = useRemoveFavourite();
+
+  const isFavourite = (productId: number) => {
+    return favouritesData.some(fav => fav.product_id === productId);
+  };
+
+  const getFavouriteId = (productId: number) => {
+    const fav = favouritesData.find(fav => fav.product_id === productId);
+    return fav?.id;
+  };
 
    const handleAddToCart = () => {
      if (!isAuthenticated) {
@@ -179,7 +186,7 @@ const Salad = () => {
                 <p className="text-gray-400 mb-4">Fresh Salads</p>
               </div>
               <button
-                onClick={() => {
+                onClick={async () => {
                   if (!isAuthenticated) {
                     toast.error("Please login to manage favorites", {
                       description: "You need to be logged in to add items to your favorites.",
@@ -191,22 +198,23 @@ const Salad = () => {
                     return;
                   }
                   
-                  if (isFavourite(salad.id)) {
-                    removeFromFavourites(salad.id);
-                    toast.success("Removed from favorites");
-                  } else {
-                    addToFavourites({
-                      id: salad.id,
-                      name: salad.name,
-                      price: salad.price,
-                      final_price: salad.final_price,
-                      image_url: salad.image_url,
-                      category: "salad",
-                      description: salad.description,
-                    });
-                    toast.success("Added to favorites");
+                  try {
+                    if (isFavourite(salad.id)) {
+                      const favId = getFavouriteId(salad.id);
+                      if (favId) {
+                        await removeFavouriteMutation.mutateAsync(favId);
+                        toast.success("Removed from favorites");
+                      }
+                    } else {
+                      await addFavouriteMutation.mutateAsync({ product_id: salad.id });
+                      toast.success("Added to favorites");
+                    }
+                  } catch (err) {
+                    const error = err as { response?: { data?: { detail?: string } } };
+                    toast.error(error?.response?.data?.detail || "Failed to update favorites");
                   }
                 }}
+                disabled={addFavouriteMutation.isPending || removeFavouriteMutation.isPending}
                 className={`p-2 rounded-full transition-colors ${
                   isFavourite(salad.id)
                     ? "text-red-400 bg-red-400/20"
@@ -295,7 +303,7 @@ const Salad = () => {
 
             <Button
               variant="outline"
-              onClick={() => {
+              onClick={async () => {
                 if (!isAuthenticated) {
                   toast.error("Please login to manage favorites", {
                     description: "You need to be logged in to add items to your favorites.",
@@ -307,22 +315,23 @@ const Salad = () => {
                   return;
                 }
                 
-                if (isFavourite(salad.id)) {
-                  removeFromFavourites(salad.id);
-                  toast.success("Removed from favorites");
-                } else {
-                  addToFavourites({
-                    id: salad.id,
-                    name: salad.name,
-                    price: salad.price,
-                    final_price: salad.final_price,
-                    image_url: salad.image_url,
-                    category: "salad",
-                    description: salad.description,
-                  });
-                  toast.success("Added to favorites");
+                try {
+                  if (isFavourite(salad.id)) {
+                    const favId = getFavouriteId(salad.id);
+                    if (favId) {
+                      await removeFavouriteMutation.mutateAsync(favId);
+                      toast.success("Removed from favorites");
+                    }
+                  } else {
+                    await addFavouriteMutation.mutateAsync({ product_id: salad.id });
+                    toast.success("Added to favorites");
+                  }
+                } catch (err) {
+                  const error = err as { response?: { data?: { detail?: string } } };
+                  toast.error(error?.response?.data?.detail || "Failed to update favorites");
                 }
               }}
+              disabled={addFavouriteMutation.isPending || removeFavouriteMutation.isPending}
               className={`w-full mb-8 transition-colors py-3 cursor-pointer ${
                 isFavourite(salad.id)
                   ? "border-red-400 bg-red-400 text-white hover:bg-red-500"

@@ -18,16 +18,16 @@ from Routes.USER.UserRoutes import get_current_active_user, require_admin, requi
 TableRouter = APIRouter(prefix="/tables", tags=["Tables"])
 
 
-# ============================================
-# PUBLIC ROUTES
-# ============================================
+# ============================================ #
+            # PUBLIC ROUTES #
+# ============================================ #
 
 @TableRouter.get("/", response_model=List[Dict[str, Any]])
 async def get_all_tables(db: AsyncSession = Depends(get_db)):
     """
     Get all tables in the restaurant.
     
-    Public endpoint - no authentication required.
+    Public endpoint.
     """
     return await TableControllers.get_all_tables(db)
 
@@ -40,7 +40,7 @@ async def get_table_by_id(
     """
     Get a single table by ID with active reservation count.
     
-    Public endpoint - no authentication required.
+    Public endpoint.
     """
     return await TableControllers.get_single_table_by_id(table_id, db)
 
@@ -59,7 +59,7 @@ async def get_available_tables(
     - **min_capacity**: Minimum table capacity required
     - **location**: Filter by location (window, patio, main_dining_room)
     
-    Public endpoint - no authentication required.
+    Public endpoint.
     """
     return await TableControllers.get_available_tables(
         date_time=date_time,
@@ -79,14 +79,14 @@ async def get_tables_by_location(
     
     - **location**: window, patio, or main_dining_room
     
-    Public endpoint - no authentication required.
+    Public endpoint.
     """
     return await TableControllers.get_tables_by_location(location, db)
 
 
-# ============================================
-# ADMIN ROUTES
-# ============================================
+# ============================================ #
+            # ADMIN ROUTES #
+# ============================================ #
 
 @TableRouter.post("/", status_code=status.HTTP_201_CREATED, response_model=Dict[str, Any], dependencies=[Depends(require_admin)])
 @limiter.limit("10/minute")
@@ -96,7 +96,7 @@ async def create_table(
     db: AsyncSession = Depends(get_db)
 ):
     """
-    Admin: Create a new table.
+    Admin : Create a new table.
     
     - **table_number**: Unique table identifier
     - **capacity**: Number of guests the table can accommodate
@@ -113,7 +113,7 @@ async def update_table(
     db: AsyncSession = Depends(get_db)
 ):
     """
-    Admin: Update existing table information.
+    Admin : Update existing table information.
     
     All fields are optional. Only provided fields will be updated.
     """
@@ -126,9 +126,9 @@ async def delete_table(
     db: AsyncSession = Depends(get_db)
 ):
     """
-    Admin: Delete a table.
+    Admin : Delete a table.
     
-    WARNING: Only allowed if no active reservations exist for this table.
+    Only allowed if no active reservations exist for this table.
     """
     return await TableControllers.delete_table(table_id, db)
 
@@ -141,6 +141,6 @@ async def toggle_table_availability(
     """
     Admin: Toggle table availability status.
     
-    Switches between available and unavailable.
+    Switches Table availability status between available and unavailable.
     """
     return await TableControllers.toggle_table_availability(table_id, db)

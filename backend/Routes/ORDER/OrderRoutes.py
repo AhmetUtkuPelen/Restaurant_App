@@ -14,9 +14,9 @@ from Routes.USER.UserRoutes import get_current_active_user, require_admin, requi
 OrderRouter = APIRouter(prefix="/orders", tags=["Orders"])
 
 
-# ============================================
-# USER ROUTES
-# ============================================
+# ============================================ #
+            # USER ROUTES #
+# ============================================ #
 
 @OrderRouter.get("/my-orders", response_model=Dict[str, Any])
 async def get_my_orders(
@@ -46,7 +46,7 @@ async def get_my_order(
     User: Get a single order by ID.
     
     You can only view your own orders.
-    Returns detailed order information including all items.
+    Detailed order information including all items.
     """
     return await OrderControllers.user_get_order_by_id(current_user, order_id, db)
 
@@ -62,12 +62,12 @@ async def create_order(
     """
     User: Create a new order from cart items.
     
-    - **delivery_address**: Delivery address (optional, uses user's address if not provided)
-    - **special_instructions**: Special instructions for the order (optional)
+    - **delivery_address**: Delivery address (uses user's address if not provided)
+    - **special_instructions**: Special instructions for the order (optional , can be null in front end)
     
     Creates order from all items currently in your cart.
-    Cart will be cleared after successful order creation.
-    Rate limited to 10 orders per minute.
+    Cart will be cleared out after successful order creation.
+    Rate limited to 10 orders per minute for security.
     """
     return await OrderControllers.user_create_new_order(current_user, order_data, db)
 
@@ -109,9 +109,9 @@ async def cancel_my_order(
     return await OrderControllers.user_cancels_order(current_user, order_id, db)
 
 
-# ============================================
-# ADMIN/STAFF ROUTES
-# ============================================
+# ============================================ #
+            # ADMIN/STAFF ROUTES #
+# ============================================ #
 
 @OrderRouter.get("/admin/all", response_model=Dict[str, Any], dependencies=[Depends(require_staff_or_admin)])
 async def get_all_orders(
@@ -121,7 +121,7 @@ async def get_all_orders(
     db: AsyncSession = Depends(get_db)
 ):
     """
-    Admin/Staff: Get all orders with pagination.
+    Admin : Get all orders with pagination.
     
     - **skip**: Number of records to skip (default: 0)
     - **limit**: Maximum records to return (default: 100, max: 500)
@@ -136,9 +136,9 @@ async def get_order_by_id(
     db: AsyncSession = Depends(get_db)
 ):
     """
-    Admin/Staff: Get any order by ID.
+    Admin : Get any order by ID.
     
-    Returns detailed order information including all items and user details.
+    Detailed order information including all items and user details.
     """
     return await OrderControllers.admin_get_order_by_id(order_id, db)
 
@@ -151,7 +151,7 @@ async def get_user_orders(
     db: AsyncSession = Depends(get_db)
 ):
     """
-    Admin/Staff: Get all orders for a specific user.
+    Admin : Get all orders for a specific user.
     
     - **user_id**: ID of the user
     - **skip**: Number of records to skip (default: 0)
@@ -186,7 +186,7 @@ async def admin_cancel_order(
     """
     Admin: Cancel any order.
     
-    Cannot cancel orders that are already completed.
+    Cant cancel orders that are completed status.
     """
     return await OrderControllers.admin_cancels_order(order_id, db)
 
@@ -194,13 +194,12 @@ async def admin_cancel_order(
 @OrderRouter.get("/admin/statistics/overview", response_model=Dict[str, Any], dependencies=[Depends(require_staff_or_admin)])
 async def get_order_statistics(db: AsyncSession = Depends(get_db)):
     """
-    Admin/Staff: Get comprehensive order statistics.
+    Admin : Get comprehensive order statistics.
     
-    Returns:
     - Total orders count
     - Orders by status (pending, completed, cancelled)
     - Revenue statistics (total, average order value)
-    - Recent orders (today, this month)
+    - Recent orders (today , this month)
     """
     return await OrderControllers.admin_get_order_statistics(db)
 
@@ -211,11 +210,10 @@ async def get_product_order_statistics(
     db: AsyncSession = Depends(get_db)
 ):
     """
-    Admin/Staff: Get order statistics for a specific product.
+    Admin : Get order statistics for a specific product.
     
     - **product_id**: ID of the product
     
-    Returns:
     - Times ordered
     - Total quantity sold
     - Total revenue from this product
@@ -229,11 +227,10 @@ async def get_user_order_statistics(
     db: AsyncSession = Depends(get_db)
 ):
     """
-    Admin/Staff: Get order statistics for a specific user.
+    Admin : Get order statistics for a specific user.
     
     - **user_id**: ID of the user
     
-    Returns:
     - Total orders
     - Completed orders
     - Total spent
@@ -249,12 +246,11 @@ async def get_date_range_statistics(
     db: AsyncSession = Depends(get_db)
 ):
     """
-    Admin/Staff: Get order statistics for a date range.
+    Admin : Get order statistics for a date range.
     
     - **start_date**: Start date in ISO format (e.g., 2024-01-01T00:00:00)
     - **end_date**: End date in ISO format (e.g., 2024-12-31T23:59:59)
     
-    Returns:
     - Total orders in range
     - Completed orders in range
     - Total revenue in range

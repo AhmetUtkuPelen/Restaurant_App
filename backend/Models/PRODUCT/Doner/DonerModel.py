@@ -44,7 +44,6 @@ class Doner(Product):
     # -----------------------
 
     async def summary(self) -> str:
-        """Readable summary."""
         return f"{self.name} ({self.meat_type.value.title()}, {self.spice_level.value.lower()}"
 
     @property

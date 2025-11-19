@@ -12,9 +12,9 @@ from Routes.USER.UserRoutes import get_current_active_user, require_admin, requi
 CartRouter = APIRouter(prefix="/cart", tags=["Cart"])
 
 
-# ============================================
-# USER ROUTES
-# ============================================
+# ============================================ #
+            # USER ROUTES #
+# ============================================ #
 
 @CartRouter.get("/", response_model=Dict[str, Any])
 async def get_my_cart(
@@ -24,7 +24,6 @@ async def get_my_cart(
     """
     User: Get your cart with all items and totals.
     
-    Returns:
     - Cart details with all items
     - Product information for each item
     - Calculated subtotals and total price
@@ -39,10 +38,9 @@ async def get_cart_summary(
     db: AsyncSession = Depends(get_db)
 ):
     """
-    User: Get cart summary (lightweight).
-    
-    Returns only totals without detailed item information.
-    Useful for displaying cart badge/icon.
+    User: Get cart summary.
+    Returns only total product number without detailed item information.
+    For displaying cart badge in front end.
     """
     return await CartControllers.get_cart_summary(current_user, db)
 
@@ -56,13 +54,13 @@ async def add_item_to_cart(
     db: AsyncSession = Depends(get_db)
 ):
     """
-    User: Add item to cart.
+    User : Add item to cart.
     
-    - **product_id**: ID of the product to add
+    - **product_id** : ID of the product to add
     - **quantity**: Quantity to add (default: 1, minimum: 1)
     
-    If the product already exists in cart, the quantity will be increased.
-    Rate limited to 30 requests per minute.
+    If the product already exists in cart, the quantity gets to be increased.
+    Rate limited to 30 requests per minute for security.
     """
     return await CartControllers.add_item_to_cart(current_user, item_data, db)
 
@@ -75,12 +73,12 @@ async def update_cart_item(
     db: AsyncSession = Depends(get_db)
 ):
     """
-    User: Update cart item quantity.
+    User: Update cart item quantity
     
-    - **item_id**: ID of the cart item to update
-    - **quantity**: New quantity (minimum: 1)
+    - **item_id** : ID of the cart item to update
+    - **quantity** : New quantity (minimum: 1)
     
-    You can only update items in your own cart.
+    You can only update items in your own cart
     """
     return await CartControllers.update_cart_item(current_user, item_id, item_data, db)
 
@@ -92,7 +90,7 @@ async def remove_cart_item(
     db: AsyncSession = Depends(get_db)
 ):
     """
-    User: Remove item from cart.
+    User : Remove item from cart
     
     - **item_id**: ID of the cart item to remove
     
@@ -107,16 +105,15 @@ async def clear_cart(
     db: AsyncSession = Depends(get_db)
 ):
     """
-    User: Clear all items from your cart.
-    
-    WARNING: This will remove all items from your cart!
+    User: Clear all items from your cart
+    Remove all Items from your Cart
     """
     return await CartControllers.clear_cart(current_user, db)
 
 
-# ============================================
-# ADMIN ROUTES
-# ============================================
+# ============================================ #
+            # ADMIN ROUTES #
+# ============================================ #
 
 @CartRouter.get("/admin/user/{user_id}", response_model=Dict[str, Any], dependencies=[Depends(require_staff_or_admin)])
 async def get_user_cart_by_id(
@@ -124,7 +121,7 @@ async def get_user_cart_by_id(
     db: AsyncSession = Depends(get_db)
 ):
     """
-    Admin/Staff: Get cart for a specific user.
+    Admin : Get cart for a specific user.
     
     - **user_id**: ID of the user
     
@@ -140,12 +137,12 @@ async def get_all_active_carts(
     db: AsyncSession = Depends(get_db)
 ):
     """
-    Admin/Staff: Get all carts that have items.
+    Admin : Get all carts that have items.
     
     - **skip**: Number of records to skip (default: 0)
     - **limit**: Maximum records to return (default: 100, max: 500)
     
     Returns only carts with at least one item.
-    Useful for monitoring abandoned carts.
+    For monitoring abandoned carts by User.
     """
     return await CartControllers.get_all_active_carts(skip, limit, db)

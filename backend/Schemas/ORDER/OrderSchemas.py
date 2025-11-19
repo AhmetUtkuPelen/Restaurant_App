@@ -19,7 +19,6 @@ class OrderItemCreate(BaseModel):
     model_config = model_conf
     product_id: int
     quantity: int = Field(..., ge=1)
-    # unit_price and subtotal will be calculated from product
 
 
 class OrderItemRead(OrderItemBase):
@@ -37,7 +36,6 @@ class OrderBase(BaseModel):
 
 class OrderCreate(OrderBase):
     model_config = model_conf
-    # Order will be created from cart items or explicit items
     items: Optional[List[OrderItemCreate]] = None  # If None, use cart items
 
 

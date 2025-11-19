@@ -14,10 +14,10 @@ import {
   Users,
 } from "lucide-react";
 import { useCartStore } from "@/Zustand/Cart/CartState";
-import { useFavouriteStore } from "@/Zustand/FavouriteProduct/FavouriteProductState";
 import CommentSection from "@/Components/Comment/CommentSection";
 import { useNavigate } from "react-router-dom";
 import { useIsAuthenticated } from "@/Zustand/Auth/AuthState";
+import { useMyFavourites, useAddFavourite, useRemoveFavourite } from "@/hooks/useFavourite";
 import { toast } from "sonner";
 
 const Kebab = () => {
@@ -31,11 +31,18 @@ const Kebab = () => {
   const { data: products = [] } = useKebabs();
 
   const addToCart = useCartStore((state) => state.addToCart);
-  const addToFavourites = useFavouriteStore((state) => state.addToFavourites);
-  const removeFromFavourites = useFavouriteStore(
-    (state) => state.removeFromFavourites
-  );
-  const isFavourite = useFavouriteStore((state) => state.isFavourite);
+  const { data: favouritesData = [] } = useMyFavourites();
+  const addFavouriteMutation = useAddFavourite();
+  const removeFavouriteMutation = useRemoveFavourite();
+
+  const isFavourite = (productId: number) => {
+    return favouritesData.some(fav => fav.product_id === productId);
+  };
+
+  const getFavouriteId = (productId: number) => {
+    const fav = favouritesData.find(fav => fav.product_id === productId);
+    return fav?.id;
+  };
 
    const handleAddToCart = () => {
      if (!isAuthenticated) {
@@ -227,7 +234,7 @@ const Kebab = () => {
 
             <Button
               variant="outline"
-              onClick={() => {
+              onClick={async () => {
                 if (!isAuthenticated) {
                   toast.error("Please login to manage favorites", {
                     description: "You need to be logged in to add items to your favorites.",
@@ -239,22 +246,23 @@ const Kebab = () => {
                   return;
                 }
                 
-                if (isFavourite(kebab.id)) {
-                  removeFromFavourites(kebab.id);
-                  toast.success("Removed from favorites");
-                } else {
-                  addToFavourites({
-                    id: kebab.id,
-                    name: kebab.name,
-                    price: kebab.price,
-                    final_price: kebab.final_price,
-                    image_url: kebab.image_url,
-                    category: "kebab",
-                    description: kebab.description,
-                  });
-                  toast.success("Added to favorites");
+                try {
+                  if (isFavourite(kebab.id)) {
+                    const favId = getFavouriteId(kebab.id);
+                    if (favId) {
+                      await removeFavouriteMutation.mutateAsync(favId);
+                      toast.success("Removed from favorites");
+                    }
+                  } else {
+                    await addFavouriteMutation.mutateAsync({ product_id: kebab.id });
+                    toast.success("Added to favorites");
+                  }
+                } catch (err) {
+                  const error = err as { response?: { data?: { detail?: string } } };
+                  toast.error(error?.response?.data?.detail || "Failed to update favorites");
                 }
               }}
+              disabled={addFavouriteMutation.isPending || removeFavouriteMutation.isPending}
               className={`w-full mb-8 transition-colors py-3 cursor-pointer ${
                 isFavourite(kebab.id)
                   ? "border-red-400 bg-red-400 text-white hover:bg-red-500"

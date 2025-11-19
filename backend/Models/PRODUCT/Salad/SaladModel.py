@@ -22,10 +22,6 @@ class Salad(Product):
     is_alergic = Column(Boolean, default=False, nullable=False)
     calories = Column(Integer, nullable=True, default=0)
 
-    # -----------------------
-    # Utility methods for ingredients
-    # -----------------------
-
     def to_dict(self):
         base_dict = super().to_dict()
         base_dict.update({

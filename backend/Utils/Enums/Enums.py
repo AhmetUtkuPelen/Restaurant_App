@@ -1,10 +1,12 @@
 from enum import Enum
 
 
+
 class MeatType(Enum):
     CHICKEN = "chicken"
     BEEF = "beef"
     LAMB = "lamb"
+
 
 
 class SpiceLevel(Enum):
@@ -13,10 +15,12 @@ class SpiceLevel(Enum):
     HOT = "hot"
 
 
+
 class DonerSize(Enum):
     SMALL = "small"
     MEDIUM = "medium"
     LARGE = "large"
+
 
 
 class KebabSize(Enum):
@@ -25,10 +29,12 @@ class KebabSize(Enum):
     LARGE = "large"
 
 
+
 class DrinkSize(Enum):
     SMALL = "small"
     MEDIUM = "medium"
     LARGE = "large"
+
 
 
 class DessertType(Enum):
@@ -42,16 +48,19 @@ class DessertType(Enum):
     TIRAMISU = "tiramisu"
 
 
+
 class UserRole(Enum):
     ADMIN = "admin"
     USER = "user"
     STAFF = "staff"
 
 
+
 class OrderStatus(Enum):
     PENDING = "pending"
     COMPLETED = "completed"
     CANCELLED = "cancelled"
+
 
 
 class PaymentStatus(Enum):
@@ -61,10 +70,14 @@ class PaymentStatus(Enum):
     REFUNDED = "refunded"
     REFUND_PENDING = "refund_pending"
 
+
+
 class ReservationStatus(Enum):
     PENDING = "pending"
     CONFIRMED = "confirmed"
     CANCELLED = "cancelled"
+
+
 
 class TableLocation(Enum):
     WINDOW = "window"

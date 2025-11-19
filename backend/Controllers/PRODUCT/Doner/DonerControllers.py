@@ -17,7 +17,7 @@ class DonerControllers:
         include_inactive: bool = False,
         db: AsyncSession = None
     ) -> Dict[str, Any]:
-        """Get all doners with pagination."""
+        """Get all doners with pagination """
         try:
             conditions = []
             if not include_inactive:
@@ -50,7 +50,7 @@ class DonerControllers:
 
     @staticmethod
     async def get_single_doner(doner_id: int, db: AsyncSession) -> Dict[str, Any]:
-        """Get a single doner by ID."""
+        """Get a single doner by ID"""
         try:
             stmt = select(Doner).where(Doner.id == doner_id)
             result = await db.execute(stmt)
@@ -71,13 +71,13 @@ class DonerControllers:
                 detail=f"Failed to fetch doner: {str(e)}"
             )
 
-    ####
-    # ADMIN RELATED ENDPOINTS - REQUIRES ADMIN USER
-    ####
+    #################################################
+    # ADMIN RELATED ENDPOINTS - REQUIRES ADMIN USER #
+    #################################################
 
     @staticmethod
     async def create_new_doner(doner_data: DonerCreate, db: AsyncSession) -> Dict[str, Any]:
-        """Admin: Create a new doner."""
+        """Admin: Create a new doner"""
         try:
             stmt = select(Doner).where(Doner.name == doner_data.name)
             result = await db.execute(stmt)
@@ -129,7 +129,7 @@ class DonerControllers:
         update_data: DonerUpdate,
         db: AsyncSession
     ) -> Dict[str, Any]:
-        """Admin: Update existing doner."""
+        """Admin: Update existing doner"""
         try:
             stmt = select(Doner).where(Doner.id == doner_id)
             result = await db.execute(stmt)
@@ -172,7 +172,7 @@ class DonerControllers:
 
     @staticmethod
     async def hard_delete_doner(doner_id: int, db: AsyncSession) -> Dict[str, str]:
-        """Admin: Permanently delete doner."""
+        """Admin : Permanently delete doner"""
         try:
             stmt = select(Doner).where(Doner.id == doner_id)
             result = await db.execute(stmt)
@@ -199,7 +199,7 @@ class DonerControllers:
 
     @staticmethod
     async def soft_delete_doner(doner_id: int, db: AsyncSession) -> Dict[str, Any]:
-        """Admin: Soft delete doner (deactivate)."""
+        """Admin : Soft delete doner (deactivate)"""
         try:
             stmt = select(Doner).where(Doner.id == doner_id)
             result = await db.execute(stmt)

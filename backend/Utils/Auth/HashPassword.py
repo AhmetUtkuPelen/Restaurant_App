@@ -2,36 +2,36 @@ from typing import Dict
 import logging
 from passlib.context import CryptContext
 
-# Configure logging
+## logging config ##
 logger = logging.getLogger(__name__)
 
-# Configure password hashing
+## Configure password hashing ##
 pwd_context = CryptContext(
     schemes=["bcrypt"],
     deprecated="auto",
-    bcrypt__rounds=12,  # Good balance between security and performance
+    bcrypt__rounds=12,
 )
 
+
+
+
 class PasswordError(Exception):
-    """Base exception for password related errors"""
+    """ Base exception error class for password related errors """
     def __init__(self, message: str = "Password operation failed", **kwargs):
         self.message = message
         self.details = kwargs
         super().__init__(self.message)
 
+
+
+
 def verify_password(plain_password: str, hashed_password: str) -> bool:
     """
     Verify a password against a hash.
-    
-    Args:
-        plain_password: The plain text password to verify
-        hashed_password: The hashed password to compare against
         
-    Returns:
-        bool: True if password matches, False otherwise
+    Returns : bool: True if password matches, False if otherwise
         
-    Raises:
-        PasswordError: If there's an error during verification
+    Raises : PasswordError: If there's an error during password verification
     """
     try:
         if not plain_password or not hashed_password:
@@ -51,18 +51,16 @@ def verify_password(plain_password: str, hashed_password: str) -> bool:
         logger.error(f"Unexpected error in verify_password: {str(e)}")
         return False
 
+
+
+
 def get_password_hash(password: str) -> str:
     """
     Generate a secure hash from a password.
-    
-    Args:
-        password: The plain text password to hash
         
-    Returns:
-        str: The hashed password
+    Returns : str: The hashed password
         
-    Raises:
-        PasswordError: If password is invalid or hashing fails
+    Raises : PasswordError: If password is invalid or hashing fails
     """
     if not password or not isinstance(password, str):
         raise PasswordError("Password must be a non-empty string")
@@ -73,15 +71,14 @@ def get_password_hash(password: str) -> str:
         logger.error(f"Error hashing password: {str(e)}")
         raise PasswordError("Failed to hash password") from e
 
+
+
+
 def is_password_strong(password: str) -> Dict[str, bool]:
     """
     Check if a password meets strength requirements.
-    
-    Args:
-        password: The password to check
         
-    Returns:
-        Dict[str, bool]: Dictionary with strength check results
+    Returns : Dict[str, bool]: Dictionary with strength check results
     """
     if not password or not isinstance(password, str):
         return {

@@ -4,6 +4,8 @@ from sqlalchemy.orm import relationship
 from sqlalchemy.sql.schema import CheckConstraint
 from decimal import Decimal
 
+##### BASE PRODUCT MODEL FOR PRODUCT MODELS TO INHERIT #####
+
 class Product(Base):
     __tablename__ = "products"
 
@@ -32,9 +34,11 @@ class Product(Base):
     created_at = Column(DateTime, server_default=func.now())
     updated_at = Column(DateTime, onupdate=func.now(), server_default=func.now())
     deleted_at = Column(DateTime)
+
     # for soft delete functionality
     is_active = Column(Boolean, default=True, nullable=False)
-    #display at landing page ?
+
+    # display at landing page ?
     is_front_page = Column(Boolean, default=False, nullable=False)
 
     # Order
@@ -67,7 +71,7 @@ class Product(Base):
     def summary(self):
         return f"{self.name} | {self.description} | {self.tags} | {self.price} | {self.discount_percentage} | {self.image_url} | {self.created_at} | {self.updated_at} | {self.deleted_at} | {self.is_active} | {self.is_front_page}"
 
-    ### Price after discount ###
+    ### Price property after discount ###
     @property
     def final_price(self):
         if self.price is None:

@@ -19,7 +19,7 @@ class TableControllers:
     @staticmethod
     async def get_all_tables(db: AsyncSession) -> List[Dict[str, Any]]:
         """
-        Get all tables in the restaurant.
+        Get all tables in the restaurant
         """
         try:
             stmt = select(Table).order_by(Table.table_number)
@@ -45,7 +45,7 @@ class TableControllers:
     @staticmethod
     async def get_single_table_by_id(table_id: int, db: AsyncSession) -> Dict[str, Any]:
         """
-        Get a single table by ID with reservation count.
+        Get a single table by ID with reservation count
         """
         try:
             stmt = select(Table).where(Table.id == table_id)
@@ -58,7 +58,7 @@ class TableControllers:
                     detail="Table not found"
                 )
             
-            # Count active reservations
+            #### Count active reservations ####
             count_stmt = select(func.count(Reservation.id)).where(
                 and_(
                     Reservation.table_id == table_id,
@@ -92,11 +92,11 @@ class TableControllers:
         db: AsyncSession = None
     ) -> List[Dict[str, Any]]:
         """
-        Get available tables, optionally filtered by datetime, capacity, and location.
-        If datetime is provided, checks for conflicting reservations.
+        Get available tables, optionally filtered by datetime, capacity, and location
+        If datetime is in there, check for conflicting reservations
         """
         try:
-            # Build base query
+            #### base query ####
             conditions = [Table.is_available == True]
             
             if min_capacity:
@@ -116,7 +116,7 @@ class TableControllers:
             result = await db.execute(stmt)
             tables = result.scalars().all()
             
-            # If datetime provided, filter by availability
+            #### If datetime is provided , filter by availability ####
             if date_time:
                 available_tables = []
                 for table in tables:
@@ -153,14 +153,14 @@ class TableControllers:
     ) -> bool:
         """
         Helper: Check if table is available at specific time.
-        Assumes 2-hour reservation window.
+        2-hour reservation time window.
         """
         try:
-            # Define time window (2 hours)
+            #### Define time window (2 hours) ####
             window_start = reservation_time - timedelta(hours=2)
             window_end = reservation_time + timedelta(hours=2)
             
-            # Check for conflicting reservations
+            #### Check for conflicting reservations ####
             stmt = select(Reservation).where(
                 and_(
                     Reservation.table_id == table_id,
@@ -182,7 +182,7 @@ class TableControllers:
         Admin: Add a new table to the restaurant.
         """
         try:
-            # Check if table number already exists
+            #### Check if table number already exists or not ####
             stmt = select(Table).where(Table.table_number == table_data.table_number)
             result = await db.execute(stmt)
             existing = result.scalar_one_or_none()
@@ -193,7 +193,7 @@ class TableControllers:
                     detail="Table number already exists"
                 )
             
-            # Create new table
+            #### Create new table ####
             new_table = Table(
                 table_number=table_data.table_number,
                 capacity=table_data.capacity,
@@ -231,7 +231,7 @@ class TableControllers:
         db: AsyncSession
     ) -> Dict[str, Any]:
         """
-        Admin: Update existing table information.
+        Admin : Update existing table information.
         """
         try:
             stmt = select(Table).where(Table.id == table_id)
@@ -244,7 +244,7 @@ class TableControllers:
                     detail="Table not found"
                 )
             
-            # Check table number uniqueness if being changed
+            #### Check table number uniqueness if table is being changed ####
             if update_data.table_number and update_data.table_number != table.table_number:
                 check_stmt = select(Table).where(Table.table_number == update_data.table_number)
                 check_result = await db.execute(check_stmt)
@@ -254,7 +254,7 @@ class TableControllers:
                         detail="Table number already exists"
                     )
             
-            # Update fields
+            #### Update fields ####
             update_dict = update_data.model_dump(exclude_unset=True)
             for key, value in update_dict.items():
                 setattr(table, key, value)
@@ -284,7 +284,7 @@ class TableControllers:
     @staticmethod
     async def delete_table(table_id: int, db: AsyncSession) -> Dict[str, str]:
         """
-        Admin: Delete a table. Only allowed if no active reservations.
+        Admin : Delete a table. Only allowed if no active reservations
         """
         try:
             stmt = select(Table).where(Table.id == table_id)
@@ -297,7 +297,7 @@ class TableControllers:
                     detail="Table not found"
                 )
             
-            # Check for active reservations
+            #### Check for active reservations ####
             check_stmt = select(Reservation).where(
                 and_(
                     Reservation.table_id == table_id,
@@ -329,7 +329,7 @@ class TableControllers:
     @staticmethod
     async def get_tables_by_location(location: str, db: AsyncSession) -> List[Dict[str, Any]]:
         """
-        Get all tables in a specific location.
+        Get all tables in a specific location
         """
         try:
             try:
@@ -365,7 +365,7 @@ class TableControllers:
     @staticmethod
     async def toggle_table_availability(table_id: int, db: AsyncSession) -> Dict[str, Any]:
         """
-        Admin: Toggle table availability status.
+        Admin : Toggle table availability status
         """
         try:
             stmt = select(Table).where(Table.id == table_id)

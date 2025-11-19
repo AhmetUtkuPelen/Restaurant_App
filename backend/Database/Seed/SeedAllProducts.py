@@ -16,68 +16,69 @@ async def seed_all_products():
     """
     try:
         print("\n" + "="*80)
-        print("🍽️  STARTING PRODUCT SEEDING FOR RESTAURANT")
+        print("    STARTING PRODUCT SEEDING FOR RESTAURANT    ")
         print("="*80)
         
         total_created = 0
         total_skipped = 0
         
         # Seed Desserts
-        print("\n🍰 Seeding Desserts...")
+        print("\n    Seeding Desserts...    ")
         dessert_result = await seed_desserts()
         total_created += dessert_result["created"]
         total_skipped += dessert_result["skipped"]
         
         # Seed Doners
-        print("\n🥙 Seeding Doners...")
+        print("\n    Seeding Doners...    ")
         doner_result = await seed_doners()
         total_created += doner_result["created"]
         total_skipped += doner_result["skipped"]
         
         # Seed Drinks
-        print("\n🥤 Seeding Drinks...")
+        print("\n    Seeding Drinks...    ")
         drink_result = await seed_drinks()
         total_created += drink_result["created"]
         total_skipped += drink_result["skipped"]
         
         # Seed Kebabs
-        print("\n🍖 Seeding Kebabs...")
+        print("\n    Seeding Kebabs...    ")
         kebab_result = await seed_kebabs()
         total_created += kebab_result["created"]
         total_skipped += kebab_result["skipped"]
         
         # Seed Salads
-        print("\n🥗 Seeding Salads...")
+        print("\n    Seeding Salads...    ")
         salad_result = await seed_salads()
         total_created += salad_result["created"]
         total_skipped += salad_result["skipped"]
         
         # Final Summary
         print("\n" + "="*80)
-        print("🎉 PRODUCT SEEDING COMPLETED!")
+        print("    PRODUCT SEEDING HAS BEEN COMPLETED SUCCESSFULLY !    ")
         print("="*80)
-        print(f"📊 SUMMARY:")
-        print(f"   ✅ Total Products Created: {total_created}")
-        print(f"   ⏭️  Total Products Skipped: {total_skipped}")
-        print(f"   📦 Total Products Processed: {total_created + total_skipped}")
-        print("\n📋 BREAKDOWN BY CATEGORY:")
-        print(f"   🍰 Desserts: {dessert_result['created']} created, {dessert_result['skipped']} skipped")
-        print(f"   🥙 Doners: {doner_result['created']} created, {doner_result['skipped']} skipped")
-        print(f"   🥤 Drinks: {drink_result['created']} created, {drink_result['skipped']} skipped")
-        print(f"   🍖 Kebabs: {kebab_result['created']} created, {kebab_result['skipped']} skipped")
-        print(f"   🥗 Salads: {salad_result['created']} created, {salad_result['skipped']} skipped")
+        print("SUMMARY : ")
+        print(f"    Total Products Created: {total_created} ")
+        print(f"     Total Products Skipped: {total_skipped} ")
+        print(f"    Total Products Processed: {total_created + total_skipped} ")
+        print("\n    BREAKDOWN BY CATEGORY :    ")
+        print(f"    Desserts: {dessert_result['created']} created, {dessert_result['skipped']} skipped ")
+        print(f"    Doners: {doner_result['created']} created, {doner_result['skipped']} skipped ")
+        print(f"    Drinks: {drink_result['created']} created, {drink_result['skipped']} skipped ")
+        print(f"    Kebabs: {kebab_result['created']} created, {kebab_result['skipped']} skipped ")
+        print(f"    Salads: {salad_result['created']} created, {salad_result['skipped']} skipped ")
         print("="*80)
         
         if total_created > 0:
-            print("\n🚀 Your restaurant is now ready with a full menu!")
-            print("   You can now:")
+            print("\n    Restaurant is now ready with a full menu !    ")
+            print("   You can now : ")
             print("   • Browse products at GET /api/desserts/, /api/doners/, etc.")
             print("   • Add products to cart")
             print("   • Create orders")
             print("   • Make payments")
             print("   • Leave comments and reviews")
+            #### If PRoducts have been seeded already , print all products are in DB already ####
         else:
-            print("\n✨ All products were already in the database!")
+            print("\n All products were already in the database!")
         
         print("\n" + "="*80 + "\n")
         
@@ -100,9 +101,9 @@ async def seed_all_products():
 
 
 async def main():
-    """Main function to run all product seeding."""
+    """Main function for running all product seedings."""
     try:
-        logger.info("Starting comprehensive product seeding...")
+        logger.info("    Starting product seeding ...    ")
         result = await seed_all_products()
         logger.info(f"Product seeding completed: {result}")
     except Exception as e:
@@ -113,11 +114,10 @@ async def main():
 
 
 if __name__ == "__main__":
-    # Configure logging
     logging.basicConfig(
         level=logging.INFO,
         format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
     )
     
-    # Run the seeding
+    ### Run the seeding ###
     asyncio.run(main())

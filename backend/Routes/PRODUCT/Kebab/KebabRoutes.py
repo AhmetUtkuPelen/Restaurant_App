@@ -11,9 +11,9 @@ from Routes.USER.UserRoutes import require_admin
 KebabRouter = APIRouter(prefix="/kebabs", tags=["Kebabs"])
 
 
-# ============================================
-# PUBLIC ROUTES
-# ============================================
+# ============================================ #
+            # PUBLIC ROUTES #
+# ============================================ #
 
 @KebabRouter.get("/", response_model=Dict[str, Any])
 async def get_all_kebabs(
@@ -43,9 +43,9 @@ async def get_kebab_by_id(
     return await KebabControllers.get_single_kebab(kebab_id, db)
 
 
-# ============================================
-# ADMIN ROUTES
-# ============================================
+# ============================================ #
+            # ADMIN ROUTES #
+# ============================================ #
 
 @KebabRouter.post("/", status_code=status.HTTP_201_CREATED, response_model=Dict[str, Any], dependencies=[Depends(require_admin)])
 @limiter.limit("10/minute")
@@ -65,6 +65,7 @@ async def create_kebab(
     - **spice_level**: mild, medium, or hot
     - **is_vegan**: Whether kebab is vegan
     - **is_alergic**: Whether kebab contains allergens
+    - 10 requests per minute for security.
     """
     return await KebabControllers.create_new_kebab(kebab_data, db)
 
@@ -90,8 +91,6 @@ async def delete_kebab(
 ):
     """
     Admin: Permanently delete kebab.
-    
-    WARNING: This action cannot be undone!
     """
     return await KebabControllers.hard_delete_kebab(kebab_id, db)
 
@@ -102,8 +101,6 @@ async def deactivate_kebab(
     db: AsyncSession = Depends(get_db)
 ):
     """
-    Admin: Soft delete kebab (deactivate).
-    
-    Sets is_active to false and records deletion timestamp.
+    Admin: Soft delete kebab , is_active (deactivate).
     """
     return await KebabControllers.soft_delete_kebab(kebab_id, db)

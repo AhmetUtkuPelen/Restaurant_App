@@ -14,8 +14,8 @@ import {
   Award,
 } from "lucide-react";
 import { useCartStore } from "@/Zustand/Cart/CartState";
-import { useFavouriteStore } from "@/Zustand/FavouriteProduct/FavouriteProductState";
 import { useIsAuthenticated } from "@/Zustand/Auth/AuthState";
+import { useMyFavourites, useAddFavourite, useRemoveFavourite } from "@/hooks/useFavourite";
 import { toast } from "sonner";
 import CommentSection from "@/Components/Comment/CommentSection";
 
@@ -28,12 +28,19 @@ const Dessert = () => {
   const { data: products = [] } = useDesserts();
 
   const addToCart = useCartStore((state) => state.addToCart);
-  const addToFavourites = useFavouriteStore((state) => state.addToFavourites);
-  const removeFromFavourites = useFavouriteStore(
-    (state) => state.removeFromFavourites
-  );
-  const isFavourite = useFavouriteStore((state) => state.isFavourite);
+  const { data: favouritesData = [] } = useMyFavourites();
+  const addFavouriteMutation = useAddFavourite();
+  const removeFavouriteMutation = useRemoveFavourite();
   const isAuthenticated = useIsAuthenticated();
+
+  const isFavourite = (productId: number) => {
+    return favouritesData.some(fav => fav.product_id === productId);
+  };
+
+  const getFavouriteId = (productId: number) => {
+    const fav = favouritesData.find(fav => fav.product_id === productId);
+    return fav?.id;
+  };
 
   const handleAddToCart = () => {
     if (!isAuthenticated) {
@@ -157,7 +164,7 @@ const Dessert = () => {
                 <p className="text-gray-400 mb-4">Desserts</p>
               </div>
               <button
-                onClick={() => {
+                onClick={async () => {
                   if (!isAuthenticated) {
                     toast.error("Please login to manage favorites", {
                       description: "You need to be logged in to add items to your favorites.",
@@ -169,22 +176,23 @@ const Dessert = () => {
                     return;
                   }
                   
-                  if (isFavourite(dessert.id)) {
-                    removeFromFavourites(dessert.id);
-                    toast.success("Removed from favorites");
-                  } else {
-                    addToFavourites({
-                      id: dessert.id,
-                      name: dessert.name,
-                      price: dessert.price,
-                      final_price: dessert.final_price,
-                      image_url: dessert.image_url,
-                      category: "dessert",
-                      description: dessert.description,
-                    });
-                    toast.success("Added to favorites");
+                  try {
+                    if (isFavourite(dessert.id)) {
+                      const favId = getFavouriteId(dessert.id);
+                      if (favId) {
+                        await removeFavouriteMutation.mutateAsync(favId);
+                        toast.success("Removed from favorites");
+                      }
+                    } else {
+                      await addFavouriteMutation.mutateAsync({ product_id: dessert.id });
+                      toast.success("Added to favorites");
+                    }
+                  } catch (err) {
+                    const error = err as { response?: { data?: { detail?: string } } };
+                    toast.error(error?.response?.data?.detail || "Failed to update favorites");
                   }
                 }}
+                disabled={addFavouriteMutation.isPending || removeFavouriteMutation.isPending}
                 className={`p-2 rounded-full transition-colors ${
                   isFavourite(dessert.id)
                     ? "text-red-400 bg-red-400/20"
@@ -284,7 +292,7 @@ const Dessert = () => {
             {/* Add to Favorites Button */}
             <Button
               variant="outline"
-              onClick={() => {
+              onClick={async () => {
                 if (!isAuthenticated) {
                   toast.error("Please login to manage favorites", {
                     description: "You need to be logged in to add items to your favorites.",
@@ -296,22 +304,23 @@ const Dessert = () => {
                   return;
                 }
                 
-                if (isFavourite(dessert.id)) {
-                  removeFromFavourites(dessert.id);
-                  toast.success("Removed from favorites");
-                } else {
-                  addToFavourites({
-                    id: dessert.id,
-                    name: dessert.name,
-                    price: dessert.price,
-                    final_price: dessert.final_price,
-                    image_url: dessert.image_url,
-                    category: "dessert",
-                    description: dessert.description,
-                  });
-                  toast.success("Added to favorites");
+                try {
+                  if (isFavourite(dessert.id)) {
+                    const favId = getFavouriteId(dessert.id);
+                    if (favId) {
+                      await removeFavouriteMutation.mutateAsync(favId);
+                      toast.success("Removed from favorites");
+                    }
+                  } else {
+                    await addFavouriteMutation.mutateAsync({ product_id: dessert.id });
+                    toast.success("Added to favorites");
+                  }
+                } catch (err) {
+                  const error = err as { response?: { data?: { detail?: string } } };
+                  toast.error(error?.response?.data?.detail || "Failed to update favorites");
                 }
               }}
+              disabled={addFavouriteMutation.isPending || removeFavouriteMutation.isPending}
               className={`w-full mb-8 transition-colors py-3 cursor-pointer ${
                 isFavourite(dessert.id)
                   ? "border-red-400 bg-red-400 text-white hover:bg-red-500"

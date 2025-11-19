@@ -1,6 +1,7 @@
 from Database.Database import Base
 from sqlalchemy import Column, Integer, String, DateTime, func, Boolean, Enum as SAEnum, event
 from sqlalchemy.orm import relationship
+from sqlalchemy import text
 from Utils.Enums.Enums import UserRole
 from Utils.Auth.HashPassword import get_password_hash
 
@@ -54,10 +55,8 @@ class User(Base):
     @property
     def user_profile(self):
         """
-        Returns user profile information.
-        Profile exists automatically when User is created.
-        WARNING: This property should only be used when relationships are already loaded.
-        For API responses, use the controller method that properly loads relationships.
+        For returning user profile informations.
+        Profile gets created automatically when A User is successfully created.
         """
         return {
             "id": self.id,
@@ -80,7 +79,7 @@ class User(Base):
     def update_profile(self, payload: dict):
         """
         Update user profile information.
-        Only updates allowed fields.
+        Updates allowed fields only.
         """
         if not isinstance(payload, dict):
             return False
@@ -91,7 +90,7 @@ class User(Base):
         for key in allowed:
             if key in payload:
                 val = payload.get(key)
-                if val is not None:  # Only update if value is provided
+                if val is not None:
                     if key == "password":
                         self.hashed_password = get_password_hash(val)
                         updated = True
@@ -108,16 +107,12 @@ class User(Base):
         return f"<User(username={self.username}, email={self.email})>"
 
 
-# Event listener to automatically create a cart when a new user is created
+# SqlAlchemy Event listener for creating an empty cart when a new user is successfully created #
 @event.listens_for(User, 'after_insert')
 def create_user_cart(mapper, connection, target):
     """
-    Automatically creates an empty cart for a newly registered user.
-    This ensures every user has a cart immediately after registration.
-    Uses raw SQL to avoid session flushing issues.
+    Automatically creates an empty cart for successfully registered user.
     """
-    # Use the connection directly to insert cart without triggering session flush
-    from sqlalchemy import text
     
     insert_stmt = text(
         "INSERT INTO carts (user_id, created_at, updated_at) "

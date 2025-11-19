@@ -15,7 +15,6 @@ class ReservationBase(BaseModel):
 
     @field_validator('reservation_time')
     def validate_future_time(cls, v):
-        # Make both datetimes timezone-aware for comparison
         now = datetime.now(timezone.utc)
         reservation_time = v if v.tzinfo else v.replace(tzinfo=timezone.utc)
         

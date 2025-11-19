@@ -13,9 +13,9 @@ from Schemas.COMMENT.CommentSchemas import CommentCreate, CommentUpdate
 
 class CommentControllers:
     
-    # ============================================
-    # USER FUNCTIONS
-    # ============================================
+    #### ============================================ ####
+    #### USER FUNCTIONS ####
+    #### ============================================ ####
 
     @staticmethod
     async def create_comment(
@@ -23,9 +23,9 @@ class CommentControllers:
         comment_data: CommentCreate,
         db: AsyncSession
     ) -> Dict[str, Any]:
-        """User: Create a comment on a product."""
+        """User : Create a comment on a product """
         try:
-            # Check if product exists
+            #### Check if Product exists or not ####
             product_stmt = select(Product).where(Product.id == comment_data.product_id)
             product_result = await db.execute(product_stmt)
             product = product_result.scalar_one_or_none()
@@ -36,14 +36,14 @@ class CommentControllers:
                     detail="Product not found"
                 )
             
-            # Check if product is active
+            #### Check if Product is active ####
             if not product.is_active:
                 raise HTTPException(
                     status_code=status.HTTP_400_BAD_REQUEST,
                     detail="Cannot comment on inactive product"
                 )
             
-            # Create comment
+            #### Create comment ####
             new_comment = Comment(
                 user_id=current_user.id,
                 product_id=comment_data.product_id,
@@ -80,7 +80,7 @@ class CommentControllers:
         update_data: CommentUpdate,
         db: AsyncSession
     ) -> Dict[str, Any]:
-        """User: Update their own comment."""
+        """User : Update his/her own comment """
         try:
             stmt = select(Comment).where(Comment.id == comment_id)
             result = await db.execute(stmt)
@@ -92,21 +92,21 @@ class CommentControllers:
                     detail="Comment not found"
                 )
             
-            # Check ownership
+            #### Check ownership of Comment ####
             if comment.user_id != current_user.id:
                 raise HTTPException(
                     status_code=status.HTTP_403_FORBIDDEN,
                     detail="You can only update your own comments"
                 )
             
-            # Check if comment is active
+            #### Check if comment is active or not ####
             if not comment.is_active:
                 raise HTTPException(
                     status_code=status.HTTP_400_BAD_REQUEST,
                     detail="Cannot update inactive comment"
                 )
             
-            # Update fields
+            #### Update fields ####
             update_dict = update_data.model_dump(exclude_unset=True)
             for key, value in update_dict.items():
                 setattr(comment, key, value)
@@ -133,26 +133,27 @@ class CommentControllers:
         comment_id: int,
         db: AsyncSession
     ) -> Dict[str, str]:
-        """User: Soft delete their own comment."""
+        """User : Soft delete his/her own comment """
         try:
             stmt = select(Comment).where(Comment.id == comment_id)
             result = await db.execute(stmt)
             comment = result.scalar_one_or_none()
             
+            #### check if comment exists or not ####
             if not comment:
                 raise HTTPException(
                     status_code=status.HTTP_404_NOT_FOUND,
                     detail="Comment not found"
                 )
             
-            # Check ownership
+            #### Check ownership of the comment ####
             if comment.user_id != current_user.id:
                 raise HTTPException(
                     status_code=status.HTTP_403_FORBIDDEN,
                     detail="You can only delete your own comments"
                 )
             
-            # Soft delete
+            #### Soft delete ####
             comment.is_active = False
             comment.deleted_at = datetime.now(timezone.utc)
             await db.commit()
@@ -173,19 +174,20 @@ class CommentControllers:
         comment_id: int,
         db: AsyncSession
     ) -> Dict[str, str]:
-        """User: Permanently delete their own comment."""
+        """User : Permanently delete his/her own comment """
         try:
             stmt = select(Comment).where(Comment.id == comment_id)
             result = await db.execute(stmt)
             comment = result.scalar_one_or_none()
             
+            #### check if Comment exists or not ####
             if not comment:
                 raise HTTPException(
                     status_code=status.HTTP_404_NOT_FOUND,
                     detail="Comment not found"
                 )
             
-            # Check ownership
+            #### Check ownership of the Comment ####
             if comment.user_id != current_user.id:
                 raise HTTPException(
                     status_code=status.HTTP_403_FORBIDDEN,
@@ -211,7 +213,7 @@ class CommentControllers:
         include_inactive: bool = False,
         db: AsyncSession = None
     ) -> List[Dict[str, Any]]:
-        """User: Get all their own comments."""
+        """User : Get all their own comments """
         try:
             conditions = [Comment.user_id == current_user.id]
             
@@ -242,7 +244,7 @@ class CommentControllers:
         comment_id: int,
         db: AsyncSession
     ) -> Dict[str, Any]:
-        """Public: Get a single comment by ID."""
+        """ Public : Get a single comment by ID """
         try:
             stmt = select(Comment).options(
                 selectinload(Comment.user),
@@ -275,9 +277,9 @@ class CommentControllers:
                 detail=f"Failed to fetch comment: {str(e)}"
             )
 
-    # ============================================
-    # PUBLIC FUNCTIONS
-    # ============================================
+    #### ============================================ ####
+    #### PUBLIC FUNCTIONS ####
+    #### ============================================ ####
 
     @staticmethod
     async def get_comments_by_product_id(
@@ -286,20 +288,21 @@ class CommentControllers:
         limit: int = 100,
         db: AsyncSession = None
     ) -> Dict[str, Any]:
-        """Public: Get all active comments for a product with pagination."""
+        """Public : Get all active comments for a product with pagination """
         try:
-            # Check if product exists
+            #### Check if product exists or not ####
             product_stmt = select(Product).where(Product.id == product_id)
             product_result = await db.execute(product_stmt)
             product = product_result.scalar_one_or_none()
             
+            #### check if Product exists or not ####
             if not product:
                 raise HTTPException(
                     status_code=status.HTTP_404_NOT_FOUND,
                     detail="Product not found"
                 )
             
-            # Get total count
+            #### Get total count ####
             count_stmt = select(func.count(Comment.id)).where(
                 and_(
                     Comment.product_id == product_id,
@@ -309,7 +312,7 @@ class CommentControllers:
             count_result = await db.execute(count_stmt)
             total = count_result.scalar()
             
-            # Get comments with user relationship loaded
+            #### Get comments with user relationship loaded ####
             stmt = select(Comment).options(
                 selectinload(Comment.user)
             ).where(
@@ -322,7 +325,7 @@ class CommentControllers:
             result = await db.execute(stmt)
             comments = result.scalars().all()
             
-            # Calculate average rating
+            #### Calculate average rating of Comments ####
             avg_rating = None
             if comments:
                 ratings = [c.rating for c in comments if c.rating is not None]
@@ -352,9 +355,9 @@ class CommentControllers:
                 detail=f"Failed to fetch product comments: {str(e)}"
             )
 
-    # ============================================
-    # ADMIN FUNCTIONS
-    # ============================================
+    #### ============================================ ####
+    #### ADMIN FUNCTIONS ####
+    #### ============================================ ####
 
     @staticmethod
     async def get_all_comments_by_user_id(
@@ -362,9 +365,9 @@ class CommentControllers:
         include_inactive: bool = False,
         db: AsyncSession = None
     ) -> List[Dict[str, Any]]:
-        """Admin: Get all comments by a specific user."""
+        """Admin : Get all comments by a specific user by ID"""
         try:
-            # Check if user exists
+            #### Check if user exists or not ####
             user_stmt = select(User).where(User.id == user_id)
             user_result = await db.execute(user_stmt)
             user = user_result.scalar_one_or_none()
@@ -407,7 +410,7 @@ class CommentControllers:
         comment_id: int,
         db: AsyncSession
     ) -> Dict[str, str]:
-        """Admin: Permanently delete a comment."""
+        """Admin: Permanently delete a comment """
         try:
             stmt = select(Comment).where(Comment.id == comment_id)
             result = await db.execute(stmt)
@@ -439,20 +442,20 @@ class CommentControllers:
         include_inactive: bool = False,
         db: AsyncSession = None
     ) -> Dict[str, Any]:
-        """Admin: Get all comments with pagination."""
+        """Admin : Get all comments with pagination """
         try:
             conditions = []
             if not include_inactive:
                 conditions.append(Comment.is_active == True)
             
-            # Get total count
+            #### Get total count ####
             count_stmt = select(func.count(Comment.id))
             if conditions:
                 count_stmt = count_stmt.where(and_(*conditions))
             count_result = await db.execute(count_stmt)
             total = count_result.scalar()
             
-            # Get comments with relationships loaded
+            #### Get comments with relationships loaded ####
             stmt = select(Comment).options(
                 selectinload(Comment.user),
                 selectinload(Comment.product)
@@ -484,32 +487,32 @@ class CommentControllers:
 
     @staticmethod
     async def get_comment_statistics(db: AsyncSession) -> Dict[str, Any]:
-        """Admin: Get comment statistics."""
+        """Admin : Get comment statistics """
         try:
-            # Total comments
+            #### Total comments ####
             total_stmt = select(func.count(Comment.id))
             total_result = await db.execute(total_stmt)
             total_comments = total_result.scalar()
             
-            # Active comments
+            #### Active comments ####
             active_stmt = select(func.count(Comment.id)).where(Comment.is_active == True)
             active_result = await db.execute(active_stmt)
             active_comments = active_result.scalar()
             
-            # Inactive comments
+            #### Inactive comments ####
             inactive_comments = total_comments - active_comments
             
-            # Comments with ratings
+            #### Comments with ratings ####
             rated_stmt = select(func.count(Comment.id)).where(Comment.rating.isnot(None))
             rated_result = await db.execute(rated_stmt)
             comments_with_ratings = rated_result.scalar()
             
-            # Average rating
+            #### Average rating ####
             avg_rating_stmt = select(func.avg(Comment.rating)).where(Comment.rating.isnot(None))
             avg_rating_result = await db.execute(avg_rating_stmt)
             avg_rating = avg_rating_result.scalar()
             
-            # Most commented products (top 10)
+            #### Most commented products (10) ####
             most_commented_stmt = select(
                 Comment.product_id,
                 func.count(Comment.id).label('count')
@@ -518,7 +521,7 @@ class CommentControllers:
             most_commented_result = await db.execute(most_commented_stmt)
             most_commented_raw = most_commented_result.all()
             
-            # Get product details
+            #### Get product details ####
             most_commented = []
             for product_id, count in most_commented_raw:
                 product_stmt = select(Product).where(Product.id == product_id)
@@ -551,7 +554,7 @@ class CommentControllers:
         comment_id: int,
         db: AsyncSession
     ) -> Dict[str, Any]:
-        """Admin: Soft delete any comment."""
+        """Admin : Soft delete any comment """
         try:
             stmt = select(Comment).where(Comment.id == comment_id)
             result = await db.execute(stmt)

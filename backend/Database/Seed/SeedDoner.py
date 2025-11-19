@@ -13,7 +13,7 @@ logger = logging.getLogger(__name__)
 
 async def seed_doners():
     """
-    Seed doner products into the database if they don't already exist.
+    Seed doner products into the database if they don't already exist. If they Exist Skip
     """
     async with AsyncSessionLocal() as session:
         try:
@@ -152,13 +152,13 @@ async def seed_doners():
             skipped_count = 0
             
             for doner_data in doners_data:
-                # Check if doner already exists
+                ### Check if doner already exists or not ###
                 stmt = select(Doner).where(Doner.name == doner_data["name"])
                 result = await session.execute(stmt)
                 existing_doner = result.scalar_one_or_none()
                 
                 if existing_doner:
-                    logger.info(f"Doner '{doner_data['name']}' already exists. Skipping.")
+                    logger.info(f" Doner '{doner_data['name']}' already exists. Skipping. ")
                     skipped_count += 1
                     continue
                 
@@ -182,18 +182,18 @@ async def seed_doners():
                 
                 session.add(new_doner)
                 created_count += 1
-                logger.info(f"Created doner: {doner_data['name']}")
+                logger.info(f" Created doner: {doner_data['name']} ")
             
             await session.commit()
             
-            logger.info(f"Doner seeding completed. Created: {created_count}, Skipped: {skipped_count}")
+            logger.info(f" Doner seeding has been completed. Created: {created_count}, Skipped: {skipped_count} ")
             
             if created_count > 0:
                 print("\n" + "="*60)
-                print("DONERS SEEDED SUCCESSFULLY!")
+                print("    DONERS HAVE BEEN SEEDED SUCCESSFULLY !    ")
                 print("="*60)
-                print(f"✅ Created {created_count} new doners")
-                print(f"⏭️  Skipped {skipped_count} existing doners")
+                print(f"  Created {created_count} new doners  ")
+                print(f"  Skipped {skipped_count} existing doners  ")
                 print("="*60 + "\n")
             
             return {
@@ -205,29 +205,28 @@ async def seed_doners():
             
         except Exception as e:
             await session.rollback()
-            logger.error(f"Error seeding doners: {str(e)}")
+            logger.error(f" Error seeding doners: {str(e)} ")
             raise
 
 
 async def main():
-    """Main function to run the doner seeding script."""
+    """Main function for running the doner seeding script."""
     try:
-        logger.info("Starting doner seeding...")
+        logger.info(" Starting doner seeding... ")
         result = await seed_doners()
-        logger.info(f"Doner seeding completed: {result}")
+        logger.info(f" Doner seeding completed: {result} ")
     except Exception as e:
-        logger.error(f"Doner seeding failed: {str(e)}")
+        logger.error(f" Doner seeding failed: {str(e)} ")
         raise
     finally:
         await engine.dispose()
 
 
 if __name__ == "__main__":
-    # Configure logging
     logging.basicConfig(
         level=logging.INFO,
         format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
     )
     
-    # Run the seeding
+    ### Run the seeding ###
     asyncio.run(main())

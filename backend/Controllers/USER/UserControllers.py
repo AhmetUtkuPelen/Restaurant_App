@@ -12,14 +12,19 @@ from Utils.Auth.JWT import create_access_token,create_refresh_token,decode_acces
 from Utils.Auth.HashPassword import get_password_hash,verify_password
 from Utils.Enums.Enums import UserRole
 
-# OAuth2 scheme for token extraction
+from Models.CART.CartModel import Cart
+from Models.CART.CartItemModel import CartItem
+from Models.PRODUCT.FavouriteProduct.FavouriteProductModel import FavouriteProduct
+from Utils.Enums.Enums import ReservationStatus, OrderStatus
+
+# OAuth2 scheme for token
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/api/auth/login")
 
 
 class UserControllers:
-    #################
-    # AUTHENTICATION && USER CONTROLLERS
-    #################
+    ######################
+    # AUTHENTICATION && USER CONTROLLERS #
+    #####################
 
     @staticmethod
     async def register_user(user_data: UserRegister, db: AsyncSession) -> Dict[str, Any]:
@@ -27,7 +32,7 @@ class UserControllers:
         Register a new user.
         """
         try:
-            # Check if username already exists
+            #### Check if username already exists or not ####
             stmt = select(User).where(User.username == user_data.username)
             result = await db.execute(stmt)
             existing_user = result.scalar_one_or_none()
@@ -38,7 +43,7 @@ class UserControllers:
                     detail="Username already registered"
                 )
             
-            # Check if email already exists
+            #### Check if email already exists or not ####
             stmt = select(User).where(User.email == user_data.email)
             result = await db.execute(stmt)
             existing_email = result.scalar_one_or_none()
@@ -49,10 +54,10 @@ class UserControllers:
                     detail="Email already registered"
                 )
 
-            # Hash password
+            #### Hash password #### comes from Utils folder ####
             hashed_password = get_password_hash(user_data.password)
             
-            # Create new user
+            #### Create new user ####
             new_user = User(
                 username=user_data.username,
                 email=user_data.email,
@@ -89,10 +94,10 @@ class UserControllers:
     @staticmethod
     async def login_user(credentials: UserLogin, db: AsyncSession) -> Dict[str, Any]:
         """
-        Authenticate user and return tokens.
+        Authenticate user and return tokens
         """
         try:
-            # Find user by username
+            #### Find user by username ####
             stmt = select(User).where(User.username == credentials.username)
             result = await db.execute(stmt)
             user = result.scalar_one_or_none()
@@ -103,21 +108,21 @@ class UserControllers:
                     detail="Incorrect username or password"
                 )
 
-            # Verify password
+            #### Verify password #### comes from Utils folder ####
             if not verify_password(credentials.password, user.hashed_password):
                 raise HTTPException(
                     status_code=status.HTTP_401_UNAUTHORIZED,
                     detail="Incorrect username or password"
                 )
             
-            # Check if user is active
+            #### Check if user is active or not ####
             if not user.is_active:
                 raise HTTPException(
                     status_code=status.HTTP_403_FORBIDDEN,
                     detail="Account is deactivated"
                 )
             
-            # Create tokens
+            #### Create tokens #### comes from Utils folder ####
             token_data = {
                 "sub": user.username,
                 "role": user.role.value
@@ -149,18 +154,18 @@ class UserControllers:
     @staticmethod
     async def logout_user() -> Dict[str, str]:
         """
-        Logout user (client-side token deletion).
-        For token blacklisting, implement Redis/DB storage.
+        Logout user
+        Front End handles the Logout functionality
         """
-        return {"message": "Logged out successfully. Please delete your tokens."}
+        return {"message": "Logged out successfully. Please make sure to delete your tokens."}
 
     @staticmethod
     async def refresh_token(refresh_token: str, db: AsyncSession) -> Dict[str, Any]:
         """
-        Generate new access token using refresh token.
+        Generate new access token using refresh token
         """
         try:
-            # Decode refresh token
+            #### Decode refresh token #### comes from Utils folder 
             payload = await decode_refresh_token(refresh_token)
             username = payload.get("sub")
             
@@ -170,7 +175,7 @@ class UserControllers:
                     detail="Invalid token"
                 )
 
-            # Verify user still exists and is active
+            #### Verify user still exists and is active ####
             stmt = select(User).where(User.username == username)
             result = await db.execute(stmt)
             user = result.scalar_one_or_none()
@@ -181,7 +186,7 @@ class UserControllers:
                     detail="User not found or inactive"
                 )
             
-            # Create new access token
+            #### Create new access token ####
             token_data = {
                 "sub": user.username,
                 "role": user.role.value
@@ -215,12 +220,10 @@ class UserControllers:
     @staticmethod
     async def get_current_user(token: str, db: AsyncSession) -> User:
         """
-        Dependency to get current authenticated user from token.
-        Use this i
-n route dependencies: Depends(UserControllers.get_current_user)
+        Get current authenticated user from token , For using In Routes
         """
         try:
-            # Decode token
+            #### Decode token ####
             payload = await decode_access_token(token)
             username = payload.get("sub")
             
@@ -230,7 +233,7 @@ n route dependencies: Depends(UserControllers.get_current_user)
                     detail="Could not validate credentials"
                 )
             
-            # Get user from database
+            #### Get user from database ####
             stmt = select(User).where(User.username == username)
             result = await db.execute(stmt)
             user = result.scalar_one_or_none()
@@ -270,11 +273,8 @@ n route dependencies: Depends(UserControllers.get_current_user)
     @staticmethod
     async def get_user_profile(current_user: User, db: AsyncSession) -> Dict[str, Any]:
         """
-        Get authenticated user's profile with all relationships loaded.
+        Get authenticated user's profile with all relationships
         """
-        # Reload user with relationships (excluding favourite_products which is lazy="dynamic")
-        from Models.CART.CartModel import Cart
-        from Models.CART.CartItemModel import CartItem
         
         stmt = select(User).options(
             selectinload(User.orders),
@@ -287,14 +287,12 @@ n route dependencies: Depends(UserControllers.get_current_user)
         result = await db.execute(stmt)
         user = result.scalar_one()
         
-        # Get favourite products count separately
-        from Models.PRODUCT.FavouriteProduct.FavouriteProductModel import FavouriteProduct
+        #### Get favourite products count separately ####
         fav_stmt = select(FavouriteProduct.product_id).where(FavouriteProduct.user_id == user.id)
         fav_result = await db.execute(fav_stmt)
         favourite_product_ids = [row[0] for row in fav_result.all()]
         
-        # Filter out cancelled reservations and orders for the count
-        from Utils.Enums.Enums import ReservationStatus, OrderStatus
+        #### Filter out cancelled reservations and orders for the count ####
         active_reservations = [
             reservation.id for reservation in user.reservations 
             if reservation.status != ReservationStatus.CANCELLED
@@ -329,10 +327,10 @@ n route dependencies: Depends(UserControllers.get_current_user)
         db: AsyncSession
     ) -> Dict[str, Any]:
         """
-        Update authenticated user's profile.
+        Update authenticated user's profile
         """
         try:
-            # Check if username is being changed and if it's already taken
+            #### Check if username is being changed and if it's already taken ####
             if update_data.username and update_data.username != current_user.username:
                 stmt = select(User).where(User.username == update_data.username)
                 result = await db.execute(stmt)
@@ -343,7 +341,7 @@ n route dependencies: Depends(UserControllers.get_current_user)
                         detail="Username already taken"
                     )
 
-            # Check if email is being changed and if it's already taken
+            #### Check if email is being changed and if it's already taken ####
             if update_data.email and update_data.email != current_user.email:
                 stmt = select(User).where(User.email == update_data.email)
                 result = await db.execute(stmt)
@@ -354,7 +352,7 @@ n route dependencies: Depends(UserControllers.get_current_user)
                         detail="Email already taken"
                     )
             
-            # Use the model's update_profile method
+            #### User model's update_profile method ####
             update_dict = update_data.model_dump(exclude_unset=True)
             updated = current_user.update_profile(update_dict)
             
@@ -388,18 +386,17 @@ n route dependencies: Depends(UserControllers.get_current_user)
         db: AsyncSession
     ) -> Dict[str, str]:
         """
-        Change authenticated user's password.
-        Note: Password validation is handled by Pydantic schemas in the route layer.
+        Change authenticated user's password
         """
         try:
-            # Verify current password
+            #### Verify current password ####
             if not verify_password(current_password, current_user.hashed_password):
                 raise HTTPException(
                     status_code=status.HTTP_400_BAD_REQUEST,
                     detail="Current password is incorrect"
                 )
             
-            # Hash and update password
+            ##### Hash and update password #####
             current_user.hashed_password = get_password_hash(new_password)
             await db.commit()
             
@@ -414,14 +411,14 @@ n route dependencies: Depends(UserControllers.get_current_user)
                 detail=f"Password change failed: {str(e)}"
             )
 
-    #################
-    # ADMIN CONTROLLERS
-    #################
+    #####################
+    # ADMIN CONTROLLERS #
+    #####################
 
     @staticmethod
     async def get_single_user_by_id(user_id: int, db: AsyncSession) -> Dict[str, Any]:
         """
-        Admin: Get single user by ID with all relationships.
+        Admin : Get single user by ID with all relationships
         """
         try:
             stmt = select(User).options(
@@ -459,15 +456,15 @@ n route dependencies: Depends(UserControllers.get_current_user)
         db: AsyncSession = None
     ) -> Dict[str, Any]:
         """
-        Admin: Get all users with pagination.
+        Admin: Get all users with pagination
         """
         try:
-            # Get total count
+            #### Get total count ####
             count_stmt = select(func.count(User.id))
             total_result = await db.execute(count_stmt)
             total = total_result.scalar()
             
-            # Get users with pagination
+            #### Get users with pagination ####
             stmt = select(User).offset(skip).limit(limit).order_by(User.created_at.desc())
             result = await db.execute(stmt)
             users = result.scalars().all()
@@ -488,7 +485,7 @@ n route dependencies: Depends(UserControllers.get_current_user)
     @staticmethod
     async def get_users_by_role(role: UserRole, db: AsyncSession) -> List[Dict[str, Any]]:
         """
-        Admin: Get all users with specific role.
+        Admin: Get all users with specific role
         """
         try:
             stmt = select(User).where(User.role == role).order_by(User.created_at.desc())
@@ -510,7 +507,7 @@ n route dependencies: Depends(UserControllers.get_current_user)
         db: AsyncSession
     ) -> Dict[str, Any]:
         """
-        Admin: Change user's role.
+        Admin: Change user's role
         """
         try:
             stmt = select(User).where(User.id == user_id)
@@ -545,7 +542,7 @@ n route dependencies: Depends(UserControllers.get_current_user)
     @staticmethod
     async def activate_user_by_id(user_id: int, db: AsyncSession) -> Dict[str, Any]:
         """
-        Admin: Activate user account.
+        Admin: Activate user account
         """
         try:
             stmt = select(User).where(User.id == user_id)
@@ -581,7 +578,7 @@ n route dependencies: Depends(UserControllers.get_current_user)
     @staticmethod
     async def deactivate_user_by_id(user_id: int, db: AsyncSession) -> Dict[str, Any]:
         """
-        Admin: Deactivate user account (soft delete).
+        Admin: Deactivate user account (soft delete)
         """
         try:
             stmt = select(User).where(User.id == user_id)
@@ -616,7 +613,7 @@ n route dependencies: Depends(UserControllers.get_current_user)
     @staticmethod
     async def get_users_by_status(is_active: bool, db: AsyncSession) -> List[Dict[str, Any]]:
         """
-        Admin: Get users by active/inactive status.
+        Admin: Get users by active/inactive status
         """
         try:
             stmt = select(User).where(User.is_active == is_active).order_by(User.created_at.desc())
@@ -634,23 +631,23 @@ n route dependencies: Depends(UserControllers.get_current_user)
     @staticmethod
     async def get_user_statistics(db: AsyncSession) -> Dict[str, Any]:
         """
-        Admin: Get user statistics for dashboard.
+        Admin: Get user statistics for dashboard
         """
         try:
-            # Total users
+            #### Total users ####
             total_stmt = select(func.count(User.id))
             total_result = await db.execute(total_stmt)
             total_users = total_result.scalar()
             
-            # Active users
+            #### Active users ####
             active_stmt = select(func.count(User.id)).where(User.is_active == True)
             active_result = await db.execute(active_stmt)
             active_users = active_result.scalar()
             
-            # Inactive users
+            #### Inactive users ####
             inactive_users = total_users - active_users
             
-            # Users by role
+            #### Users by role ####
             admin_stmt = select(func.count(User.id)).where(User.role == UserRole.ADMIN)
             admin_result = await db.execute(admin_stmt)
             admin_count = admin_result.scalar()
@@ -663,7 +660,7 @@ n route dependencies: Depends(UserControllers.get_current_user)
             user_result = await db.execute(user_stmt)
             user_count = user_result.scalar()
             
-            # New registrations (last 30 days)
+            #### New registrations (for last 30 days) ####
             thirty_days_ago = datetime.now(timezone.utc) - timedelta(days=30)
             new_stmt = select(func.count(User.id)).where(User.created_at >= thirty_days_ago)
             new_result = await db.execute(new_stmt)
@@ -695,7 +692,7 @@ n route dependencies: Depends(UserControllers.get_current_user)
         db: AsyncSession
     ) -> Dict[str, Any]:
         """
-        Admin: Update any user's information.
+        Admin: Update any user's information
         """
         try:
             stmt = select(User).where(User.id == user_id)
@@ -708,7 +705,7 @@ n route dependencies: Depends(UserControllers.get_current_user)
                     detail="User not found"
                 )
             
-            # Check username uniqueness if being changed
+            #### Check username uniqueness if being changed ####
             if update_data.username and update_data.username != user.username:
                 check_stmt = select(User).where(User.username == update_data.username)
                 check_result = await db.execute(check_stmt)
@@ -718,7 +715,7 @@ n route dependencies: Depends(UserControllers.get_current_user)
                         detail="Username already taken"
                     )
             
-            # Check email uniqueness if being changed
+            #### Check email uniqueness if being changed ####
             if update_data.email and update_data.email != user.email:
                 check_stmt = select(User).where(User.email == update_data.email)
                 check_result = await db.execute(check_stmt)
@@ -728,7 +725,7 @@ n route dependencies: Depends(UserControllers.get_current_user)
                         detail="Email already taken"
                     )
             
-            # Update fields
+            #### Update fields ####
             update_dict = update_data.model_dump(exclude_unset=True)
             for key, value in update_dict.items():
                 if key == "password":
@@ -759,10 +756,10 @@ n route dependencies: Depends(UserControllers.get_current_user)
         db: AsyncSession
     ) -> Dict[str, Any]:
         """
-        Admin: Create a new user with any role.
+        Admin: Create a new user with any role
         """
         try:
-            # Check username uniqueness
+            #### Check username uniqueness ####
             stmt = select(User).where(User.username == user_data.username)
             result = await db.execute(stmt)
             if result.scalar_one_or_none():
@@ -771,7 +768,7 @@ n route dependencies: Depends(UserControllers.get_current_user)
                     detail="Username already exists"
                 )
             
-            # Check email uniqueness
+            #### Check email uniqueness ####
             stmt = select(User).where(User.email == user_data.email)
             result = await db.execute(stmt)
             if result.scalar_one_or_none():
@@ -780,7 +777,7 @@ n route dependencies: Depends(UserControllers.get_current_user)
                     detail="Email already exists"
                 )
             
-            # Create user
+            #### Create user ####
             new_user = User(
                 username=user_data.username,
                 email=user_data.email,
@@ -814,7 +811,7 @@ n route dependencies: Depends(UserControllers.get_current_user)
     @staticmethod
     async def hard_delete_user_by_id(user_id: int, db: AsyncSession) -> Dict[str, str]:
         """
-        Admin: Permanently delete user and all related data.
+        Admin: Permanently delete user and all user datas
         """
         try:
             stmt = select(User).where(User.id == user_id)
@@ -844,7 +841,7 @@ n route dependencies: Depends(UserControllers.get_current_user)
     @staticmethod
     async def soft_delete_user_by_id(user_id: int, db: AsyncSession) -> Dict[str, Any]:
         """
-        Admin: Soft delete user (same as deactivate).
+        Admin: Soft delete user (same as deactivate user).
         """
         return await UserControllers.deactivate_user_by_id(user_id, db)
 
@@ -854,7 +851,7 @@ n route dependencies: Depends(UserControllers.get_current_user)
         db: AsyncSession
     ) -> List[Dict[str, Any]]:
         """
-        Admin: Search users by username, email, or phone.
+        Admin: Search users by username, email, or phone
         """
         try:
             stmt = select(User).where(
@@ -879,7 +876,7 @@ n route dependencies: Depends(UserControllers.get_current_user)
     @staticmethod
     async def get_user_activity_log(user_id: int, db: AsyncSession) -> Dict[str, Any]:
         """
-        Admin: Get user activity summary.
+        Admin: Get user activity summary
         """
         try:
             stmt = select(User).options(
@@ -920,7 +917,7 @@ n route dependencies: Depends(UserControllers.get_current_user)
     @staticmethod
     async def get_user_orders(user_id: int, db: AsyncSession) -> List[Dict[str, Any]]:
         """
-        Admin: Get all orders for a specific user.
+        Admin : Get all orders for a specific user
         """
         try:
             stmt = select(User).options(selectinload(User.orders)).where(User.id == user_id)
@@ -946,7 +943,7 @@ n route dependencies: Depends(UserControllers.get_current_user)
     @staticmethod
     async def get_user_comments(user_id: int, db: AsyncSession) -> List[Dict[str, Any]]:
         """
-        Admin: Get all comments for a specific user.
+        Admin : Get all comments for a specific user
         """
         try:
             stmt = select(User).options(selectinload(User.comments)).where(User.id == user_id)
@@ -972,7 +969,7 @@ n route dependencies: Depends(UserControllers.get_current_user)
     @staticmethod
     async def get_user_favourite_products(user_id: int, db: AsyncSession) -> List[Dict[str, Any]]:
         """
-        Admin: Get all favourite products for a specific user.
+        Admin : Get all favourite products for a specific user
         """
         try:
             stmt = select(User).options(selectinload(User.favourite_products)).where(User.id == user_id)
@@ -998,7 +995,7 @@ n route dependencies: Depends(UserControllers.get_current_user)
     @staticmethod
     async def get_user_cart(user_id: int, db: AsyncSession) -> Dict[str, Any]:
         """
-        Admin: Get cart for a specific user.
+        Admin : Get cart for a specific user
         """
         try:
             stmt = select(User).options(selectinload(User.cart)).where(User.id == user_id)
@@ -1027,7 +1024,7 @@ n route dependencies: Depends(UserControllers.get_current_user)
     @staticmethod
     async def get_user_reservations(user_id: int, db: AsyncSession) -> List[Dict[str, Any]]:
         """
-        Admin: Get all reservations for a specific user.
+        Admin : Get all reservations for a specific user
         """
         try:
             stmt = select(User).options(selectinload(User.reservations)).where(User.id == user_id)
@@ -1053,7 +1050,7 @@ n route dependencies: Depends(UserControllers.get_current_user)
     @staticmethod
     async def get_user_payments(user_id: int, db: AsyncSession) -> List[Dict[str, Any]]:
         """
-        Admin: Get all payments for a specific user.
+        Admin : Get all payments for a specific user
         """
         try:
             stmt = select(User).options(selectinload(User.payments)).where(User.id == user_id)

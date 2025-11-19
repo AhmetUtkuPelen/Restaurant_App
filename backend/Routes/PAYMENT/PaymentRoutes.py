@@ -13,9 +13,9 @@ from Routes.USER.UserRoutes import get_current_active_user, require_admin, requi
 PaymentRouter = APIRouter(prefix="/payments", tags=["Payments"])
 
 
-# ============================================
-# USER ROUTES
-# ============================================
+# ============================================ #
+            # USER ROUTES #
+# ============================================ #
 
 @PaymentRouter.post("/", status_code=status.HTTP_201_CREATED, response_model=Dict[str, Any])
 @limiter.limit("5/minute")
@@ -26,7 +26,7 @@ async def create_payment(
     db: AsyncSession = Depends(get_db)
 ):
     """
-    User: Create a payment for orders or reservation.
+    User : Create a payment for orders or reservation.
     
     - **order_ids**: List of order IDs to pay for (optional)
     - **reservation_id**: Reservation ID to pay for (optional)
@@ -37,9 +37,9 @@ async def create_payment(
     - **metadata**: Optional metadata
     
     Must provide either order_ids or reservation_id.
-    Rate limited to 5 payments per minute.
+    Rate limited to 5 payments per minute for security.
     
-    NOTE: This is a test implementation. In production, you would be redirected to Iyzico payment page.
+    This is a test implementation. In non development environment , user gets to be redirected to Iyzico payment page in front end.
     """
     return await PaymentControllers.create_payment(current_user, payment_data, db)
 
@@ -53,7 +53,7 @@ async def get_my_payments(
     db: AsyncSession = Depends(get_db)
 ):
     """
-    User: Get all your own payments.
+    User : Get all your own payments.
     
     - **skip**: Number of records to skip (default: 0)
     - **limit**: Maximum records to return (default: 100, max: 500)
@@ -69,7 +69,7 @@ async def get_my_payment(
     db: AsyncSession = Depends(get_db)
 ):
     """
-    User: Get a single payment by ID.
+    User : Get a single payment by ID.
     
     You can only view your own payments.
     """
@@ -83,10 +83,10 @@ async def simulate_payment_completion(
     db: AsyncSession = Depends(get_db)
 ):
     """
-    User: Simulate payment completion (TEST MODE ONLY).
+    User: Simulate payment completion (TEST MODE ONLY FOR DEVELOPMENT).
     
     This endpoint simulates a successful payment completion for testing purposes.
-    In production, payment completion would be handled by Iyzico callback.
+    In non development environment (production) , payment completion needs to be handled by Iyzico callback.
     
     - Marks payment as completed
     - Updates related orders to completed
@@ -95,9 +95,9 @@ async def simulate_payment_completion(
     return await PaymentControllers.simulate_payment_completion(current_user, payment_id, db)
 
 
-# ============================================
-# ADMIN/STAFF ROUTES
-# ============================================
+# ============================================ #
+        # ADMIN/STAFF ROUTES #
+# ============================================ #
 
 @PaymentRouter.get("/admin/all", response_model=Dict[str, Any], dependencies=[Depends(require_staff_or_admin)])
 async def get_all_payments(
@@ -107,7 +107,7 @@ async def get_all_payments(
     db: AsyncSession = Depends(get_db)
 ):
     """
-    Admin/Staff: Get all payments with pagination.
+    Admin : Get all payments with pagination.
     
     - **skip**: Number of records to skip (default: 0)
     - **limit**: Maximum records to return (default: 100, max: 500)
@@ -122,9 +122,9 @@ async def get_payment_by_id(
     db: AsyncSession = Depends(get_db)
 ):
     """
-    Admin/Staff: Get any payment by ID.
+    Admin : Get any payment by ID.
     
-    Returns detailed payment information including user details.
+    Detailed payment information including user details.
     """
     return await PaymentControllers.admin_get_payment_by_id(payment_id, db)
 
@@ -136,7 +136,7 @@ async def admin_update_payment(
     db: AsyncSession = Depends(get_db)
 ):
     """
-    Admin: Update payment status and details.
+    Admin : Update payment status and details.
     
     - **status**: Update payment status
     - **provider_payment_id**: Iyzico payment ID
@@ -149,7 +149,7 @@ async def admin_update_payment(
 @PaymentRouter.get("/admin/statistics", response_model=Dict[str, Any], dependencies=[Depends(require_staff_or_admin)])
 async def get_payment_statistics(db: AsyncSession = Depends(get_db)):
     """
-    Admin/Staff: Get payment statistics.
+    Admin : Get payment statistics.
     
     Returns:
     - Total payments count
@@ -167,7 +167,7 @@ async def get_user_payments(
     db: AsyncSession = Depends(get_db)
 ):
     """
-    Admin/Staff: Get all payments for a specific user.
+    Admin : Get all payments for a specific user.
     
     - **user_id**: ID of the user
     - **skip**: Number of records to skip (default: 0)

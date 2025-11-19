@@ -11,9 +11,9 @@ from Routes.USER.UserRoutes import require_admin
 DonerRouter = APIRouter(prefix="/doners", tags=["Doners"])
 
 
-# ============================================
-# PUBLIC ROUTES
-# ============================================
+# ============================================ #
+            # PUBLIC ROUTES #
+# ============================================ #
 
 @DonerRouter.get("/", response_model=Dict[str, Any])
 async def get_all_doners(
@@ -43,9 +43,9 @@ async def get_doner_by_id(
     return await DonerControllers.get_single_doner(doner_id, db)
 
 
-# ============================================
-# ADMIN ROUTES
-# ============================================
+# ============================================ #
+            # ADMIN ROUTES #
+# ============================================ #
 
 @DonerRouter.post("/", status_code=status.HTTP_201_CREATED, response_model=Dict[str, Any], dependencies=[Depends(require_admin)])
 @limiter.limit("10/minute")
@@ -65,6 +65,7 @@ async def create_doner(
     - **spice_level**: mild, medium, or hot
     - **is_vegan**: Whether doner is vegan
     - **is_alergic**: Whether doner contains allergens
+    - 10 requests per minute for security.
     """
     return await DonerControllers.create_new_doner(doner_data, db)
 
@@ -90,8 +91,6 @@ async def delete_doner(
 ):
     """
     Admin: Permanently delete doner.
-    
-    WARNING: This action cannot be undone!
     """
     return await DonerControllers.hard_delete_doner(doner_id, db)
 
@@ -102,8 +101,6 @@ async def deactivate_doner(
     db: AsyncSession = Depends(get_db)
 ):
     """
-    Admin: Soft delete doner (deactivate).
-    
-    Sets is_active to false and records deletion timestamp.
+    Admin: Soft delete doner , is_active (deactivate).
     """
     return await DonerControllers.soft_delete_doner(doner_id, db)

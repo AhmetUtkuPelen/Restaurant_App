@@ -17,7 +17,7 @@ class SaladControllers:
         include_inactive: bool = False,
         db: AsyncSession = None
     ) -> Dict[str, Any]:
-        """Get all salads with pagination."""
+        """Get all salads with pagination"""
         try:
             conditions = []
             if not include_inactive:
@@ -50,7 +50,7 @@ class SaladControllers:
 
     @staticmethod
     async def get_single_salad(salad_id: int, db: AsyncSession) -> Dict[str, Any]:
-        """Get a single salad by ID."""
+        """Get a single salad by ID"""
         try:
             stmt = select(Salad).where(Salad.id == salad_id)
             result = await db.execute(stmt)
@@ -71,9 +71,10 @@ class SaladControllers:
                 detail=f"Failed to fetch salad: {str(e)}"
             )
 
-    ####
-    # ADMIN RELATED ENDPOINTS - REQUIRES ADMIN USER
-    ####
+    ##################################################
+    # ADMIN RELATED ENDPOINTS - REQUIRES ADMIN USER #
+    ##################################################
+
     @staticmethod
     async def create_new_salad(salad_data: SaladCreate, db: AsyncSession) -> Dict[str, Any]:
         """Admin: Create a new salad."""
@@ -126,7 +127,7 @@ class SaladControllers:
         update_data: SaladUpdate,
         db: AsyncSession
     ) -> Dict[str, Any]:
-        """Admin: Update existing salad."""
+        """Admin : Update existing salad"""
         try:
             stmt = select(Salad).where(Salad.id == salad_id)
             result = await db.execute(stmt)
@@ -169,7 +170,7 @@ class SaladControllers:
 
     @staticmethod
     async def hard_delete_salad(salad_id: int, db: AsyncSession) -> Dict[str, str]:
-        """Admin: Permanently delete salad."""
+        """Admin : Permanently delete salad"""
         try:
             stmt = select(Salad).where(Salad.id == salad_id)
             result = await db.execute(stmt)
@@ -196,7 +197,7 @@ class SaladControllers:
 
     @staticmethod
     async def soft_delete_salad(salad_id: int, db: AsyncSession) -> Dict[str, Any]:
-        """Admin: Soft delete salad (deactivate)."""
+        """Admin : Soft delete salad (deactivate)"""
         try:
             stmt = select(Salad).where(Salad.id == salad_id)
             result = await db.execute(stmt)

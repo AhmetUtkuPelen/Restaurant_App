@@ -13,7 +13,7 @@ logger = logging.getLogger(__name__)
 
 async def seed_desserts():
     """
-    Seed dessert products into the database if they don't already exist.
+    Seed dessert products into the database if they don't already exist. If They exist Skip
     """
     async with AsyncSessionLocal() as session:
         try:
@@ -70,7 +70,7 @@ async def seed_desserts():
                     "tags": ["cold", "vanilla", "classic", "refreshing"],
                     "price": Decimal('25.00'),
                     "discount_percentage": Decimal('0.00'),
-                    "image_url": "https://bakerstable.net/wp-content/uploads/2024/07/vanilla-ice-cream-2024-7-scaled.jpg",
+                    "image_url": "https://cookinglsl.com/wp-content/uploads/2015/07/best-vanilla-bean-ice-cream-3-1.jpg",
                     "is_active": True,
                     "is_front_page": False,
                     "is_vegan": False,
@@ -115,7 +115,7 @@ async def seed_desserts():
                     "tags": ["traditional", "rice", "cinnamon", "comfort"],
                     "price": Decimal('22.00'),
                     "discount_percentage": Decimal('0.00'),
-                    "image_url": "https://www.allrecipes.com/thmb/TNCYtpz-1U-CLNMgb01j-x5OY-k=/750x0/filters:no_upscale():max_bytes(150000):strip_icc():format(webp)/AR-24059-creamy-rice-pudding-DDMFS-4x3-a47c1f5ad9d449c582d62e6e42da28ac.jpg",
+                    "image_url": "https://yeyfood.com/wp-content/uploads/2024/10/WEB1baked_rice_pudding_with_a_brown_sugar_crust._serve_c93e5090-0c59-4772-911e-17d4119c424c_0.jpg",
                     "is_active": True,
                     "is_front_page": False,
                     "is_vegan": False,
@@ -130,7 +130,7 @@ async def seed_desserts():
                     "tags": ["vegan", "chocolate", "plant-based", "healthy"],
                     "price": Decimal('38.00'),
                     "discount_percentage": Decimal('5.00'),
-                    "image_url": "https://jessicainthekitchen.com/wp-content/uploads/2023/01/Chocolate-Cake0315.jpg",
+                    "image_url": "https://delightfuladventures.com/wp-content/uploads/2022/10/gluten-free-dairy-free-egg-free-chocolate-cake.jpg",
                     "is_active": True,
                     "is_front_page": False,
                     "is_vegan": True,
@@ -144,13 +144,13 @@ async def seed_desserts():
             skipped_count = 0
             
             for dessert_data in desserts_data:
-                # Check if dessert already exists
+                ### Check if dessert already exists or not ###
                 stmt = select(Dessert).where(Dessert.name == dessert_data["name"])
                 result = await session.execute(stmt)
                 existing_dessert = result.scalar_one_or_none()
                 
                 if existing_dessert:
-                    logger.info(f"Dessert '{dessert_data['name']}' already exists. Skipping.")
+                    logger.info(f" Dessert '{dessert_data['name']}' already exists. Skipping . ")
                     skipped_count += 1
                     continue
                 
@@ -177,14 +177,14 @@ async def seed_desserts():
             
             await session.commit()
             
-            logger.info(f"Dessert seeding completed. Created: {created_count}, Skipped: {skipped_count}")
+            logger.info(f" Dessert seeding has been completed. Created: {created_count}, Skipped: {skipped_count} ")
             
             if created_count > 0:
                 print("\n" + "="*60)
-                print("DESSERTS SEEDED SUCCESSFULLY!")
+                print("    DESSERTS HAVE BEEN SEEDED SUCCESSFULLY !    ")
                 print("="*60)
-                print(f"✅ Created {created_count} new desserts")
-                print(f"⏭️  Skipped {skipped_count} existing desserts")
+                print(f"  Created {created_count} new desserts ")
+                print(f"  Skipped {skipped_count} existing desserts ")
                 print("="*60 + "\n")
             
             return {
@@ -201,24 +201,23 @@ async def seed_desserts():
 
 
 async def main():
-    """Main function to run the dessert seeding script."""
+    """ Main function for running the dessert seeding script """
     try:
-        logger.info("Starting dessert seeding...")
+        logger.info("    Starting dessert seeding ...    ")
         result = await seed_desserts()
-        logger.info(f"Dessert seeding completed: {result}")
+        logger.info(f" Dessert seeding completed: {result} ")
     except Exception as e:
-        logger.error(f"Dessert seeding failed: {str(e)}")
+        logger.error(f" Dessert seeding failed: {str(e)} ")
         raise
     finally:
         await engine.dispose()
 
 
 if __name__ == "__main__":
-    # Configure logging
     logging.basicConfig(
         level=logging.INFO,
         format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
     )
     
-    # Run the seeding
+    ### Run the seeding ###
     asyncio.run(main())

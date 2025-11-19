@@ -17,9 +17,9 @@ from Routes.USER.UserRoutes import get_current_active_user, require_admin, requi
 ReservationRouter = APIRouter(prefix="/reservations", tags=["Reservations"])
 
 
-# ============================================
-# USER ROUTES
-# ============================================
+# ============================================ #
+            # USER ROUTES #
+# ============================================ #
 
 @ReservationRouter.post("/", status_code=status.HTTP_201_CREATED, response_model=Dict[str, Any])
 @limiter.limit("5/minute")
@@ -30,17 +30,19 @@ async def create_reservation(
     db: AsyncSession = Depends(get_db)
 ):
     """
-    User: Create a new reservation.
+    User : Create a new reservation.
     
     - **table_id**: ID of the table to reserve
     - **reservation_time**: Datetime for the reservation (must be in future)
     - **number_of_guests**: Number of guests (1-20)
-    - **special_requests**: Optional special requests or notes
+    - **special_requests**: Optional special requests or notes (can be null in front end)
+
+    - Rate limited to 5 reservations per minute for security.
     
     The system checks:
-    - Table exists and is available
+    - Table exists and if is available
     - Table capacity is sufficient
-    - Time slot is available (2-hour window)
+    - Time slot is available (2-hour time window)
     """
     return await ReservationControllers.create_new_reservation(
         current_user, reservation_data, db
@@ -54,7 +56,7 @@ async def get_my_reservations(
     db: AsyncSession = Depends(get_db)
 ):
     """
-    User: Get all your own reservations.
+    User : Get all your own reservations.
     
     - **include_cancelled**: Set to true to include cancelled reservations
     """
@@ -70,7 +72,7 @@ async def get_my_reservation(
     db: AsyncSession = Depends(get_db)
 ):
     """
-    User: Get a single reservation by ID.
+    User : Get a single reservation by ID.
     
     You can only view your own reservations.
     """
@@ -92,7 +94,7 @@ async def update_reservation(
     All fields are optional. Only provided fields will be updated.
     
     You can only update your own reservations.
-    Cannot update cancelled reservations.
+    Cant update cancelled reservations.
     """
     return await ReservationControllers.update_existing_reservation(
         current_user, reservation_id, update_data, db
@@ -106,7 +108,7 @@ async def cancel_reservation(
     db: AsyncSession = Depends(get_db)
 ):
     """
-    User: Cancel your own reservation.
+    User : Cancel your own reservation.
     
     You can only cancel your own reservations.
     """
@@ -115,9 +117,9 @@ async def cancel_reservation(
     )
 
 
-# ============================================
-# ADMIN/STAFF ROUTES
-# ============================================
+# ============================================ #
+        # ADMIN/STAFF ROUTES #
+# ============================================ #
 
 @ReservationRouter.get("/admin/all", response_model=Dict[str, Any], dependencies=[Depends(require_staff_or_admin)])
 async def get_all_reservations(
@@ -127,7 +129,7 @@ async def get_all_reservations(
     db: AsyncSession = Depends(get_db)
 ):
     """
-    Admin/Staff: Get all reservations with pagination and filtering.
+    Admin : Get all reservations with pagination and filtering.
     
     - **skip**: Number of records to skip (default: 0)
     - **limit**: Maximum number of records to return (default: 100, max: 500)
@@ -144,7 +146,7 @@ async def confirm_reservation(
     db: AsyncSession = Depends(get_db)
 ):
     """
-    Admin/Staff: Confirm a pending reservation.
+    Admin : Confirm a pending reservation.
     
     Changes status from PENDING to CONFIRMED.
     """
@@ -157,9 +159,7 @@ async def get_reservations_by_date(
     db: AsyncSession = Depends(get_db)
 ):
     """
-    Admin/Staff: Get all reservations for a specific date.
-    
-    - **date**: Date in ISO format (e.g., 2024-12-25T00:00:00)
+    Admin : Get all reservations for a specific date.
     """
     return await ReservationControllers.get_reservations_by_date(date, db)
 
@@ -170,7 +170,7 @@ async def get_upcoming_reservations(
     db: AsyncSession = Depends(get_db)
 ):
     """
-    Admin/Staff: Get upcoming reservations for the next X days.
+    Admin : Get upcoming reservations for the next X days.
     
     - **days**: Number of days to look ahead (default: 7, max: 90)
     
@@ -182,9 +182,8 @@ async def get_upcoming_reservations(
 @ReservationRouter.get("/admin/statistics", response_model=Dict[str, Any], dependencies=[Depends(require_staff_or_admin)])
 async def get_reservation_statistics(db: AsyncSession = Depends(get_db)):
     """
-    Admin/Staff: Get reservation statistics for dashboard.
+    Admin : Get reservation statistics for dashboard.
     
-    Returns:
     - Total reservations
     - Count by status (pending, confirmed, cancelled)
     - Upcoming reservations (next 7 days)

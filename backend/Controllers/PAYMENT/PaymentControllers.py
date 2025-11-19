@@ -17,22 +17,22 @@ from Utils.Enums.Enums import PaymentStatus, OrderStatus, ReservationStatus
 
 class PaymentControllers:
     
-    # ============================================
-    # HELPER METHODS
-    # ============================================
+    #### HELPER METHODS ####
+    #### ============================================ ####
+    #### ============================================ ####
     
     @staticmethod
     def _get_iyzico_config() -> Dict[str, str]:
-        """Get Iyzico configuration from environment variables."""
+        """ Get Iyzico configs from environment variables """
         return {
             "api_key": os.getenv("IYZICO_API_KEY", ""),
             "secret_key": os.getenv("IYZICO_SECRET_KEY", ""),
-            "base_url": os.getenv("IYZICO_BASE_URL", "https://sandbox-api.iyzipay.com"),  # sandbox for testing
+            "base_url": os.getenv("IYZICO_BASE_URL", "https://sandbox-api.iyzipay.com"), #### for testing ####
         }
     
     @staticmethod
     async def _validate_orders(order_ids: List[int], user_id: int, db: AsyncSession) -> tuple[List[Order], Decimal]:
-        """Validate orders belong to user and calculate total."""
+        """ Validate orders belong to user and calculate total """
         if not order_ids:
             return [], Decimal('0.00')
         
@@ -51,7 +51,7 @@ class PaymentControllers:
                 detail="One or more orders not found or don't belong to you"
             )
         
-        # Check all orders are pending
+        #### Check all orders are pending ####
         for order in orders:
             if order.status != OrderStatus.PENDING:
                 raise HTTPException(
@@ -64,7 +64,7 @@ class PaymentControllers:
     
     @staticmethod
     async def _validate_reservation(reservation_id: int, user_id: int, db: AsyncSession) -> tuple[Reservation, Decimal]:
-        """Validate reservation belongs to user."""
+        """ Validate reservation belongs to user """
         stmt = select(Reservation).where(Reservation.id == reservation_id)
         result = await db.execute(stmt)
         reservation = result.scalar_one_or_none()
@@ -87,13 +87,13 @@ class PaymentControllers:
                 detail="Reservation is not pending"
             )
         
-        # For now, use a fixed reservation fee (you can customize this)
+        #### For testing , using a fixed fee value for reservation (changable any time) ####
         reservation_fee = Decimal('50.00')
         return reservation, reservation_fee
     
-    # ============================================
-    # USER FUNCTIONS
-    # ============================================
+    #### ============================================ ####
+    #### USER FUNCTIONS ####
+    #### ============================================ ####
     
     @staticmethod
     async def create_payment(
@@ -101,9 +101,9 @@ class PaymentControllers:
         payment_data: PaymentCreate,
         db: AsyncSession
     ) -> Dict[str, Any]:
-        """User: Create a payment for orders or reservation."""
+        """User : Create a payment for orders or reservation """
         try:
-            # Validate at least one payment target
+            #### Validate at least one payment target ####
             if not payment_data.order_ids and not payment_data.reservation_id:
                 raise HTTPException(
                     status_code=status.HTTP_400_BAD_REQUEST,
@@ -114,28 +114,28 @@ class PaymentControllers:
             reservation = None
             calculated_amount = Decimal('0.00')
             
-            # Validate orders if provided
+            #### Validate orders if provided or not ####
             if payment_data.order_ids:
                 orders, order_total = await PaymentControllers._validate_orders(
                     payment_data.order_ids, current_user.id, db
                 )
                 calculated_amount += order_total
             
-            # Validate reservation if provided
+            #### Validate reservation if provided ####
             if payment_data.reservation_id:
                 reservation, reservation_fee = await PaymentControllers._validate_reservation(
                     payment_data.reservation_id, current_user.id, db
                 )
                 calculated_amount += reservation_fee
             
-            # Verify amount matches
+            #### Verify amount matches ####
             if abs(calculated_amount - payment_data.amount) > Decimal('0.01'):
                 raise HTTPException(
                     status_code=status.HTTP_400_BAD_REQUEST,
                     detail=f"Amount mismatch. Expected: {calculated_amount}, Provided: {payment_data.amount}"
                 )
             
-            # Create payment record
+            #### Create payment record ####
             new_payment = Payment(
                 user_id=current_user.id,
                 reservation_id=payment_data.reservation_id,
@@ -153,10 +153,10 @@ class PaymentControllers:
             db.add(new_payment)
             await db.flush()
             
-            # Store order IDs before linking
+            #### Store order IDs before linking ####
             order_ids = [order.id for order in orders]
             
-            # Link orders to payment using the association table directly
+            #### Link orders to payment using the association table ####
             if orders:
                 from Models.PAYMENT.PaymentModel import payment_orders
                 for order in orders:
@@ -169,16 +169,16 @@ class PaymentControllers:
             await db.commit()
             await db.refresh(new_payment)
             
-            # In a real implementation, you would call Iyzico API here
-            # For now, we'll simulate a successful payment
-            # TODO: Integrate actual Iyzico payment API
+            # This is testing purposed , Iyzico Payment API can be added here in future
+            # For now simulate a successful payment
+            #### TODO : An actual Iyzico payment API should come here : TODO ####
             
             return {
                 "message": "Payment created successfully",
                 "payment": {
                     **new_payment.to_dict(),
                     "order_ids": order_ids,
-                    "note": "This is a test payment. In production, you would be redirected to Iyzico payment page."
+                    "note": "This is a test payment ! If it was production , you would be redirected to Iyzico payment page !"
                 }
             }
         except HTTPException:
@@ -198,19 +198,19 @@ class PaymentControllers:
         status_filter: Optional[PaymentStatus] = None,
         db: AsyncSession = None
     ) -> Dict[str, Any]:
-        """User: Get all their own payments."""
+        """User : Get all their own payments """
         try:
             conditions = [Payment.user_id == current_user.id]
             
             if status_filter:
                 conditions.append(Payment.status == status_filter)
             
-            # Get total count
+            #### Get total count ####
             count_stmt = select(func.count(Payment.id)).where(and_(*conditions))
             count_result = await db.execute(count_stmt)
             total = count_result.scalar()
             
-            # Get payments
+            #### Get payments ####
             stmt = select(Payment).options(
                 selectinload(Payment.orders),
                 selectinload(Payment.reservation)
@@ -243,7 +243,7 @@ class PaymentControllers:
         payment_id: int,
         db: AsyncSession
     ) -> Dict[str, Any]:
-        """User: Get single payment by ID (must be their own)."""
+        """User : Get single payment by ID (must be their own) """
         try:
             stmt = select(Payment).options(
                 selectinload(Payment.orders),
@@ -259,7 +259,7 @@ class PaymentControllers:
                     detail="Payment not found"
                 )
             
-            # Check ownership
+            #### Check ownership of Payment ####
             if payment.user_id != current_user.id:
                 raise HTTPException(
                     status_code=status.HTTP_403_FORBIDDEN,
@@ -284,7 +284,7 @@ class PaymentControllers:
         payment_id: int,
         db: AsyncSession
     ) -> Dict[str, Any]:
-        """User: Simulate payment completion (for testing only)."""
+        """User : Simulate payment completion for testing only"""
         try:
             stmt = select(Payment).options(
                 selectinload(Payment.orders),
@@ -300,7 +300,7 @@ class PaymentControllers:
                     detail="Payment not found"
                 )
             
-            # Check ownership
+            #### Check ownership of Payment ####
             if payment.user_id != current_user.id:
                 raise HTTPException(
                     status_code=status.HTTP_403_FORBIDDEN,
@@ -313,7 +313,7 @@ class PaymentControllers:
                     detail="Payment is not pending"
                 )
             
-            # Simulate successful payment
+            #### Simulate successful payment for testing ####
             payment.status = PaymentStatus.COMPLETED
             payment.provider_payment_id = f"test_payment_{payment_id}_{int(datetime.now().timestamp())}"
             payment.fraud_status = 0  # Safe
@@ -322,12 +322,12 @@ class PaymentControllers:
             payment.card_association = "VISA"
             payment.card_type = "CREDIT_CARD"
             
-            # Update related orders
+            #### Update related orders ####
             for order in payment.orders:
                 order.status = OrderStatus.COMPLETED
                 order.completed_at = datetime.now(timezone.utc)
             
-            # Update related reservation
+            #### Update related reservation ####
             if payment.reservation:
                 payment.reservation.status = ReservationStatus.CONFIRMED
             
@@ -350,9 +350,9 @@ class PaymentControllers:
                 detail=f"Failed to complete payment: {str(e)}"
             )
     
-    # ============================================
-    # ADMIN FUNCTIONS
-    # ============================================
+    ##### ============================================ ####
+    #### ADMIN FUNCTIONS
+    #### ============================================ ####
     
     @staticmethod
     async def admin_get_all_payments(
@@ -361,20 +361,20 @@ class PaymentControllers:
         status_filter: Optional[PaymentStatus] = None,
         db: AsyncSession = None
     ) -> Dict[str, Any]:
-        """Admin: Get all payments with pagination."""
+        """Admin : Get all payments with pagination """
         try:
             conditions = []
             if status_filter:
                 conditions.append(Payment.status == status_filter)
             
-            # Get total count
+            #### Get total count ####
             count_stmt = select(func.count(Payment.id))
             if conditions:
                 count_stmt = count_stmt.where(and_(*conditions))
             count_result = await db.execute(count_stmt)
             total = count_result.scalar()
             
-            # Get payments
+            #### Get payments ####
             stmt = select(Payment).options(
                 selectinload(Payment.orders),
                 selectinload(Payment.reservation),
@@ -408,7 +408,7 @@ class PaymentControllers:
     
     @staticmethod
     async def admin_get_payment_by_id(payment_id: int, db: AsyncSession) -> Dict[str, Any]:
-        """Admin: Get any payment by ID."""
+        """Admin : Get any payment by ID """
         try:
             stmt = select(Payment).options(
                 selectinload(Payment.orders),
@@ -445,7 +445,7 @@ class PaymentControllers:
         update_data: PaymentUpdate,
         db: AsyncSession
     ) -> Dict[str, Any]:
-        """Admin: Update payment status and details."""
+        """Admin : Update payment status and details """
         try:
             stmt = select(Payment).where(Payment.id == payment_id)
             result = await db.execute(stmt)
@@ -457,7 +457,7 @@ class PaymentControllers:
                     detail="Payment not found"
                 )
             
-            # Update fields
+            #### Update fields ####
             update_dict = update_data.model_dump(exclude_unset=True)
             for key, value in update_dict.items():
                 setattr(payment, key, value)
@@ -480,14 +480,14 @@ class PaymentControllers:
     
     @staticmethod
     async def admin_get_payment_statistics(db: AsyncSession) -> Dict[str, Any]:
-        """Admin: Get payment statistics."""
+        """Admin : Get payment statistics """
         try:
-            # Total payments
+            #### Total payments ####
             total_stmt = select(func.count(Payment.id))
             total_result = await db.execute(total_stmt)
             total_payments = total_result.scalar()
             
-            # By status
+            #### By status ####
             pending_stmt = select(func.count(Payment.id)).where(Payment.status == PaymentStatus.PENDING)
             pending_result = await db.execute(pending_stmt)
             pending = pending_result.scalar()
@@ -500,12 +500,12 @@ class PaymentControllers:
             failed_result = await db.execute(failed_stmt)
             failed = failed_result.scalar()
             
-            # Total revenue (completed payments)
+            #### Total revenue (completed payments) ####
             revenue_stmt = select(func.sum(Payment.amount)).where(Payment.status == PaymentStatus.COMPLETED)
             revenue_result = await db.execute(revenue_stmt)
             total_revenue = revenue_result.scalar() or Decimal('0.00')
             
-            # Average payment amount
+            #### Average payment amount ####
             avg_stmt = select(func.avg(Payment.amount)).where(Payment.status == PaymentStatus.COMPLETED)
             avg_result = await db.execute(avg_stmt)
             avg_payment = avg_result.scalar() or Decimal('0.00')
@@ -535,9 +535,9 @@ class PaymentControllers:
         limit: int = 100,
         db: AsyncSession = None
     ) -> Dict[str, Any]:
-        """Admin: Get all payments for a specific user."""
+        """Admin : Get all payments for a specific user """
         try:
-            # Check if user exists
+            #### Check if user exists or not ####
             user_stmt = select(User).where(User.id == user_id)
             user_result = await db.execute(user_stmt)
             user = user_result.scalar_one_or_none()
@@ -548,12 +548,12 @@ class PaymentControllers:
                     detail="User not found"
                 )
             
-            # Get total count
+            #### Get total count ####
             count_stmt = select(func.count(Payment.id)).where(Payment.user_id == user_id)
             count_result = await db.execute(count_stmt)
             total = count_result.scalar()
             
-            # Get payments
+            #### Get payments ####
             stmt = select(Payment).options(
                 selectinload(Payment.orders),
                 selectinload(Payment.reservation)

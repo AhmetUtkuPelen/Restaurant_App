@@ -11,9 +11,9 @@ from Routes.USER.UserRoutes import require_admin
 DessertRouter = APIRouter(prefix="/desserts", tags=["Desserts"])
 
 
-# ============================================
-# PUBLIC ROUTES
-# ============================================
+# ============================================ #
+            # PUBLIC ROUTES
+# ============================================ #
 
 @DessertRouter.get("/", response_model=Dict[str, Any])
 async def get_all_desserts(
@@ -43,9 +43,9 @@ async def get_dessert_by_id(
     return await DessertControllers.get_single_dessert(dessert_id, db)
 
 
-# ============================================
-# ADMIN ROUTES
-# ============================================
+# ============================================ #
+            # ADMIN ROUTES #
+# ============================================ #
 
 @DessertRouter.post("/", status_code=status.HTTP_201_CREATED, response_model=Dict[str, Any], dependencies=[Depends(require_admin)])
 @limiter.limit("10/minute")
@@ -65,6 +65,7 @@ async def create_dessert(
     - **is_alergic**: Whether dessert contains allergens
     - **dessert_type**: Type (cake, pastry, ice_cream, pudding, baklava, kunefe, brownie, tiramisu)
     - **calories**: Calorie count
+    - 10 requests per minute for security.
     """
     return await DessertControllers.create_new_dessert(dessert_data, db)
 
@@ -90,8 +91,6 @@ async def delete_dessert(
 ):
     """
     Admin: Permanently delete dessert.
-    
-    WARNING: This action cannot be undone!
     """
     return await DessertControllers.hard_delete_dessert(dessert_id, db)
 
@@ -102,8 +101,6 @@ async def deactivate_dessert(
     db: AsyncSession = Depends(get_db)
 ):
     """
-    Admin: Soft delete dessert (deactivate).
-    
-    Sets is_active to false and records deletion timestamp.
+    Admin: Soft delete dessert , is_active (deactivate).
     """
     return await DessertControllers.soft_delete_dessert(dessert_id, db)
