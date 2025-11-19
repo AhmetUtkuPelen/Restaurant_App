@@ -19,7 +19,7 @@ import {
 } from "@/Constants/TestCards";
 import { useCreatePayment } from "@/hooks/usePayment";
 import { usePaymentStore } from "@/Zustand/Payment/PaymentState";
-// import type { PaymentData } from "@/Zustand/Payment/PaymentState";
+import { toast } from "sonner";
 
 interface PaymentFormProps {
   amount: number;
@@ -105,13 +105,13 @@ const PaymentForm = ({
       !formData.cvc ||
       !formData.cardHolderName
     ) {
-      onError?.("Please fill in all card information");
+      toast.error("Please fill in all card information");
       return;
     }
 
     try {
-      // Get user's IP address (simplified for demo)
-      const ipAddress = "127.0.0.1"; // In production, get real IP
+      // Get user's IP address
+      const ipAddress = "127.0.0.1"; // For development only , If in Production this is gonna change
 
       const paymentData = {
         amount,
@@ -143,13 +143,13 @@ const PaymentForm = ({
       if (result.status === "completed") {
         onSuccess?.(result.id);
       } else {
-        // For demo purposes, simulate payment completion
+        // For demo - development purposes, simulate payment \\
         onSuccess?.(result.id);
       }
     } catch (error: any) {
-      onError?.(
-        error.response?.data?.detail || "Payment failed. Please try again."
-      );
+      const errorMessage = error.response?.data?.detail || "Something went wrong";
+      toast.error(errorMessage);
+      onError?.(errorMessage);
     }
   };
 

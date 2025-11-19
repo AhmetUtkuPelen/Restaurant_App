@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { Button } from "@/Components/ui/button";
 import { Input } from "@/Components/ui/input";
 import { Label } from "@/Components/ui/label";
@@ -11,9 +12,30 @@ import {
   MessageSquare,
   Navigation,
   Calendar,
+  Loader2,
 } from "lucide-react";
+import { toast } from "sonner";
+
+interface FormData {
+  first_name: string;
+  last_name: string;
+  email: string;
+  phone: string;
+  subject: string;
+  message: string;
+}
 
 const Contact = () => {
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [formData, setFormData] = useState<FormData>({
+    first_name: "",
+    last_name: "",
+    email: "",
+    phone: "",
+    subject: "",
+    message: "",
+  });
+
   const contactInfo = [
     {
       icon: <MapPin className="w-6 h-6" />,
@@ -41,32 +63,73 @@ const Contact = () => {
     },
   ];
 
-const handleSubmit = async (e: React.FormEvent) => {
-  e.preventDefault();
-
-  const formData = {
-    first_name: (document.getElementById("firstName") as HTMLInputElement).value,
-    last_name: (document.getElementById("lastName") as HTMLInputElement).value,
-    email: (document.getElementById("email") as HTMLInputElement).value,
-    phone: (document.getElementById("phone") as HTMLInputElement).value,
-    subject: (document.getElementById("subject") as HTMLSelectElement).value,
-    message: (document.getElementById("message") as HTMLTextAreaElement).value,
+const handleChange = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>
+  ) => {
+    setFormData({
+      ...formData,
+      [e.target.id]: e.target.value,
+    });
   };
 
-  const res = await fetch("http://localhost:8000/contact", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(formData),
-  });
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsSubmitting(true);
 
-  const json = await res.json();
+    try {
+      // Prepare data - send null for empty phone instead of empty string
+      const submitData = {
+        ...formData,
+        phone: formData.phone.trim() === "" ? null : formData.phone,
+      };
 
-  if (json.status === "ok") {
-    alert("Message sent successfully!");
-  } else {
-    alert("Error sending message.");
-  }
-};
+      const res = await fetch("http://localhost:8000/api/contact", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(submitData),
+      });
+
+      const json = await res.json();
+
+      if (res.ok && json.status === "success") {
+        toast.success("Message sent successfully!", {
+          description: "We'll get back to you in 24 hours !",
+        });
+        
+        // Reset form
+        setFormData({
+          first_name: "",
+          last_name: "",
+          email: "",
+          phone: "",
+          subject: "",
+          message: "",
+        });
+      } else {
+        let errorMessage = "Please try again later.";
+        
+        if (json.detail) {
+          if (Array.isArray(json.detail)) {
+            // Pydantic validation errors
+            errorMessage = json.detail.map((err: { msg: string }) => err.msg).join(", ");
+          } else if (typeof json.detail === "string") {
+            errorMessage = json.detail;
+          }
+        }
+        
+        toast.error("Failed to send message", {
+          description: errorMessage,
+        });
+      }
+    } catch (error) {
+      console.error("Contact form error:", error);
+      toast.error("Network error", {
+        description: "Please check your connection and try again.",
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
 
   return (
     <div className="min-h-screen bg-gray-900 text-white">
@@ -133,25 +196,29 @@ const handleSubmit = async (e: React.FormEvent) => {
               <form onSubmit={handleSubmit} className="space-y-6">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div className="space-y-2">
-                    <Label htmlFor="firstName" className="text-gray-300">
+                    <Label htmlFor="first_name" className="text-gray-300">
                       First Name *
                     </Label>
                     <Input
                       type="text"
-                      id="firstName"
+                      id="first_name"
                       required
+                      value={formData.first_name}
+                      onChange={handleChange}
                       className="bg-gray-900 border-gray-700 text-white placeholder-gray-400 h-12"
                       placeholder="Your first name"
                     />
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="lastName" className="text-gray-300">
+                    <Label htmlFor="last_name" className="text-gray-300">
                       Last Name *
                     </Label>
                     <Input
                       type="text"
-                      id="lastName"
+                      id="last_name"
                       required
+                      value={formData.last_name}
+                      onChange={handleChange}
                       className="bg-gray-900 border-gray-700 text-white placeholder-gray-400 h-12"
                       placeholder="Your last name"
                     />
@@ -166,6 +233,8 @@ const handleSubmit = async (e: React.FormEvent) => {
                     type="email"
                     id="email"
                     required
+                    value={formData.email}
+                    onChange={handleChange}
                     className="bg-gray-900 border-gray-700 text-white placeholder-gray-400 h-12"
                     placeholder="your.email@example.com"
                   />
@@ -178,6 +247,8 @@ const handleSubmit = async (e: React.FormEvent) => {
                   <Input
                     type="tel"
                     id="phone"
+                    value={formData.phone}
+                    onChange={handleChange}
                     className="bg-gray-900 border-gray-700 text-white placeholder-gray-400 h-12"
                     placeholder="+1 (555) 123-4567"
                   />
@@ -190,6 +261,8 @@ const handleSubmit = async (e: React.FormEvent) => {
                   <select
                     id="subject"
                     required
+                    value={formData.subject}
+                    onChange={handleChange}
                     className="w-full px-4 py-3 bg-gray-900 border border-gray-700 rounded-lg text-white focus:outline-none focus:border-blue-400 focus:ring-1 focus:ring-blue-400 h-12"
                   >
                     <option value="">Select a subject</option>
@@ -209,6 +282,8 @@ const handleSubmit = async (e: React.FormEvent) => {
                     id="message"
                     required
                     rows={5}
+                    value={formData.message}
+                    onChange={handleChange}
                     className="w-full px-4 py-3 bg-gray-900 border border-gray-700 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:border-blue-400 focus:ring-1 focus:ring-blue-400 resize-vertical"
                     placeholder="Tell us how we can help you..."
                   />
@@ -216,10 +291,20 @@ const handleSubmit = async (e: React.FormEvent) => {
 
                 <Button
                   type="submit"
-                  className="w-full bg-blue-600 hover:bg-blue-700 text-white py-3 text-lg flex items-center justify-center gap-2"
+                  disabled={isSubmitting}
+                  className="w-full bg-blue-600 hover:bg-blue-700 text-white py-3 text-lg flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
                 >
-                  <Send className="w-5 h-5" />
-                  Send Message
+                  {isSubmitting ? (
+                    <>
+                      <Loader2 className="w-5 h-5 animate-spin" />
+                      Sending...
+                    </>
+                  ) : (
+                    <>
+                      <Send className="w-5 h-5" />
+                      Send Message
+                    </>
+                  )}
                 </Button>
               </form>
             </div>

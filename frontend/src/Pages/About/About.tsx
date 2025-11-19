@@ -1,7 +1,6 @@
-
-
 import { Card, CardContent } from "@/Components/ui/card";
 import { MapPin, Clock, Phone, Mail, Users, Award, Heart } from "lucide-react";
+import RestaurantImg from "../../assets/restaurant.png"
 
 const About = () => {
   return (
@@ -51,7 +50,7 @@ const About = () => {
             </div>
             <div className="relative">
               <img 
-                src="https://via.placeholder.com/600x400/1f2937/ffffff?text=Restaurant+Interior" 
+                src={RestaurantImg}
                 alt="Restaurant Interior"
                 className="rounded-lg shadow-2xl"
               />

@@ -29,6 +29,7 @@ import {
 } from "lucide-react";
 import { useTables, useCreateReservation } from "@/hooks/useReservation";
 import PaymentForm from "@/Components/Payment/PaymentForm";
+import { toast } from "sonner";
 
 interface ReservationData {
   date: string;
@@ -171,8 +172,8 @@ const Reservation = () => {
       setReservationId(result.reservation.id);
       setCurrentStep(3); // Move to payment step
     } catch (error) {
+      toast.error("Failed to create Reservation. Please try again")
       console.error("Failed to create reservation:", error);
-      alert("Failed to create reservation. Please try again.");
     }
   };
 
@@ -182,7 +183,8 @@ const Reservation = () => {
   };
 
   const handlePaymentError = (error: string) => {
-    alert(`Payment failed: ${error}`);
+    toast.error("Payment failed. Please try again")
+    console.error(error)
   };
 
   const getAvailableTables = () => {

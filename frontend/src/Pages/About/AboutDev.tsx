@@ -13,7 +13,7 @@ import { FaPython } from "react-icons/fa";
 import { SiFastapi } from "react-icons/si";
 import { SiSqlalchemy } from "react-icons/si";
 import { SiPydantic } from "react-icons/si";
-
+import { GrUserAdmin } from "react-icons/gr";
 
 
 
@@ -71,6 +71,13 @@ const AboutDev = () => {
       description:
         "Data validation and settings management using Python type annotations",
       icon: <SiPydantic className="w-8 h-8" />,
+      color: "text-purple-400",
+    },
+        {
+      name: "SqlAdmin",
+      description:
+        "SQLAdmin is a flexible Admin interface for FastAPi - Starlette SQLAlchemy models",
+      icon: <GrUserAdmin className="w-8 h-8" />,
       color: "text-purple-400",
     },
   ];

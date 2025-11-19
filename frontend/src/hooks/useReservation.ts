@@ -12,7 +12,7 @@ export interface Table {
 
 export interface ReservationCreate {
   table_id: number;
-  reservation_time: string; // ISO datetime string
+  reservation_time: string;
   number_of_guests: number;
   special_requests?: string;
 }

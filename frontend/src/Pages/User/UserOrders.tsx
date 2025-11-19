@@ -22,20 +22,32 @@ const UserOrders = () => {
   const [cancellingOrderId, setCancellingOrderId] = useState<number | null>(null);
 
   const handleCancelOrder = async (orderId: number) => {
-    if (!confirm("Are you sure you want to cancel this order?")) {
-      return;
-    }
-
-    setCancellingOrderId(orderId);
-    try {
-      await cancelOrderMutation.mutateAsync(orderId);
-      toast.success("Order cancelled successfully");
-    } catch (err) {
-      const error = err as { response?: { data?: { detail?: string } } };
-      toast.error(error?.response?.data?.detail || "Failed to cancel order");
-    } finally {
-      setCancellingOrderId(null);
-    }
+    toast.warning("Are you sure you want to cancel this order?", {
+      description: "This action cannot be undone.",
+      action: {
+        label: "Yes, Cancel Order",
+        onClick: async () => {
+          setCancellingOrderId(orderId);
+          try {
+            await cancelOrderMutation.mutateAsync(orderId);
+            toast.success("Order cancelled successfully", {
+              description: `Order #${orderId} has been cancelled.`,
+            });
+          } catch (err) {
+            const error = err as { response?: { data?: { detail?: string } } };
+            toast.error(error?.response?.data?.detail || "Failed to cancel order");
+          } finally {
+            setCancellingOrderId(null);
+          }
+        },
+      },
+      cancel: {
+        label: "Keep Order",
+        onClick: () => {
+          toast.info("Order cancellation cancelled");
+        },
+      },
+    });
   };
 
   const getStatusColor = (status: string) => {

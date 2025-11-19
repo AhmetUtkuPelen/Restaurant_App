@@ -18,7 +18,7 @@ import { useCartStore } from '@/Zustand/Cart/CartState'
 export const Cart = () => {
   const navigate = useNavigate()
 
-  // Get cart data and functions from Zustand store
+  // Cart data and functions from Zustand
   const cartItems = useCartStore((state) => state.items)
   const updateQuantity = useCartStore((state) => state.updateQuantity)
   const removeFromCart = useCartStore((state) => state.removeFromCart)
@@ -28,7 +28,7 @@ export const Cart = () => {
   // Calculate totals
   const subtotal = getTotalPrice()
   const tax = subtotal * 0.08
-  const delivery = subtotal > 30 ? 0 : 4.99 // Free delivery over $30
+  const delivery = subtotal > 30 ? 0 : 4.99 // delivery is free over $30
   const total = subtotal + tax + delivery
 
   // Helper function to capitalize category

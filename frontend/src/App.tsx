@@ -1,5 +1,6 @@
 import { BrowserRouter, Route, Routes} from "react-router-dom";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { Toaster } from "sonner";
 import Home from "./Pages/Home/Home";
 import About from "./Pages/About/About";
 import Desserts from "./Pages/Couisine/Dessert/Desserts";
@@ -21,7 +22,6 @@ import Profile from "./Pages/User/Profile";
 import Contact from "./Pages/Contact/Contact";
 import Header from "./Components/Header/Header";
 import Footer from "./Components/Footer/Footer";
-import Admin from "./Pages/Admin/Admin";
 import { Cart } from "./Pages/Cart/Cart";
 import { Terms } from "./Pages/About/Terms";
 import FavouriteProducts from "./Pages/User/FavouriteProducts";
@@ -29,7 +29,7 @@ import Checkout from "./Pages/Checkout/Checkout";
 import UserReservation from "./Pages/User/UserReservations";
 import UserOrders from "./Pages/User/UserOrders"
 import NotFound from "./Pages/NotFound/NotFound";
-import { OpenRoute, AuthenticatedRoute, AdminRoute } from "./Utils/RouteUtils";
+import { OpenRoute, AuthenticatedRoute } from "./Utils/RouteUtils";
 
 
 const queryClient = new QueryClient({
@@ -45,6 +45,7 @@ function App() {
   return (
     <QueryClientProvider client={queryClient}>
       <BrowserRouter>
+      <Toaster position="top-right" richColors />
       <Header/>
 
         <Routes>
@@ -77,8 +78,6 @@ function App() {
           <Route path="/cart" element={<AuthenticatedRoute><Cart /></AuthenticatedRoute>} />
           <Route path="/userOrders" element={<AuthenticatedRoute><UserOrders /></AuthenticatedRoute>} />
 
-          {/* Admin Routes - Only for admin users */}
-          <Route path="/admin" element={<AdminRoute><Admin /></AdminRoute>} />
 
           {/* Error Route - For nonexistent routes */}
           <Route path="*" element={<NotFound />} />

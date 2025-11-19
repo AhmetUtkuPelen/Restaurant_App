@@ -15,7 +15,7 @@ from slowapi import _rate_limit_exceeded_handler
 
 ### ADMIN DASHBOARD FOR MODELS ###
 from sqladmin import Admin, ModelView
-
+### ADMIN DASHBOARD FOR MODELS ###
 
 # Import models for SQLAdmin
 from Models.USER.UserModel import User
@@ -50,6 +50,7 @@ from Routes.COMMENT.CommentRoutes import CommentRouter
 from Routes.CART.CartRoutes import CartRouter
 from Routes.ORDER.OrderRoutes import OrderRouter
 from Routes.PAYMENT.PaymentRoutes import PaymentRouter
+from Utils.ContactForm.ContactForm import ContactFormRouter
 # Import Routes
 
 
@@ -292,6 +293,7 @@ app.include_router(CommentRouter, prefix="/api")
 app.include_router(CartRouter, prefix="/api")
 app.include_router(OrderRouter, prefix="/api")
 app.include_router(PaymentRouter, prefix="/api")
+app.include_router(ContactFormRouter)
 ### ROUTES ###
 
 

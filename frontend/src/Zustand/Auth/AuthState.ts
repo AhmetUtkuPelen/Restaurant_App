@@ -41,7 +41,7 @@ export interface AuthState {
 }
 
 // Create the store with persistence
-export const useAuthStore = create<AuthState>()(
+export const useAuthStore =  create<AuthState>()(
   persist(
     (set, get) => ({
       user: null,
@@ -122,8 +122,6 @@ export const useAuthStore = create<AuthState>()(
       },
 
       logout: () => {
-        // Call your logout API if needed
-        // await fetch('/api/auth/logout', { method: 'POST' });
 
         // Clear the state
         set({

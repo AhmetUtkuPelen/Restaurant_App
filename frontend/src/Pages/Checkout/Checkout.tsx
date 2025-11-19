@@ -15,6 +15,8 @@ import { useOrderStore } from "@/Zustand/Order/OrderState";
 import { useCreateOrder } from "@/hooks/useOrder";
 import { axiosInstance } from "@/Axios/Axios";
 import PaymentForm from "@/Components/Payment/PaymentForm";
+import { toast } from "sonner";
+
 
 const Checkout = () => {
   const navigate = useNavigate();
@@ -46,16 +48,14 @@ const Checkout = () => {
       }));
 
       createOrder(orderItems);
-
-      // First, sync cart to backend
-      // Clear backend cart first
+      // Clear cart first from back end
       try {
         await axiosInstance.delete("/cart/clear");
       } catch {
-        // Ignore if cart doesn't exist
+        // Ignore if cart doesnt exist
       }
 
-      // Add all items to backend cart
+      // Add all items to back end cart
       for (const item of items) {
         await axiosInstance.post("/cart/items", {
           product_id: item.id,
@@ -80,7 +80,8 @@ const Checkout = () => {
   };
 
   const handlePaymentError = (error: string) => {
-    alert(`Payment failed: ${error}`);
+    toast.error("Something went wrong. Please try again.")
+    console.error(error)
   };
 
   if (step === "success") {
@@ -120,7 +121,7 @@ const Checkout = () => {
 
               <div className="space-y-3">
                 <Button
-                  onClick={() => navigate("/user/orders")}
+                  onClick={() => navigate("/userOrders")}
                   className="w-full bg-blue-600 hover:bg-blue-700"
                 >
                   View My Orders

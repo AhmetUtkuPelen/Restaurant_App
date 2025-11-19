@@ -18,6 +18,7 @@ import {
   useMyReservations,
   useCancelReservation,
 } from "@/hooks/useReservation";
+import { toast } from "sonner";
 
 const UserReservations = () => {
   const { data: reservations = [], isLoading, error } = useMyReservations();
@@ -25,19 +26,32 @@ const UserReservations = () => {
   const [cancellingId, setCancellingId] = useState<number | null>(null);
 
   const handleCancelReservation = async (reservationId: number) => {
-    if (!confirm("Are you sure you want to cancel this reservation?")) {
-      return;
-    }
-
-    setCancellingId(reservationId);
-    try {
-      await cancelReservation.mutateAsync(reservationId);
-    } catch (error) {
-      console.error("Failed to cancel reservation:", error);
-      alert("Failed to cancel reservation. Please try again.");
-    } finally {
-      setCancellingId(null);
-    }
+    toast.warning("Are you sure?", {
+      description: "",
+      action: {
+        label: "Yes, Cancel Reservation",
+        onClick: async () => {
+          setCancellingId(reservationId);
+          try {
+            await cancelReservation.mutateAsync(reservationId);
+            toast.success("Reservation cancelled successfully", {
+              description: `Reservation #${reservationId} has been cancelled.`,
+            });
+          } catch (error) {
+            toast.error("Failed to cancel reservation. Please try again.");
+            console.error("Failed to cancel reservation:", error);
+          } finally {
+            setCancellingId(null);
+          }
+        },
+      },
+      cancel: {
+        label: "Keep Reservation",
+        onClick: () => {
+          toast.info("Reservation cancellation cancelled");
+        },
+      },
+    });
   };
 
   const getStatusColor = (status: string) => {

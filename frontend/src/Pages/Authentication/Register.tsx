@@ -16,6 +16,8 @@ import {
   CheckCircle,
   AlertCircle,
 } from "lucide-react";
+import { toast } from "sonner";
+
 
 const Register = () => {
   const navigate = useNavigate();
@@ -53,13 +55,13 @@ const Register = () => {
       });
       
       setRegistrationSuccess(true);
-      // Redirect to login after 2 seconds
+      // User goes to login after 2 seconds
       setTimeout(() => {
         navigate('/login');
       }, 2000);
     } catch (error) {
-      // Error is handled by the store
-      console.error('Registration failed:', error);
+      toast.error("Registration failed. Please try again.");
+      console.error("Registration failed:", error);
     }
   };
 

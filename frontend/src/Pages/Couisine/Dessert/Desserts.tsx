@@ -47,11 +47,11 @@ const Desserts = () => {
         const favId = getFavouriteId(productId);
         if (favId) {
           await removeFavouriteMutation.mutateAsync(favId);
-          toast.success("Removed from favourites");
+          toast.success("Removed from favourites !");
         }
       } else {
         await addFavouriteMutation.mutateAsync({ product_id: productId });
-        toast.success("Added to favourites");
+        toast.success("Added to favourites !");
       }
     } catch (err) {
       const error = err as { response?: { data?: { detail?: string } } };
