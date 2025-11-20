@@ -138,11 +138,17 @@ app = FastAPI(
     title="Restaurant Service API",
     description="""
     Handles restaurant backend data.
+
     Built using :
+    
     * *FastAPI
+    
     Async SQLAlchemy
+    
     Pydantic 
+    
     SqlAdmin
+    
     **.
     """,
     version="1.0.0",
@@ -377,31 +383,30 @@ async def root():
         </style>
     </head>
     <body>
-        <h1>🍽️ Restaurant Service API</h1>
+        <h1 style="text-align: center; color: blue; font-size: 2.5rem;">Restaurant Service API</h1>
         
         <div class="grid">
             <div class="card">
-                <h2 style="text-transform: uppercase;">🚀 Frontend Application</h2>
-                <p>Visit the restaurant application as a customer</p>
+                <h2 style="text-transform: uppercase;"> Frontend Application</h2>
+                <p>Visit the restaurant application as a customer using the link below</p>
                 <p><a href="http://localhost:3000" target="_blank">→ Open Application</a></p>
             </div>
 
             <div class="card">
-                <h2 style="text-transform: uppercase;">🛡️ Admin Dashboard</h2>
-                <p>Manage products, orders, and users.</p>
+                <h2 style="text-transform: uppercase;"> Admin Dashboard</h2>
+                <p>Manage products, orders, reservations, tables, payments, users, user favourites, comments etc.</p>
                 <p><a href="/admin" target="_blank">→ Go to Dashboard</a></p>
                 <p><small>Requires admin credentials</small></p>
             </div>
 
             <div class="card">
-                <h2 style="text-transform: uppercase;">📚 API Documentation</h2>
+                <h2 style="text-transform: uppercase;"> API Documentation</h2>
                 <p>Interactive documentation for developers.</p>
                 <p><a href="/docs" target="_blank">→ Swagger UI</a></p>
-                <p><a href="/redoc" target="_blank">→ ReDoc</a></p>
             </div>
 
             <div class="card">
-                <h2 style="text-transform: uppercase;">💓 System Status</h2>
+                <h2 style="text-transform: uppercase;"> System Status</h2>
                 <p>Current system health check.</p>
                 <p><a href="/health" target="_blank">→ Check Status</a></p>
                 <span class="status online">System Online</span>
