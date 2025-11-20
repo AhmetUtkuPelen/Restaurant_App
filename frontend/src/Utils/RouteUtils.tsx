@@ -5,31 +5,23 @@ import {
   useIsAuthenticated,
   useIsAdmin,
 } from "../Zustand/Auth/AuthState";
+import { Spinner } from "@/Components/ui/spinner";
 
-// Loading component for better UX
-const LoadingSpinner = () => (
-  <div className="min-h-screen flex items-center justify-center bg-gray-900">
-    <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-400"></div>
-  </div>
-);
-
-// 1. Open Route - Accessible to everyone (authenticated and non-authenticated)
+// Open Route \\
 export const OpenRoute = ({ children }: { children: ReactNode }) => {
   return <>{children}</>;
 };
 
-// 2. Authenticated Route - Only for authenticated users
+// Authenticated Route \\
 export const AuthenticatedRoute = ({ children }: { children: ReactNode }) => {
   const isAuthenticated = useIsAuthenticated();
   const { isLoading } = useAuthStore();
   const location = useLocation();
 
-  // Show loading while checking auth status
   if (isLoading) {
-    return <LoadingSpinner />;
+    return <Spinner />;
   }
 
-  // If not authenticated, redirect to login with return URL
   if (!isAuthenticated) {
     return <Navigate to="/login" state={{ from: location }} replace />;
   }
@@ -37,24 +29,21 @@ export const AuthenticatedRoute = ({ children }: { children: ReactNode }) => {
   return <>{children}</>;
 };
 
-// 3. Admin Route - Only for admin users
+// Admin Route \\
 export const AdminRoute = ({ children }: { children: ReactNode }) => {
   const isAuthenticated = useIsAuthenticated();
   const isAdmin = useIsAdmin();
   const { isLoading } = useAuthStore();
   const location = useLocation();
 
-  // Show loading while checking auth status
   if (isLoading) {
-    return <LoadingSpinner />;
+    return <Spinner />;
   }
 
-  // If not authenticated, redirect to login with return URL
   if (!isAuthenticated) {
     return <Navigate to="/login" state={{ from: location }} replace />;
   }
 
-  // If authenticated but not admin, show access denied
   if (!isAdmin) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-900">
@@ -64,7 +53,7 @@ export const AdminRoute = ({ children }: { children: ReactNode }) => {
           <p className="text-gray-400 mb-4">
             You don't have permission to access this page.
           </p>
-          <button 
+          <button
             onClick={() => window.history.back()}
             className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded"
           >

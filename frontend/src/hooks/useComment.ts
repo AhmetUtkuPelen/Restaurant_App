@@ -1,42 +1,8 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { axiosInstance } from "@/Axios/Axios";
+import type { CommentCreate, CommentUpdate, ProductCommentsResponse } from "@/Types/Comment/CommentTypes";
 
-// Types
-export interface Comment {
-  id: number;
-  user_id: number;
-  product_id: number;
-  content: string;
-  rating: number | null;
-  created_at: string;
-  updated_at: string | null;
-  is_active: boolean;
-  username?: string;
-  product_name?: string;
-}
-
-export interface CommentCreate {
-  product_id: number;
-  content: string;
-  rating?: number;
-}
-
-export interface CommentUpdate {
-  content?: string;
-  rating?: number;
-}
-
-export interface ProductCommentsResponse {
-  product_id: number;
-  product_name: string;
-  total_comments: number;
-  average_rating: number | null;
-  skip: number;
-  limit: number;
-  comments: Comment[];
-}
-
-// Get comments for a product
+// Get comments for a product \\
 export const useProductComments = (productId: number) => {
   return useQuery({
     queryKey: ["comments", "product", productId],
@@ -50,7 +16,7 @@ export const useProductComments = (productId: number) => {
   });
 };
 
-// Get user's own comments
+// Get user's own comments \\
 export const useMyComments = (includeInactive = false) => {
   return useQuery({
     queryKey: ["comments", "my", includeInactive],
@@ -63,7 +29,7 @@ export const useMyComments = (includeInactive = false) => {
   });
 };
 
-// Create comment
+// Create comment \\
 export const useCreateComment = () => {
   const queryClient = useQueryClient();
 
@@ -81,7 +47,7 @@ export const useCreateComment = () => {
   });
 };
 
-// Update comment
+// Update comment \\
 export const useUpdateComment = () => {
   const queryClient = useQueryClient();
 
@@ -105,7 +71,7 @@ export const useUpdateComment = () => {
   });
 };
 
-// Delete comment (soft delete)
+// Delete comment (soft delete) \\
 export const useDeleteComment = () => {
   const queryClient = useQueryClient();
 
@@ -120,7 +86,7 @@ export const useDeleteComment = () => {
   });
 };
 
-// Permanently delete comment
+// Permanently delete comment \\
 export const usePermanentlyDeleteComment = () => {
   const queryClient = useQueryClient();
 

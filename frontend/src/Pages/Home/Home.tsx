@@ -72,7 +72,7 @@ const Home = () => {
     },
   ];
 
-  // Get product link based on category
+  // Get product link based on categories \\
   const getProductLink = (category: string, id: number) => {
     const categoryMap: { [key: string]: string } = {
       dessert: "desserts",
@@ -86,7 +86,7 @@ const Home = () => {
 
   return (
     <div className="min-h-screen bg-gray-900 text-white">
-      {/* Hero */}
+
       <section
         className="relative h-screen flex items-center justify-center bg-cover bg-center"
         style={{
@@ -159,7 +159,7 @@ const Home = () => {
         </div>
       </section>
 
-      {/* Products Section */}
+      {/* Products */}
       <section className="py-20 bg-gray-900">
         <div className="max-w-6xl mx-auto px-4">
           <h2 className="text-4xl font-bold text-center mb-16 text-blue-400">
@@ -189,21 +189,19 @@ const Home = () => {
         </div>
       </section>
 
-      {/* Featured Dishes Section */}
+      {/* Featured Dishes */}
       <section className="py-20 bg-gray-800">
         <div className="max-w-7xl mx-auto px-4">
           <h2 className="text-4xl font-bold text-center mb-16 text-blue-400">
             Featured Dishes
           </h2>
 
-          {/* Loading State */}
           {isLoading && (
             <div className="flex justify-center items-center py-20">
               <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-400"></div>
             </div>
           )}
 
-          {/* Empty State */}
           {!isLoading && frontPageProducts.length === 0 && (
             <div className="text-center py-20">
               <p className="text-gray-400 text-lg">

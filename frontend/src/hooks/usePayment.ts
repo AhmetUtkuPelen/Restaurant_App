@@ -2,9 +2,8 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { axiosInstance } from "@/Axios/Axios";
 import { usePaymentStore } from "@/Zustand/Payment/PaymentState";
-// import type {PaymentData,Payment} from "@/Zustand/Payment/PaymentState"
 
-// Types
+
 export interface CreatePaymentRequest {
   order_ids?: number[];
   reservation_id?: number;
@@ -27,7 +26,7 @@ export interface PaymentResponse {
   iyzico_response?: any;
 }
 
-// Create payment
+// Create payment \\
 export const useCreatePayment = () => {
   const queryClient = useQueryClient();
   const { addPayment, setProcessing, clearCurrentPayment } = usePaymentStore();
@@ -53,7 +52,7 @@ export const useCreatePayment = () => {
   });
 };
 
-// Get user payments
+// Get user payments \\
 export const useMyPayments = () => {
   return useQuery({
     queryKey: ["payments", "my"],
@@ -64,7 +63,7 @@ export const useMyPayments = () => {
   });
 };
 
-// Get single payment
+// Get single payment \\
 export const usePayment = (paymentId: number) => {
   return useQuery({
     queryKey: ["payments", paymentId],
@@ -76,7 +75,7 @@ export const usePayment = (paymentId: number) => {
   });
 };
 
-// Refund payment
+// Refund payment \\
 export const useRefundPayment = () => {
   const queryClient = useQueryClient();
 

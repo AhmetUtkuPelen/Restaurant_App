@@ -89,8 +89,8 @@ const PaymentForm = ({
     }
 
     try {
-      // Get user's IP address
-      const ipAddress = "127.0.0.1"; // For development only , If in Production this is gonna change
+      // Get user's IP address \\
+      const ipAddress = "127.0.0.1"; // For development only , If in Production this is gonna change \\
 
       const paymentData = {
         amount,
@@ -126,7 +126,7 @@ const PaymentForm = ({
         onSuccess?.(result.id);
       }
     } catch (error: any) {
-      const errorMessage = error.response?.data?.detail || "Something went wrong";
+      const errorMessage = error.response?.data?.detail || "Something went wrong !";
       toast.error(errorMessage);
       onError?.(errorMessage);
     }
@@ -148,8 +148,8 @@ const PaymentForm = ({
             <div>
               <h4 className="font-medium text-blue-900 mb-1">Demo Payment System</h4>
               <p className="text-sm text-blue-700">
-                This is a demonstration payment system. You can enter any card details to test the checkout process. 
-                No real charges will be made.
+                This is a demo payment system. You can enter any card details to test the checkout process. 
+                Not actual charges at all.
               </p>
             </div>
           </div>
@@ -276,7 +276,7 @@ const PaymentForm = ({
                     id="city"
                     value={formData.city}
                     onChange={(e) => handleInputChange("city", e.target.value)}
-                    placeholder="Istanbul"
+                    placeholder="Izmir"
                   />
                 </div>
 

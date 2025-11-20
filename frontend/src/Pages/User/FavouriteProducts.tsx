@@ -31,7 +31,7 @@ const FavouriteProducts = () => {
     }
   };
 
-  // Helper function to get product link based on category
+  // Helper function to get product link based on categories \\
   const getProductLink = (category: string, id: number) => {
     const categoryMap: { [key: string]: string } = {
       dessert: "desserts",
@@ -75,7 +75,7 @@ const FavouriteProducts = () => {
 
   return (
     <div className="min-h-screen bg-gray-900 text-white">
-      {/* Header Section */}
+
       <section className="relative py-12 bg-gradient-to-r from-gray-800 to-gray-900">
         <div className="max-w-6xl mx-auto px-4">
           <Link
@@ -117,7 +117,7 @@ const FavouriteProducts = () => {
         </div>
       </section>
 
-      {/* Favourites Grid */}
+      {/* Favourites */}
       <section className="py-12 bg-gray-900">
         <div className="max-w-6xl mx-auto px-4">
           {favouritesData.length === 0 ? (

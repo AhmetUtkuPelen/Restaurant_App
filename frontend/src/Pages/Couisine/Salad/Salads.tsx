@@ -72,8 +72,8 @@ const Salads = () => {
      image_url: string;
    }, category: string) => {
      if (!isAuthenticated) {
-       toast.error("Please login to add items to cart", {
-         description: "You need to be logged in to add items to your cart.",
+       toast.error("Please login to add items to cart !", {
+         description: "You need to be logged in to add items to your cart !",
          action: {
            label: "Login",
            onClick: () => navigate("/login"),

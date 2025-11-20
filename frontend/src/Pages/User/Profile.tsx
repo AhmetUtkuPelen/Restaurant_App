@@ -84,7 +84,7 @@ const Profile = () => {
   return (
     <div className="min-h-screen bg-gray-50 py-8">
       <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
-        {/* Header */}
+
         <div className="mb-8 flex justify-between items-start">
           <div>
             <h1 className="text-3xl font-bold text-gray-900">My Profile</h1>
@@ -110,7 +110,7 @@ const Profile = () => {
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          {/* Main Content */}
+
           <div className="lg:col-span-2">
             <Tabs defaultValue="profile" className="space-y-6">
               <TabsList className="grid w-full grid-cols-2 text-blue-600">
@@ -149,7 +149,7 @@ const Profile = () => {
                   </CardHeader>
                   <CardContent className="p-6 bg-white">
                     <div className="space-y-6">
-                      {/* Profile Picture and Basic Info */}
+                      {/* Profile Pic and Basic Info About User */}
                       <div className="flex items-center space-x-6">
                         <Avatar className="h-20 w-20 border-4 border-gray-200">
                           <AvatarImage
@@ -180,7 +180,7 @@ const Profile = () => {
 
                       <Separator className="bg-gray-200" />
 
-                      {/* Contact Information */}
+                      {/* Contact Info */}
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                         <div className="space-y-4">
                           <div className="flex items-center space-x-3">
@@ -255,7 +255,7 @@ const Profile = () => {
 
           {/* Account Statistics */}
           <div className="space-y-6">
-            {/* Account Status Card */}
+            {/* Account Status */}
             <Card className="border-gray-200 shadow-sm">
               <CardHeader className="bg-white border-b border-gray-100">
                 <CardTitle className="text-lg text-blue-600">
@@ -286,7 +286,7 @@ const Profile = () => {
               </CardContent>
             </Card>
 
-            {/* Order Statistics Card */}
+            {/* Order Statistics */}
             <Card className="border-gray-200 shadow-sm">
               <CardHeader className="bg-white border-b border-gray-100">
                 <CardTitle className="text-lg text-gray-900">

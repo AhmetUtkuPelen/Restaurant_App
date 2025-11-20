@@ -1,28 +1,8 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { axiosInstance } from "@/Axios/Axios";
+import type { FavouriteProduct, FavouriteProductCreate } from "@/Types/Product";
 
-// Types
-export interface FavouriteProduct {
-  id: number;
-  user_id: number;
-  product_id: number;
-  created_at: string;
-  product: {
-    id: number;
-    name: string;
-    price: string;
-    final_price: string;
-    image_url: string;
-    category: string;
-    description?: string;
-  };
-}
-
-export interface FavouriteProductCreate {
-  product_id: number;
-}
-
-// Get user's favourite products
+// Get user's favourite products \\
 export const useMyFavourites = () => {
   return useQuery({
     queryKey: ["favourites", "my"],
@@ -33,7 +13,7 @@ export const useMyFavourites = () => {
   });
 };
 
-// Add product to favourites
+// Add product to favourites \\
 export const useAddFavourite = () => {
   const queryClient = useQueryClient();
 
@@ -49,7 +29,7 @@ export const useAddFavourite = () => {
   });
 };
 
-// Remove product from favourites
+// Remove product from favourites \\
 export const useRemoveFavourite = () => {
   const queryClient = useQueryClient();
 
@@ -65,7 +45,7 @@ export const useRemoveFavourite = () => {
   });
 };
 
-// Clear all favourites
+// Clear all favourites \\
 export const useClearFavourites = () => {
   const queryClient = useQueryClient();
 

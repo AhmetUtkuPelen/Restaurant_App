@@ -45,8 +45,8 @@ const Doner = () => {
 
   const handleAddToCart = () => {
     if (!isAuthenticated) {
-      toast.error("Please login to add items to cart", {
-        description: "You need to be logged in to add items to your cart.",
+      toast.error("Please login to add items to cart !", {
+        description: "You need to be logged in to add items to your cart !",
         action: {
           label: "Login",
           onClick: () => navigate("/login"),
@@ -101,7 +101,7 @@ const Doner = () => {
 
   return (
     <div className="min-h-screen bg-gray-900 text-white">
-      {/* Breadcrumb */}
+
       <div className="bg-gray-800 py-4">
         <div className="max-w-6xl mx-auto px-4">
           <div className="flex items-center gap-2 text-sm">
@@ -128,7 +128,7 @@ const Doner = () => {
         </Link>
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
-          {/* Product Image */}
+          {/* Product Img */}
           <div>
             <div className="relative">
               <img

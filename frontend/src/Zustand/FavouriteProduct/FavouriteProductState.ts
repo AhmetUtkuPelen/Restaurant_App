@@ -28,7 +28,7 @@ export const useFavouriteStore = create<FavouriteProductState>()(
       addToFavourites: (product) => {
         set((state) => {
           const exists = state.favourites.find((fav) => fav.id === product.id);
-          
+
           if (exists) {
             // If already in favourites, don't add again
             return state;
@@ -59,7 +59,7 @@ export const useFavouriteStore = create<FavouriteProductState>()(
       },
     }),
     {
-      name: "favourites-storage", // localStorage key
+      name: "favourites-storage",
     }
   )
 );

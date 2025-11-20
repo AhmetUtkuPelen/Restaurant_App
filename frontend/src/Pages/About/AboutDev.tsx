@@ -50,13 +50,13 @@ const AboutDev = () => {
   const backendTech = [
     {
       name: "Python",
-      description: "High-level programming language for backend development",
+      description: "High-level , multi functional programming language",
       icon: <FaPython className="w-8 h-8" />,
       color: "text-yellow-400",
     },
     {
       name: "FastAPI",
-      description: "Modern, fast web framework for building APIs with Python",
+      description: "Modern , async , fast web framework for building APIs with Python",
       icon: <SiFastapi className="w-8 h-8" />,
       color: "text-green-400",
     },
@@ -68,15 +68,13 @@ const AboutDev = () => {
     },
     {
       name: "Pydantic",
-      description:
-        "Data validation and settings management using Python type annotations",
+      description: "Data validation and settings management using Python type annotations",
       icon: <SiPydantic className="w-8 h-8" />,
       color: "text-purple-400",
     },
-        {
+    {
       name: "SqlAdmin",
-      description:
-        "SQLAdmin is a flexible Admin interface for FastAPi - Starlette SQLAlchemy models",
+      description: "SQLAdmin is a flexible Admin interface for FastAPi - Starlette SQLAlchemy models",
       icon: <GrUserAdmin className="w-8 h-8" />,
       color: "text-purple-400",
     },
@@ -111,7 +109,7 @@ const AboutDev = () => {
           </div>
 
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
-            {/* Frontend Technologies */}
+            {/* Frontend */}
             <Card className="bg-gray-800 border-gray-700">
               <CardContent className="p-8">
                 <div className="flex items-center gap-3 mb-8">
@@ -139,7 +137,7 @@ const AboutDev = () => {
               </CardContent>
             </Card>
 
-            {/* Backend Technologies */}
+            {/* Backend */}
             <Card className="bg-gray-800 border-gray-700">
               <CardContent className="p-8">
                 <div className="flex items-center gap-3 mb-8">
@@ -170,7 +168,7 @@ const AboutDev = () => {
         </div>
       </section>
 
-      {/* Architecture Overview */}
+      {/* Architecture */}
       <section className="py-20 bg-gray-800">
         <div className="max-w-6xl mx-auto px-4">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
@@ -251,13 +249,10 @@ const AboutDev = () => {
       <section className="py-20 bg-gray-800">
         <div className="max-w-4xl mx-auto px-4 text-center">
           <h2 className="text-4xl font-bold mb-6 text-blue-400">
-            Built with Passion
+            Built with Passion and Curiosity for Web Development
           </h2>
           <p className="text-xl text-gray-300 leading-relaxed">
-            This application represents a commitment to modern web development
-            practices, clean code architecture, and exceptional user experience.
-            Every component has been carefully crafted to ensure reliability,
-            scalability, and maintainability.
+            If you would like to get in touch with  me , you can use the Contact form in Contact Page or simply click the Mail Icon In the Footer
           </p>
         </div>
       </section>

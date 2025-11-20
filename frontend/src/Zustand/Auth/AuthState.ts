@@ -2,7 +2,6 @@ import { create } from "zustand";
 import { persist, createJSONStorage } from "zustand/middleware";
 import type { UserRole } from "../../Types/User/UserTypes";
 
-// Define the shape of the user object
 export interface User {
   id: number;
   username: string;
@@ -17,7 +16,6 @@ export interface User {
   deleted_at?: string | null;
 }
 
-// Define the shape of the auth state
 export interface AuthState {
   user: User | null;
   accessToken: string | null;
@@ -40,8 +38,7 @@ export interface AuthState {
   clearError: () => void;
 }
 
-// Create the store with persistence
-export const useAuthStore =  create<AuthState>()(
+export const useAuthStore = create<AuthState>()(
   persist(
     (set, get) => ({
       user: null,
@@ -103,9 +100,7 @@ export const useAuthStore =  create<AuthState>()(
             throw new Error(errorData.detail || "Registration failed");
           }
 
-          // Backend doesn't return tokens on registration, just success message
-          // User needs to login after registration
-          await response.json(); // Consume the response
+          await response.json();
 
           set({
             isLoading: false,
@@ -123,7 +118,7 @@ export const useAuthStore =  create<AuthState>()(
 
       logout: () => {
 
-        // Clear the state
+        // Clear the state \\
         set({
           user: null,
           accessToken: null,
@@ -159,7 +154,7 @@ export const useAuthStore =  create<AuthState>()(
 
           return true;
         } catch (error) {
-          // If refresh fails, log the user out
+          // If refresh fails, log the user out \\
           console.error("Failed to refresh access token:", error);
           get().logout();
           return false;
@@ -177,8 +172,8 @@ export const useAuthStore =  create<AuthState>()(
       },
     }),
     {
-      name: "auth-storage", // name of the item in the storage (must be unique)
-      storage: createJSONStorage(() => localStorage), // (optional) by default, 'localStorage' is used
+      name: "auth-storage",
+      storage: createJSONStorage(() => localStorage),
       partialize: (state) => ({
         user: state.user,
         accessToken: state.accessToken,
@@ -189,7 +184,7 @@ export const useAuthStore =  create<AuthState>()(
   )
 );
 
-// Export hooks for convenience
+// Export hooks \\
 export const useUser = () => useAuthStore((state) => state.user);
 export const useIsAuthenticated = () =>
   useAuthStore((state) => state.isAuthenticated);

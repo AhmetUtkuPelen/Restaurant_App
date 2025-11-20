@@ -220,7 +220,7 @@ const UserSettings = () => {
               </CardHeader>
               <CardContent className="p-6 bg-white">
                 <div className="space-y-6">
-                  {/* Profile Picture Section */}
+                  {/* Profile Pic */}
                   <div className="flex items-center space-x-6">
                     <div className="relative">
                       <Avatar className="h-24 w-24 border-4 border-gray-200">

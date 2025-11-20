@@ -151,7 +151,7 @@ const UserReservations = () => {
   return (
     <div className="min-h-screen bg-gray-900 py-8">
       <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
-        {/* Header */}
+
         <div className="mb-8">
           <Link
             to="/"
@@ -179,7 +179,6 @@ const UserReservations = () => {
           </div>
         </div>
 
-        {/* Empty State */}
         {reservations.length === 0 ? (
           <Card className="bg-gray-800 border-gray-700">
             <CardContent className="p-12 text-center">
@@ -342,7 +341,7 @@ const UserReservations = () => {
           </div>
         )}
 
-        {/* Update Reservation Dialog */}
+        {/* Update Reservation */}
         {editingReservation && (
           <UpdateReservationDialog
             reservation={editingReservation}

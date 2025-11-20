@@ -1,15 +1,15 @@
-
 import { Link } from "react-router-dom";
-import { 
-  Facebook, 
-  Instagram, 
-  Twitter, 
+import {
+  Facebook,
+  Instagram,
+  Twitter,
   Youtube,
   MapPin,
   Phone,
   Mail,
   Clock
 } from "lucide-react";
+import { Popover, PopoverContent, PopoverTrigger } from "@/Components/ui/popover";
 import Logo from "../../assets/logo.png"
 
 const Footer = () => {
@@ -17,30 +17,30 @@ const Footer = () => {
   const currentYear = new Date().getFullYear();
 
   const socialLinks = [
-    { 
-      name: "Facebook", 
-      href: "https://github.com/AhmetUtkuPelen", 
+    {
+      name: "Facebook",
+      href: "https://github.com/AhmetUtkuPelen",
       icon: <Facebook className="w-5 h-5" />,
       color: "hover:text-blue-500"
     },
-    { 
-      name: "Instagram", 
-      href: "https://github.com/AhmetUtkuPelen", 
+    {
+      name: "Instagram",
+      href: "https://github.com/AhmetUtkuPelen",
       icon: <Instagram className="w-5 h-5" />,
       color: "hover:text-pink-500"
     },
-    { 
-      name: "Twitter", 
-      href: "https://github.com/AhmetUtkuPelen", 
+    {
+      name: "Twitter",
+      href: "https://github.com/AhmetUtkuPelen",
       icon: <Twitter className="w-5 h-5" />,
       color: "hover:text-blue-400"
     },
-    { 
-      name: "YouTube", 
-      href: "https://github.com/AhmetUtkuPelen", 
+    {
+      name: "YouTube",
+      href: "https://github.com/AhmetUtkuPelen",
       icon: <Youtube className="w-5 h-5" />,
       color: "hover:text-red-500"
-    },
+    }
   ];
 
   const quickLinks = [
@@ -52,14 +52,14 @@ const Footer = () => {
 
   return (
     <footer className="bg-gray-900 text-white">
-      {/* Main Footer Content */}
+      {/* Main Footer */}
       <div className="max-w-7xl mx-auto px-4 py-12">
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-5xl mx-auto">
           {/* Logo and Description */}
           <div className="text-center md:text-left">
             <Link to="/" className="flex items-center gap-3 mb-4 justify-center md:justify-start">
-              <img 
-                src={Logo} 
+              <img
+                src={Logo}
                 alt="Delicious Bites Logo"
                 className="w-12 h-12 rounded-lg"
               />
@@ -68,10 +68,10 @@ const Footer = () => {
               </div>
             </Link>
             <p className="text-gray-400 mb-4 leading-relaxed">
-              Bringing authentic flavors to your table since 1995. 
+              Bringing authentic flavors to your table since 1995.
               Experience the taste of tradition with every bite.
             </p>
-            {/* Social Media Links */}
+            {/* Social Links */}
             <div className="flex gap-4 justify-center md:justify-start">
               {socialLinks.map((social) => (
                 <a
@@ -85,6 +85,27 @@ const Footer = () => {
                   {social.icon}
                 </a>
               ))}
+
+              {/* Email Icon with Popover */}
+              <Popover>
+                <PopoverTrigger asChild>
+                  <button
+                    className="text-gray-400 hover:text-blue-400 transition-colors p-2 bg-gray-800 rounded-lg hover:bg-gray-700 cursor-pointer"
+                    aria-label="Email"
+                  >
+                    <Mail className="w-5 h-5" />
+                  </button>
+                </PopoverTrigger>
+                <PopoverContent
+                  className="w-auto bg-gray-800 border-gray-700 text-white"
+                  side="top"
+                  align="center"
+                >
+                  <div className="flex flex-col gap-2">
+                    <p className="text-sm text-gray-300">ahmetutkupelen@gmail.com</p>
+                  </div>
+                </PopoverContent>
+              </Popover>
             </div>
           </div>
 
@@ -94,7 +115,7 @@ const Footer = () => {
             <ul className="space-y-2">
               {quickLinks.map((link) => (
                 <li key={link.name}>
-                  <Link 
+                  <Link
                     to={link.href}
                     className="text-gray-400 hover:text-white transition-colors"
                   >
@@ -105,7 +126,7 @@ const Footer = () => {
             </ul>
           </div>
 
-          {/* Contact Information */}
+          {/* Contact Informations */}
           <div className="text-center md:text-left">
             <h4 className="text-lg font-semibold mb-4 text-blue-400">Contact Info</h4>
             <div className="space-y-3">

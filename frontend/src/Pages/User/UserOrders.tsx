@@ -22,8 +22,8 @@ const UserOrders = () => {
   const [cancellingOrderId, setCancellingOrderId] = useState<number | null>(null);
 
   const handleCancelOrder = async (orderId: number) => {
-    toast.warning("Are you sure you want to cancel this order?", {
-      description: "This action cannot be undone.",
+    toast.warning("Are you sure ?", {
+      description: "",
       action: {
         label: "Yes, Cancel Order",
         onClick: async () => {
@@ -128,7 +128,7 @@ const UserOrders = () => {
   return (
     <div className="min-h-screen bg-gray-900 py-8">
       <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
-        {/* Header */}
+
         <div className="mb-8">
           <Link
             to="/"
@@ -150,7 +150,6 @@ const UserOrders = () => {
           </div>
         </div>
 
-        {/* Empty State */}
         {orders.length === 0 ? (
           <Card className="bg-gray-800 border-gray-700">
             <CardContent className="p-12 text-center">
@@ -265,7 +264,7 @@ const UserOrders = () => {
           </div>
         )}
 
-        {/* Summary Stats */}
+        {/* Summary */}
         {orders.length > 0 && (
           <Card className="bg-gray-800 border-gray-700 mt-8">
             <CardContent className="p-6">

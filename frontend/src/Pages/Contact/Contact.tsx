@@ -77,13 +77,12 @@ const handleChange = (
     setIsSubmitting(true);
 
     try {
-      // Prepare data - send null for empty phone instead of empty string
       const submitData = {
         ...formData,
         phone: formData.phone.trim() === "" ? null : formData.phone,
       };
 
-      const res = await fetch("http://localhost:8000/api/contact", {
+      const res = await fetch(`${import.meta.env.VITE_API_URL}/contact`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(submitData),
@@ -96,7 +95,6 @@ const handleChange = (
           description: "We'll get back to you in 24 hours !",
         });
         
-        // Reset form
         setFormData({
           first_name: "",
           last_name: "",
@@ -106,25 +104,24 @@ const handleChange = (
           message: "",
         });
       } else {
-        let errorMessage = "Please try again later.";
+        let errorMessage = "Please try again later !";
         
         if (json.detail) {
           if (Array.isArray(json.detail)) {
-            // Pydantic validation errors
             errorMessage = json.detail.map((err: { msg: string }) => err.msg).join(", ");
           } else if (typeof json.detail === "string") {
             errorMessage = json.detail;
           }
         }
         
-        toast.error("Failed to send message", {
+        toast.error("Failed to send message !", {
           description: errorMessage,
         });
       }
     } catch (error) {
-      console.error("Contact form error:", error);
+      console.error("Contact form error : ", error);
       toast.error("Network error", {
-        description: "Please check your connection and try again.",
+        description: "Please check your connection and try again !",
       });
     } finally {
       setIsSubmitting(false);
@@ -133,19 +130,19 @@ const handleChange = (
 
   return (
     <div className="min-h-screen bg-gray-900 text-white">
-      {/* Hero Section */}
+
       <section className="relative py-20 bg-gradient-to-r from-gray-800 to-gray-900">
         <div className="max-w-4xl mx-auto px-4 text-center">
           <h1 className="text-5xl md:text-6xl font-bold mb-6 text-blue-400">
             Contact Us
           </h1>
           <p className="text-xl text-gray-300 leading-relaxed">
-            Get in touch with Delicious Bites - We'd love to hear from you!
+            Get in touch with Delicious Bites - We would love to hear from you!
           </p>
         </div>
       </section>
 
-      {/* Contact Information Cards */}
+      {/* Contact Info */}
       <section className="py-20 bg-gray-900">
         <div className="max-w-6xl mx-auto px-4">
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-16">
@@ -180,7 +177,7 @@ const handleChange = (
         </div>
       </section>
 
-      {/* Contact Form and Map Section */}
+      {/* Contact Form and Map */}
       <section className="py-20 bg-gray-800">
         <div className="max-w-6xl mx-auto px-4">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
@@ -309,14 +306,14 @@ const handleChange = (
               </form>
             </div>
 
-            {/* Map and Location Info */}
+            {/* Map */}
             <div>
               <div className="flex items-center gap-3 mb-8">
                 <Navigation className="w-8 h-8 text-blue-400" />
                 <h2 className="text-3xl font-bold text-blue-400">Find Us</h2>
               </div>
 
-              {/* Google Map */}
+              {/* Google Maps */}
               <div className="bg-gray-900 rounded-lg overflow-hidden mb-6">
                 <iframe
                   src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d50013.53788535637!2d27.12915445!3d38.42192095!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x14bbd8e2fece48eb%3A0xafa58b890c33632a!2zS29uYWsvxLB6bWly!5e0!3m2!1str!2str!4v1763569596688!5m2!1str!2str"
@@ -330,7 +327,6 @@ const handleChange = (
                 ></iframe>
               </div>
 
-              {/* Location Details */}
               <Card className="bg-gray-900 border-gray-700">
                 <CardContent className="p-6">
                   <h3 className="text-xl font-semibold mb-4 text-blue-400">

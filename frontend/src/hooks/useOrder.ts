@@ -2,38 +2,9 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { axiosInstance } from "@/Axios/Axios";
 import { useOrderStore } from "@/Zustand/Order/OrderState";
 import type { Order } from "@/Zustand/Order/OrderState";
+import type { CreateOrderRequest, OrderResponse } from "@/Types/Order/OrderTypes";
 
-// Types
-export interface CreateOrderRequest {
-  delivery_address?: string;
-  special_instructions?: string;
-}
-
-export interface OrderResponse {
-  message: string;
-  order: {
-    id: number;
-    user_id: number;
-    total_amount: number;
-    status: "pending" | "completed" | "cancelled";
-    delivery_address?: string;
-    special_instructions?: string;
-    created_at: string;
-    updated_at?: string;
-    completed_at?: string;
-    order_items: Array<{
-      id: number;
-      order_id: number;
-      product_id: number;
-      quantity: number;
-      unit_price: number;
-      subtotal: number;
-      created_at: string;
-    }>;
-  };
-}
-
-// Create order
+// Create order \\
 export const useCreateOrder = () => {
   const queryClient = useQueryClient();
   const { addOrder, clearCurrentOrder } = useOrderStore();
@@ -44,10 +15,9 @@ export const useCreateOrder = () => {
       return response.data;
     },
     onSuccess: (response) => {
-      // Convert backend response to Order format for store
       const order: Order = {
         id: response.order.id,
-        items: [], // Items will be fetched separately if needed
+        items: [],
         total_amount: response.order.total_amount,
         status: response.order.status,
         created_at: response.order.created_at,
@@ -60,7 +30,7 @@ export const useCreateOrder = () => {
   });
 };
 
-// Get user orders
+// Get user orders \\
 export const useMyOrders = () => {
   return useQuery({
     queryKey: ["orders", "my"],
@@ -87,7 +57,7 @@ export const useMyOrders = () => {
   });
 };
 
-// Get single order
+// Get single order \\
 export const useOrder = (orderId: number) => {
   return useQuery({
     queryKey: ["orders", orderId],
@@ -99,7 +69,7 @@ export const useOrder = (orderId: number) => {
   });
 };
 
-// Update order status
+// Update order status \\
 export const useUpdateOrderStatus = () => {
   const queryClient = useQueryClient();
   const { updateOrderStatus } = useOrderStore();
@@ -116,7 +86,7 @@ export const useUpdateOrderStatus = () => {
   });
 };
 
-// Cancel order
+// Cancel order \\
 export const useCancelOrder = () => {
   const queryClient = useQueryClient();
 

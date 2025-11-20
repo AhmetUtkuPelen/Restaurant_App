@@ -9,7 +9,7 @@ import type {
   ProductBaseRead,
 } from "@/Types/Product";
 
-// Dessert Hooks
+// Dessert Hooks \\
 export const useDesserts = () => {
   return useQuery({
     queryKey: ["desserts"],
@@ -31,7 +31,7 @@ export const useDessert = (id: number) => {
   });
 };
 
-// Doner Hooks
+// Doner Hooks \\
 export const useDoners = () => {
   return useQuery({
     queryKey: ["doners"],
@@ -53,7 +53,7 @@ export const useDoner = (id: number) => {
   });
 };
 
-// Drink Hooks
+// Drink Hooks \\
 export const useDrinks = () => {
   return useQuery({
     queryKey: ["drinks"],
@@ -75,7 +75,7 @@ export const useDrink = (id: number) => {
   });
 };
 
-// Kebab Hooks
+// Kebab Hooks \\
 export const useKebabs = () => {
   return useQuery({
     queryKey: ["kebabs"],
@@ -97,7 +97,7 @@ export const useKebab = (id: number) => {
   });
 };
 
-// Salad Hooks
+// Salad Hooks \\
 export const useSalads = () => {
   return useQuery({
     queryKey: ["salads"],
@@ -119,7 +119,7 @@ export const useSalad = (id: number) => {
   });
 };
 
-// All Products Hook
+// All Products Hook \\
 export const useAllProducts = () => {
   return useQuery({
     queryKey: ["products"],
@@ -143,12 +143,11 @@ export const useProduct = (id: number) => {
   });
 };
 
-// Front Page Products Hook - fetches products from all categories with is_front_page=true
+// Home - Landing Page  Products Hook - fetches products from all categories with is_front_page=true \\
 export const useFrontPageProducts = () => {
   return useQuery({
     queryKey: ["frontPageProducts"],
     queryFn: async () => {
-      // Fetch all product types and filter for front page items
       const [desserts, doners, drinks, kebabs, salads] = await Promise.all([
         axiosInstance.get<{ desserts: DessertRead[] }>("/desserts"),
         axiosInstance.get<{ doners: DonerRead[] }>("/doners"),
@@ -157,7 +156,6 @@ export const useFrontPageProducts = () => {
         axiosInstance.get<{ salads: SaladRead[] }>("/salads"),
       ]);
 
-      // Combine all products and filter for front page
       const allProducts: ProductBaseRead[] = [
         ...desserts.data.desserts,
         ...doners.data.doners,
@@ -166,7 +164,11 @@ export const useFrontPageProducts = () => {
         ...salads.data.salads,
       ];
 
-      return allProducts.filter((product) => product.is_front_page);
+      // Filter for front page products and shuffle them randomly
+      const frontPageProducts = allProducts.filter((product) => product.is_front_page);
+
+      // Shuffle the array to display products in random order
+      return frontPageProducts.sort(() => Math.random() - 0.5);
     },
   });
 };

@@ -1,22 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { axiosInstance } from "@/Axios/Axios";
-
-// Types
-export interface Table {
-  id: number;
-  table_number: string;
-  capacity: number;
-  location: string;
-  is_available: boolean;
-}
-
-export interface ReservationCreate {
-  table_id: number;
-  reservation_time: string;
-  number_of_guests: number;
-  special_requests?: string;
-}
-
+import type { ReservationCreate  } from "@/Types/Reservation/ReservationTypes";
+import type { Table } from "@/Types/Reservation/TableTypes";
 export interface Reservation {
   id: number;
   user_id: number;
@@ -29,7 +14,7 @@ export interface Reservation {
   updated_at: string;
 }
 
-// Fetch all available tables
+// Fetch all available tables \\
 export const useTables = () => {
   return useQuery({
     queryKey: ["tables"],
@@ -40,7 +25,7 @@ export const useTables = () => {
   });
 };
 
-// Fetch available tables by criteria
+// Fetch available tables by criteria \\
 export const useAvailableTables = (minCapacity?: number, location?: string) => {
   return useQuery({
     queryKey: ["tables", "available", minCapacity, location],
@@ -58,7 +43,7 @@ export const useAvailableTables = (minCapacity?: number, location?: string) => {
   });
 };
 
-// Create a new reservation
+// Create a new reservation \\
 export const useCreateReservation = () => {
   const queryClient = useQueryClient();
 
@@ -75,7 +60,7 @@ export const useCreateReservation = () => {
   });
 };
 
-// Fetch user's reservations
+// Fetch user's reservations \\
 export const useMyReservations = () => {
   return useQuery({
     queryKey: ["reservations", "my"],
@@ -86,7 +71,7 @@ export const useMyReservations = () => {
   });
 };
 
-// Update a reservation
+// Update a reservation \\
 export const useUpdateReservation = () => {
   const queryClient = useQueryClient();
 
@@ -103,7 +88,7 @@ export const useUpdateReservation = () => {
   });
 };
 
-// Cancel a reservation
+// Cancel a reservation \\
 export const useCancelReservation = () => {
   const queryClient = useQueryClient();
 

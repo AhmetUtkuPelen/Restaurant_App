@@ -18,20 +18,19 @@ import { useCartStore } from '@/Zustand/Cart/CartState'
 export const Cart = () => {
   const navigate = useNavigate()
 
-  // Cart data and functions from Zustand
+  // Cart related datas & functions from Zustand Store \\
   const cartItems = useCartStore((state) => state.items)
   const updateQuantity = useCartStore((state) => state.updateQuantity)
   const removeFromCart = useCartStore((state) => state.removeFromCart)
   const clearCart = useCartStore((state) => state.clearCart)
   const getTotalPrice = useCartStore((state) => state.getTotalPrice)
 
-  // Calculate totals
+  // Calculate totals \\
   const subtotal = getTotalPrice()
   const tax = subtotal * 0.08
-  const delivery = subtotal > 30 ? 0 : 4.99 // delivery is free over $30
+  const delivery = subtotal > 30 ? 0 : 4.99 // delivery is free over $30 \\
   const total = subtotal + tax + delivery
 
-  // Helper function to capitalize category
   const formatCategory = (category: string) => {
     return category.charAt(0).toUpperCase() + category.slice(1)
   }
@@ -39,7 +38,7 @@ export const Cart = () => {
   return (
     <div className="min-h-screen bg-slate-900 py-8">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        {/* Header */}
+
         <div className="mb-8">
           <Button
             variant="ghost"
@@ -144,7 +143,7 @@ export const Cart = () => {
                 )
               })}
 
-              {/* Clear Cart Button */}
+              {/* Clear Cart */}
               <Button
                 variant="outline"
                 onClick={clearCart}
@@ -158,7 +157,6 @@ export const Cart = () => {
             {/* Order Summary */}
             <div className="space-y-6">
 
-              {/* Order Summary */}
               <Card className="bg-slate-800 border-slate-700">
                 <CardHeader>
                   <CardTitle className="text-white">Order Summary</CardTitle>
@@ -223,4 +221,4 @@ export const Cart = () => {
       </div>
     </div>
   )
-}
+};

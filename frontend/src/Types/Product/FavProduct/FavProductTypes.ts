@@ -1,92 +1,101 @@
-// --- Base Types ---
-interface FavouriteProductBase {
-  /** User ID who favorited the product */
-  user_id: number;
-  /** Product ID that was favorited */
-  product_id: number;
-}
+// Base Types \\
+// interface FavouriteProductBase {
+//   user_id: number;
+//   product_id: number;
+// }
 
-// --- Create Schema ---
-interface FavouriteProductCreate {
-  /** Product ID to add to favorites */
-  product_id: number;
-  // user_id will come from authenticated user
-}
+// // Create Schema \\
+// interface FavouriteProductCreate {
+//   product_id: number;
+// }
 
-// --- Read Schema ---
-interface FavouriteProductRead extends FavouriteProductBase {
-  /** Unique favorite identifier */
+// // Read Schema \\
+// interface FavouriteProductRead extends FavouriteProductBase {
+//   id: number;
+//   created_at: string;
+//   updated_at?: string | null;
+// }
+
+// // In DB Schema \\
+// interface FavouriteProductInDB extends FavouriteProductRead {
+//   deleted_at?: string | null;
+// }
+
+// // Extended Response with Relations \\
+// interface FavouriteProductWithUser extends FavouriteProductRead {
+//   user?: {
+//     id: number;
+//     username: string;
+//     email: string;
+//   };
+// }
+
+// interface FavouriteProductWithProduct extends FavouriteProductRead {
+//   // Product information \\
+//   product?: {
+//     id: number;
+//     name: string;
+//     category: string;
+//     price: string;
+//     final_price: string;
+//     image_url: string;
+//     is_active: boolean;
+//   };
+// }
+
+// interface FavouriteProductWithRelations extends FavouriteProductRead {
+//   // User information \\
+//   user?: {
+//     id: number;
+//     username: string;
+//     email: string;
+//   };
+//   // Product information \\
+//   product?: {
+//     id: number;
+//     name: string;
+//     category: string;
+//     price: string;
+//     final_price: string;
+//     image_url: string;
+//     is_active: boolean;
+//   };
+// }
+
+// // User's Favorite Products List \\
+// interface UserFavoritesList {
+//   total: number;
+//   favorites: FavouriteProductWithProduct[];
+// }
+
+// export type {
+//   FavouriteProductBase,
+//   FavouriteProductCreate,
+//   FavouriteProductRead,
+//   FavouriteProductInDB,
+//   FavouriteProductWithUser,
+//   FavouriteProductWithProduct,
+//   FavouriteProductWithRelations,
+//   UserFavoritesList
+// };
+
+
+export interface FavouriteProduct {
   id: number;
-  /** Creation timestamp */
+  user_id: number;
+  product_id: number;
   created_at: string;
-  /** Last update timestamp */
-  updated_at?: string | null;
-}
-
-// --- In DB Schema ---
-interface FavouriteProductInDB extends FavouriteProductRead {
-  /** Deletion timestamp (if soft-deleted) */
-  deleted_at?: string | null;
-}
-
-// --- Extended Response with Relations ---
-interface FavouriteProductWithUser extends FavouriteProductRead {
-  /** User information */
-  user?: {
-    id: number;
-    username: string;
-    email: string;
-  };
-}
-
-interface FavouriteProductWithProduct extends FavouriteProductRead {
-  /** Product information */
-  product?: {
+  product: {
     id: number;
     name: string;
-    category: string;
     price: string;
     final_price: string;
     image_url: string;
-    is_active: boolean;
-  };
-}
-
-interface FavouriteProductWithRelations extends FavouriteProductRead {
-  /** User information */
-  user?: {
-    id: number;
-    username: string;
-    email: string;
-  };
-  /** Product information */
-  product?: {
-    id: number;
-    name: string;
     category: string;
-    price: string;
-    final_price: string;
-    image_url: string;
-    is_active: boolean;
+    description?: string;
   };
 }
 
-// --- User's Favorite Products List ---
-interface UserFavoritesList {
-  /** Total number of favorites */
-  total: number;
-  /** List of favorite products with details */
-  favorites: FavouriteProductWithProduct[];
+export interface FavouriteProductCreate {
+  product_id: number;
 }
-
-// Export all interfaces
-export type {
-  FavouriteProductBase,
-  FavouriteProductCreate,
-  FavouriteProductRead,
-  FavouriteProductInDB,
-  FavouriteProductWithUser,
-  FavouriteProductWithProduct,
-  FavouriteProductWithRelations,
-  UserFavoritesList
-};

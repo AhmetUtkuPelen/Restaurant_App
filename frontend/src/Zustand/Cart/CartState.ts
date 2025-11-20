@@ -33,7 +33,6 @@ export const useCartStore = create<CartState>()(
           );
 
           if (existingItem) {
-            // Update quantity if item already exists
             return {
               items: state.items.map((item) =>
                 item.id === product.id
@@ -43,7 +42,7 @@ export const useCartStore = create<CartState>()(
             };
           }
 
-          // Add new item
+          // Add new item \\
           return {
             items: [...state.items, { ...product, quantity }],
           };
@@ -87,15 +86,12 @@ export const useCartStore = create<CartState>()(
     }),
     {
       name: "cart-storage", // localStorage key
-      // Make cart user-specific by including user ID in storage key
       partialize: (state) => ({ items: state.items }),
     }
   )
 );
 
-// Subscribe to auth changes to clear cart on logout
 if (typeof window !== "undefined") {
-  // Import auth store dynamically to avoid circular dependencies
   import("../Auth/AuthState").then(({ useAuthStore }) => {
     let previousAuth = useAuthStore.getState().isAuthenticated;
     let previousUserId = useAuthStore.getState().user?.id;
@@ -104,12 +100,12 @@ if (typeof window !== "undefined") {
       const currentAuth = state.isAuthenticated;
       const currentUserId = state.user?.id;
 
-      // Clear cart when user logs out
+      // Clear cart when user logs out \\
       if (previousAuth && !currentAuth) {
         useCartStore.getState().clearCart();
       }
 
-      // Clear cart when switching users
+      // Clear cart when switching users \\
       if (previousUserId && currentUserId && previousUserId !== currentUserId) {
         useCartStore.getState().clearCart();
       }

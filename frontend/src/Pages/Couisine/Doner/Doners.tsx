@@ -81,8 +81,8 @@ const Doners = () => {
      image_url: string;
    }, category: string) => {
      if (!isAuthenticated) {
-       toast.error("Please login to add items to cart", {
-         description: "You need to be logged in to add items to your cart.",
+       toast.error("Please login to add items to cart !", {
+         description: "You need to be logged in to add items to your cart !",
          action: {
            label: "Login",
            onClick: () => navigate("/login"),
@@ -107,7 +107,7 @@ const Doners = () => {
 
   return (
     <div className="min-h-screen bg-gray-900 text-white">
-      {/* Hero Section */}
+
       <section className="relative py-20 bg-gradient-to-r from-gray-800 to-gray-900">
         <div className="max-w-6xl mx-auto px-4 text-center">
           <div className="flex items-center justify-center gap-3 mb-6">
@@ -119,11 +119,10 @@ const Doners = () => {
         </div>
       </section>
 
-      {/* Filters and Search */}
+      {/* Search */}
       <section className="py-8 bg-gray-800 border-b border-gray-700">
         <div className="max-w-6xl mx-auto px-4">
           <div className="flex flex-col md:flex-row gap-4 items-center justify-between">
-            {/* Search */}
             <div className="relative flex-1 max-w-md">
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
               <Input
@@ -135,7 +134,7 @@ const Doners = () => {
               />
             </div>
 
-            {/* Sort and View Controls */}
+            {/* Sort and View */}
             <div className="flex items-center gap-4">
 
               <div className="flex border border-gray-600 rounded-lg overflow-hidden">

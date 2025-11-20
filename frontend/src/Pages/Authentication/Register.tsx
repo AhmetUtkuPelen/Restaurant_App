@@ -55,13 +55,13 @@ const Register = () => {
       });
       
       setRegistrationSuccess(true);
-      // User goes to login after 2 seconds
+      // semd User to the Login after 2 secs waiting \\
       setTimeout(() => {
         navigate('/login');
       }, 2000);
     } catch (error) {
-      toast.error("Registration failed. Please try again.");
-      console.error("Registration failed:", error);
+      toast.error("Registration failed. Please try again !");
+      console.error("Registration failed : ", error);
     }
   };
 
@@ -72,7 +72,7 @@ const Register = () => {
       [name]: value,
     });
 
-    // Check password strength
+    // Password strength \\
     if (name === "password") {
       setPasswordStrength({
         length: value.length >= 8,
@@ -96,7 +96,7 @@ const Register = () => {
   return (
     <div className="min-h-screen bg-gray-900 flex items-center justify-center px-4 py-8">
       <div className="max-w-md w-full space-y-8">
-        {/* Header */}
+
         <div className="text-center">
           <Link to="/" className="inline-flex items-center gap-3 mb-8">
             <div>
@@ -111,30 +111,29 @@ const Register = () => {
               Create Account
             </h2>
             <p className="text-gray-400">
-              Join and start your journey
+              Join and start your journey with us
             </p>
           </div>
         </div>
 
-        {/* Registration Form */}
+        {/* Register Form */}
         <Card className="bg-gray-800 border-gray-700 shadow-xl">
           <CardContent>
             <form onSubmit={handleSubmit} className="space-y-6">
-              {/* Success Message */}
+
               {registrationSuccess && (
                 <div className="bg-green-900/50 border border-green-500 text-green-200 px-4 py-3 rounded">
                   Registration successful! Redirecting to login...
                 </div>
               )}
 
-              {/* Error Message */}
               {error && (
                 <div className="bg-red-900/50 border border-red-500 text-red-200 px-4 py-3 rounded">
                   {error}
                 </div>
               )}
 
-              {/* Username Field */}
+              {/* Username */}
               <div className="space-y-2">
                 <Label htmlFor="username" className="text-gray-300">
                   Username
@@ -156,7 +155,7 @@ const Register = () => {
                 </div>
               </div>
 
-              {/* Email Field */}
+              {/* Email */}
               <div className="space-y-2">
                 <Label htmlFor="email" className="text-gray-300">
                   Email Address
@@ -178,7 +177,7 @@ const Register = () => {
                 </div>
               </div>
 
-              {/* Password Field */}
+              {/* Password */}
               <div className="space-y-2">
                 <Label htmlFor="password" className="text-gray-300">
                   Password
@@ -210,7 +209,7 @@ const Register = () => {
                   </button>
                 </div>
 
-                {/* Password Strength Indicator */}
+                {/* Password Strength */}
                 {formData.password && (
                   <div className="mt-2 space-y-1">
                     <div className="flex items-center gap-2 text-xs">
@@ -265,7 +264,7 @@ const Register = () => {
                 )}
               </div>
 
-              {/* Phone Field */}
+              {/* Phone */}
               <div className="space-y-2">
                 <Label htmlFor="phone" className="text-gray-300">
                   Phone Number (Optional)
@@ -286,7 +285,7 @@ const Register = () => {
                 </div>
               </div>
 
-              {/* Address Field */}
+              {/* Address */}
               <div className="space-y-2">
                 <Label htmlFor="address" className="text-gray-300">
                   Address
@@ -308,7 +307,7 @@ const Register = () => {
                 </div>
               </div>
 
-              {/* Terms and Conditions */}
+              {/* Terms */}
               <div className="flex items-start space-x-2">
                 <Checkbox
                   id="terms"
@@ -326,7 +325,7 @@ const Register = () => {
                 </Label>
               </div>
 
-              {/* Submit Button */}
+              {/* Submit */}
               <Button
                 type="submit"
                 disabled={!isFormValid || isLoading}
@@ -344,7 +343,7 @@ const Register = () => {
           </CardContent>
         </Card>
 
-        {/* Sign In Link */}
+        {/* Login Link */}
         <div className="text-center">
           <p className="text-gray-400">
             Already have an account?{" "}

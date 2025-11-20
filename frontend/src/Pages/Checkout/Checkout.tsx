@@ -48,14 +48,14 @@ const Checkout = () => {
       }));
 
       createOrder(orderItems);
-      // Clear cart first from back end
+
       try {
-        await axiosInstance.delete("/cart/clear");
+        await axiosInstance.delete("/cart/clear"); // clear cart from back end datavase \\
       } catch {
-        // Ignore if cart doesnt exist
+        console.error("Failed to clear cart from backend")
       }
 
-      // Add all items to back end cart
+      // Add all items into back end cart \\
       for (const item of items) {
         await axiosInstance.post("/cart/items", {
           product_id: item.id,
@@ -63,14 +63,13 @@ const Checkout = () => {
         });
       }
 
-      // Now create order from backend cart
       const result = await createOrderMutation.mutateAsync({});
 
       setOrderId(result.order.id);
       setStep("payment");
     } catch (error) {
-      console.error("Failed to create order:", error);
       alert("Failed to create order. Please try again.");
+      console.error("Failed to create order:", error);
     }
   };
 
@@ -144,7 +143,7 @@ const Checkout = () => {
   return (
     <div className="min-h-screen bg-gray-50 py-8">
       <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
-        {/* Header */}
+
         <div className="mb-8">
           <button
             onClick={() =>
@@ -214,7 +213,7 @@ const Checkout = () => {
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          {/* Main Content */}
+          {/* Main */}
           <div className="lg:col-span-2">
             {step === "review" && (
               <Card>
@@ -321,8 +320,7 @@ const Checkout = () => {
                       <div className="text-sm text-blue-800">
                         <p className="font-medium">Secure Checkout</p>
                         <p>
-                          Your payment information is protected with SSL
-                          encryption.
+                          Your payment information is protected
                         </p>
                       </div>
                     </div>

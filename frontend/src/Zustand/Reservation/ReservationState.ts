@@ -25,22 +25,22 @@ export const useReservationFormStore = create<ReservationFormState>((set) => ({
   tableId: null,
   specialRequests: "",
   currentStep: 1,
-  
+
   setDate: (date) => set({ date }),
   setTime: (time) => set({ time }),
   setGuests: (guests) => set({ guests }),
   setTableId: (tableId) => set({ tableId }),
   setSpecialRequests: (specialRequests) => set({ specialRequests }),
   setCurrentStep: (currentStep) => set({ currentStep }),
-  
-  nextStep: () => set((state) => ({ 
-    currentStep: Math.min(state.currentStep + 1, 4) 
+
+  nextStep: () => set((state) => ({
+    currentStep: Math.min(state.currentStep + 1, 4)
   })),
-  
-  prevStep: () => set((state) => ({ 
-    currentStep: Math.max(state.currentStep - 1, 1) 
+
+  prevStep: () => set((state) => ({
+    currentStep: Math.max(state.currentStep - 1, 1)
   })),
-  
+
   resetForm: () => set({
     date: "",
     time: "",

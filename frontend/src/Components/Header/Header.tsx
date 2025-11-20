@@ -29,10 +29,10 @@ const Header = () => {
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
   const [isMenuDropdownOpen, setIsMenuDropdownOpen] = useState(false);
 
-  // Cart total items
+  // Cart total items \\
   const totalItems = useCartStore((state) => state.getTotalItems());
 
-  // Authentication state
+  // Authentication state \\
   const isAuthenticated = useAuthStore((state) => state.isAuthenticated);
   const user = useAuthStore((state) => state.user);
   const logout = useAuthStore((state) => state.logout);
@@ -156,7 +156,7 @@ const Header = () => {
 
           {/* Right Side */}
           <div className="flex items-center gap-4">
-            {/* Show Cart and User Menu if authenticated */}
+            {/* Cart and User Menu if User is authenticated */}
             {isAuthenticated ? (
               <>
                 {/* Cart */}
@@ -234,7 +234,7 @@ const Header = () => {
               </>
             ) : (
               <>
-                {/* Login and Register buttons for non-authenticated users */}
+                {/* Login and Register for non-authenticated User */}
                 <Link to="/login">
                   <Button
                     variant="ghost"
@@ -353,7 +353,7 @@ const Header = () => {
                   </>
                 ) : (
                   <>
-                    {/* Login and Register for non-authenticated users */}
+                    {/* Login and Register for non-authenticated User */}
                 <Link to="/login">
                   <Button
                     variant="ghost"
@@ -377,7 +377,7 @@ const Header = () => {
         )}
       </div>
 
-      {/* Click outside to close dropdowns */}
+      {/* Click outside to close dropdown */}
       {(isUserMenuOpen || isMenuOpen) && (
         <div
           className="fixed inset-0 z-40"

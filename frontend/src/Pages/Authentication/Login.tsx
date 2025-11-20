@@ -23,12 +23,10 @@ const Login = () => {
 
     try {
       await login(formData.username, formData.password);
-
-      // Redirect to the page they were trying to access, or profile
       const from = location.state?.from?.pathname || "/profile";
       navigate(from, { replace: true });
     } catch (error) {
-      console.error("Login failed:", error);
+      console.error("Login failed : ", error);
     }
   };
 
@@ -42,7 +40,7 @@ const Login = () => {
   return (
     <div className="min-h-screen bg-gray-900 flex items-center justify-center px-4">
       <div className="max-w-md w-full space-y-8">
-        {/* Header */}
+
         <div className="text-center">
           <Link to="/" className="inline-flex items-center gap-3 mb-8">
             <div>
@@ -62,14 +60,14 @@ const Login = () => {
         <Card className="bg-gray-800 border-gray-700 shadow-xl">
           <CardContent>
             <form onSubmit={handleSubmit} className="space-y-6">
-              {/* Error Message */}
+
               {error && (
                 <div className="bg-red-900/50 border border-red-500 text-red-200 px-4 py-3 rounded">
                   {error}
                 </div>
               )}
 
-              {/* Username Field */}
+              {/* Username */}
               <div className="space-y-2">
                 <Label htmlFor="username" className="text-gray-300">
                   Username
@@ -91,7 +89,7 @@ const Login = () => {
                 </div>
               </div>
 
-              {/* Password Field */}
+              {/* Password */}
               <div className="space-y-2">
                 <Label htmlFor="password" className="text-gray-300">
                   Password
@@ -124,7 +122,7 @@ const Login = () => {
                 </div>
               </div>
 
-              {/* Submit Button */}
+              {/* Submit */}
               <Button
                 type="submit"
                 disabled={isLoading}
@@ -137,7 +135,7 @@ const Login = () => {
           </CardContent>
         </Card>
 
-        {/* Sign Up Link */}
+        {/* Register Link */}
         <div className="text-center">
           <p className="text-gray-400">
             Don't have an account?{" "}

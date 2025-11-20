@@ -33,18 +33,18 @@ const Desserts = () => {
   const removeFavouriteMutation = useRemoveFavourite();
   const addToCart = useCartStore((state) => state.addToCart);
 
-  // Check if a product is in favourites
+  // Check if a product is in favourites or not \\
   const isFavourite = (productId: number) => {
     return favouritesData.some(fav => fav.product_id === productId);
   };
 
-  // Get favourite ID for a product
+  // Get favourite ID for a product \\
   const getFavouriteId = (productId: number) => {
     const fav = favouritesData.find(fav => fav.product_id === productId);
     return fav?.id;
   };
 
-  // Toggle favourite
+  // Toggle favourite \\
   const handleToggleFavourite = async (productId: number) => {
     try {
       if (isFavourite(productId)) {
@@ -75,8 +75,8 @@ const Desserts = () => {
      image_url: string;
    }, category: string) => {
      if (!isAuthenticated) {
-       toast.error("Please login to add items to cart", {
-         description: "You need to be logged in to add items to your cart.",
+       toast.error("Please login to add items to cart !", {
+         description: "You need to be logged in to add items to your cart !",
          action: {
            label: "Login",
            onClick: () => navigate("/login"),
@@ -101,7 +101,7 @@ const Desserts = () => {
 
   return (
     <div className="min-h-screen bg-gray-900 text-white">
-      {/* Hero Section */}
+
       <section className="relative py-20 bg-gradient-to-r from-gray-800 to-gray-900">
         <div className="max-w-6xl mx-auto px-4 text-center">
           <div className="flex items-center justify-center gap-3 mb-6">
@@ -113,11 +113,10 @@ const Desserts = () => {
         </div>
       </section>
 
-      {/* Filters and Search */}
+      {/* Search */}
       <section className="py-8 bg-gray-800 border-b border-gray-700">
         <div className="max-w-6xl mx-auto px-4">
           <div className="flex flex-col md:flex-row gap-4 items-center justify-between">
-            {/* Search */}
             <div className="relative flex-1 max-w-md">
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
               <Input
@@ -129,7 +128,7 @@ const Desserts = () => {
               />
             </div>
 
-            {/* Sort and View Controls */}
+            {/* Sort and View */}
             <div className="flex items-center gap-4">
 
               <div className="flex border border-gray-600 rounded-lg overflow-hidden">
@@ -154,21 +153,19 @@ const Desserts = () => {
       {/* Products Grid/List */}
       <section className="py-12 bg-gray-900">
         <div className="max-w-6xl mx-auto px-4">
-          {/* Loading State */}
+
           {isLoading && (
             <div className="flex justify-center items-center py-20">
               <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-400"></div>
             </div>
           )}
 
-          {/* Error State */}
           {error && (
             <div className="bg-red-900/50 border border-red-500 text-red-200 px-4 py-3 rounded mb-6">
               {error instanceof Error ? error.message : "Failed to load desserts"}
             </div>
           )}
 
-          {/* Empty State */}
           {!isLoading && !error && filteredDesserts.length === 0 && (
             <div className="text-center py-20">
               <p className="text-gray-400 text-lg">No desserts found</p>

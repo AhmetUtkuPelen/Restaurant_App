@@ -61,10 +61,9 @@ const Reservation = () => {
   const [confirmationNumber, setConfirmationNumber] = useState("");
   const [reservationId, setReservationId] = useState<number | null>(null);
 
-  // Fixed reservation fee
-  const RESERVATION_FEE = 50; // ₺50 reservation fee
+  // Fixed reservation fee , in back end it was hardcoded as 50 \\
+  const RESERVATION_FEE = 50;
 
-  // Helper function to format location
   const formatLocation = (location: string) => {
     const locationMap: Record<string, string> = {
       window: "Window Side",
@@ -74,7 +73,6 @@ const Reservation = () => {
     return locationMap[location] || location;
   };
 
-  // Helper function to get table image based on location
   const getTableImage = (location: string) => {
     const imageMap: Record<string, string> = {
       window:
@@ -87,7 +85,7 @@ const Reservation = () => {
     return imageMap[location] || imageMap.main_dining_room;
   };
 
-  // Available time slots
+  // Available time slots \\
   const timeSlots = [
     "11:00 AM",
     "11:30 AM",
@@ -129,7 +127,7 @@ const Reservation = () => {
     }
   };
 
-  // Helper function to convert 12-hour time to 24-hour format
+  // Helper function to convert 12-hour time to 24-hour time format \\
   const convertTo24Hour = (time12h: string) => {
     const [time, modifier] = time12h.split(" ");
     const [hoursStr, minutes] = time.split(":");
@@ -137,13 +135,12 @@ const Reservation = () => {
 
     if (modifier === "AM") {
       if (hours === 12) {
-        hours = 0; // 12 AM is 00:00
+        hours = 0;
       }
     } else if (modifier === "PM") {
       if (hours !== 12) {
-        hours += 12; // 1 PM is 13:00, 2 PM is 14:00, etc.
+        hours += 12;
       }
-      // 12 PM stays as 12
     }
 
     return `${hours.toString().padStart(2, "0")}:${minutes}`;
@@ -153,10 +150,8 @@ const Reservation = () => {
     if (!reservationData.tableId) return;
 
     try {
-      // Convert 12-hour time to 24-hour format
       const time24h = convertTo24Hour(reservationData.time);
 
-      // Combine date and time into ISO datetime string (without timezone conversion)
       const reservationDateTime = `${reservationData.date}T${time24h}:00`;
 
       const result = await createReservation.mutateAsync({
@@ -167,9 +162,9 @@ const Reservation = () => {
       });
 
       setReservationId(result.reservation.id);
-      setCurrentStep(3); // Move to payment step
+      setCurrentStep(3);
     } catch (error) {
-      toast.error("Failed to create Reservation. Please try again")
+      toast.error("Failed to create Reservation. Please try again !")
       console.error("Failed to create reservation:", error);
     }
   };
@@ -209,7 +204,6 @@ const Reservation = () => {
     }
   };
 
-  // Loading state
   if (tablesLoading) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
@@ -218,7 +212,6 @@ const Reservation = () => {
     );
   }
 
-  // Error state
   if (tablesError) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
@@ -240,7 +233,7 @@ const Reservation = () => {
     );
   }
 
-  // Success state
+  // Success state \\
   if (reservationSuccess) {
     return (
       <div className="min-h-screen bg-gray-50 py-8">
@@ -312,7 +305,7 @@ const Reservation = () => {
   return (
     <div className="min-h-screen bg-gray-50 py-8">
       <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
-        {/* Header */}
+ 
         <div className="text-center mb-8">
           <h1 className="text-4xl font-bold text-gray-900 mb-4">
             Make a Reservation

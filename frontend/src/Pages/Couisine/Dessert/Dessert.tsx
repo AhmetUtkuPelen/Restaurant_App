@@ -44,8 +44,8 @@ const Dessert = () => {
 
   const handleAddToCart = () => {
     if (!isAuthenticated) {
-      toast.error("Please login to add items to cart", {
-        description: "You need to be logged in to add items to your cart.",
+      toast.error("Please login to add items to cart !", {
+        description: "You need to be logged in to add items to your cart !",
         action: {
           label: "Login",
           onClick: () => navigate("/login"),
@@ -102,7 +102,6 @@ const Dessert = () => {
 
   return (
     <div className="min-h-screen bg-gray-900 text-white">
-      {/* Breadcrumb */}
       <div className="bg-gray-800 py-4">
         <div className="max-w-6xl mx-auto px-4">
           <div className="flex items-center gap-2 text-sm">
@@ -120,7 +119,7 @@ const Dessert = () => {
       </div>
 
       <div className="max-w-6xl mx-auto px-4 py-8">
-        {/* Back Button */}
+        {/* Back */}
         <Link
           to="/desserts"
           className="inline-flex items-center gap-2 text-gray-400 hover:text-blue-400 mb-6 transition-colors"
@@ -130,7 +129,7 @@ const Dessert = () => {
         </Link>
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
-          {/* Product Image */}
+          {/* Product Img */}
           <div>
             <div className="relative">
               <img
@@ -235,7 +234,7 @@ const Dessert = () => {
               )}
             </div>
 
-            {/* Quick Info */}
+            {/* Info */}
             <div className="grid grid-cols-3 gap-4 mb-6">
               <div className="flex items-center gap-2 text-gray-400">
                 <Clock className="w-5 h-5 text-blue-400" />
@@ -289,7 +288,7 @@ const Dessert = () => {
               </Button>
             </div>
 
-            {/* Add to Favorites Button */}
+            {/* Add to Favorites */}
             <Button
               variant="outline"
               onClick={async () => {

@@ -33,12 +33,12 @@ const CommentSection = ({ productId }: CommentSectionProps) => {
 
   const handleSubmitComment = async () => {
     if (!newComment.trim()) {
-      toast.error("Please enter a comment");
+      toast.error("Please enter a Comment !");
       return;
     }
 
     if (!user) {
-      toast.error("Please login to comment");
+      toast.error("Please Login to Comment !");
       return;
     }
 
@@ -50,10 +50,10 @@ const CommentSection = ({ productId }: CommentSectionProps) => {
       });
       setNewComment("");
       setNewRating(0);
-      toast.success("Comment posted successfully");
+      toast.success("Comment posted successfully !");
     } catch (err) {
       const error = err as { response?: { data?: { detail?: string } } };
-      toast.error(error?.response?.data?.detail || "Failed to post comment");
+      toast.error(error?.response?.data?.detail || "Failed to post comment !");
     }
   };
 
@@ -65,7 +65,7 @@ const CommentSection = ({ productId }: CommentSectionProps) => {
 
   const handleUpdateComment = async (commentId: number) => {
     if (!editContent.trim()) {
-      toast.error("Please enter a comment");
+      toast.error("Please enter a Comment !");
       return;
     }
 
@@ -80,25 +80,37 @@ const CommentSection = ({ productId }: CommentSectionProps) => {
       setEditingCommentId(null);
       setEditContent("");
       setEditRating(0);
-      toast.success("Comment updated successfully");
+      toast.success("Comment updated successfully !");
     } catch (err) {
       const error = err as { response?: { data?: { detail?: string } } };
-      toast.error(error?.response?.data?.detail || "Failed to update comment");
+      toast.error(error?.response?.data?.detail || "Failed to update Comment !");
     }
   };
 
   const handleDeleteComment = async (commentId: number) => {
-    if (!confirm("Are you sure you want to delete this comment?")) {
-      return;
-    }
-
-    try {
-      await deleteCommentMutation.mutateAsync(commentId);
-      toast.success("Comment deleted successfully");
-    } catch (err) {
-      const error = err as { response?: { data?: { detail?: string } } };
-      toast.error(error?.response?.data?.detail || "Failed to delete comment");
-    }
+    toast.warning("Are you sure?", {
+      description: "",
+      action: {
+        label: "Yes, Delete Comment",
+        onClick: async () => {
+          try {
+            await deleteCommentMutation.mutateAsync(commentId);
+            toast.success("Comment deleted successfully", {
+              description: `Comment #${commentId} has been deleted.`,
+            });
+          } catch (err) {
+            const error = err as { response?: { data?: { detail?: string } } };
+            toast.error(error?.response?.data?.detail || "Failed to delete comment !");
+          }
+        },
+      },
+      cancel: {
+        label: "Keep Comment",
+        onClick: () => {
+          toast.info("Comment deletion cancelled");
+        },
+      },
+    });
   };
 
   const renderStars = (rating: number, interactive: boolean, onRate?: (rating: number) => void) => {
@@ -113,11 +125,10 @@ const CommentSection = ({ productId }: CommentSectionProps) => {
             className={`${interactive ? "cursor-pointer hover:scale-110" : "cursor-default"} transition-transform`}
           >
             <Star
-              className={`w-5 h-5 ${
-                star <= rating
+              className={`w-5 h-5 ${star <= rating
                   ? "text-yellow-400 fill-current"
                   : "text-gray-600"
-              }`}
+                }`}
             />
           </button>
         ))}
@@ -134,7 +145,7 @@ const CommentSection = ({ productId }: CommentSectionProps) => {
         day: "numeric",
       });
     } catch {
-      return "Invalid date";
+      return "Invalid date format";
     }
   };
 
@@ -174,7 +185,7 @@ const CommentSection = ({ productId }: CommentSectionProps) => {
         </div>
       </div>
 
-      {/* Add Comment Form */}
+      {/* Add Comment */}
       {user ? (
         <Card className="bg-gray-800 border-gray-700 mb-8">
           <CardContent className="p-6">
@@ -222,11 +233,11 @@ const CommentSection = ({ productId }: CommentSectionProps) => {
         <Card className="bg-gray-800 border-gray-700 mb-8">
           <CardContent className="p-6 text-center">
             <p className="text-gray-400 mb-4">Please login to write a review</p>
-          <Link to={`/login`}>
-            <Button className="bg-blue-600 hover:bg-blue-700 text-white cursor-pointer">
-              Login
-            </Button>
-          </Link>
+            <Link to={`/login`}>
+              <Button className="bg-blue-600 hover:bg-blue-700 text-white cursor-pointer">
+                Login
+              </Button>
+            </Link>
           </CardContent>
         </Card>
       )}
@@ -245,7 +256,7 @@ const CommentSection = ({ productId }: CommentSectionProps) => {
             <Card key={comment.id} className="bg-gray-800 border-gray-700">
               <CardContent className="p-6">
                 {editingCommentId === comment.id ? (
-                  // Edit Mode
+                  // Edit Mode \\
                   <div className="space-y-4">
                     <div>
                       <label className="text-sm text-gray-400 mb-2 block">
@@ -288,7 +299,7 @@ const CommentSection = ({ productId }: CommentSectionProps) => {
                     </div>
                   </div>
                 ) : (
-                  // View Mode
+                  // View Mode \\
                   <>
                     <div className="flex items-start justify-between mb-4">
                       <div className="flex items-start gap-3">

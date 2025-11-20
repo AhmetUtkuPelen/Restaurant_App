@@ -36,24 +36,24 @@ export const UpdateReservationDialog = ({
     specialRequests: reservation.special_requests || "",
   });
 
-  // Helper function to convert 24-hour time to 12-hour format
+  // Helper for converting 24-hour time to 12-hour time format \\
   const convertTo12Hour = (time24h: string) => {
     const [hoursStr, minutes] = time24h.split(":");
     let hours = parseInt(hoursStr, 10);
     const ampm = hours >= 12 ? "PM" : "AM";
     
     hours = hours % 12;
-    hours = hours ? hours : 12; // 0 should be 12
+    hours = hours ? hours : 12;
     
     return `${hours}:${minutes} ${ampm}`;
   };
 
-  // Initialize form data when reservation changes
+  // Initialize form data if reservation changes \\
   useEffect(() => {
     if (reservation) {
       const reservationDate = new Date(reservation.reservation_time);
       const dateStr = reservationDate.toISOString().split("T")[0];
-      const timeStr = reservationDate.toTimeString().slice(0, 5); // Gets "HH:MM" in 24-hour format
+      const timeStr = reservationDate.toTimeString().slice(0, 5);
       const time12h = convertTo12Hour(timeStr);
 
       setFormData({
@@ -66,7 +66,7 @@ export const UpdateReservationDialog = ({
     }
   }, [reservation]);
 
-  // Helper function to convert 12-hour time to 24-hour format
+  // Helper function for converting 12-hour time to 24-hour time format
   const convertTo24Hour = (time12h: string) => {
     const [time, modifier] = time12h.split(" ");
     const [hoursStr, minutes] = time.split(":");
@@ -74,13 +74,12 @@ export const UpdateReservationDialog = ({
 
     if (modifier === "AM") {
       if (hours === 12) {
-        hours = 0; // 12 AM is 00:00
+        hours = 0;
       }
     } else if (modifier === "PM") {
       if (hours !== 12) {
-        hours += 12; // 1 PM is 13:00, 2 PM is 14:00, etc.
+        hours += 12;
       }
-      // 12 PM stays as 12
     }
 
     return `${hours.toString().padStart(2, "0")}:${minutes}`;
@@ -95,13 +94,13 @@ export const UpdateReservationDialog = ({
     }
 
     try {
-      // Convert 12-hour time to 24-hour format
+      // Convert 12-hour time to 24-hour time format \\
       const time24h = convertTo24Hour(formData.time);
       const reservationDateTime = `${formData.date}T${time24h}:00`;
       
       const updateData: Record<string, string | number | null> = {};
       
-      // Only include changed fields
+      // include changed fields only \\
       if (reservationDateTime !== reservation.reservation_time) {
         updateData.reservation_time = reservationDateTime;
       }
@@ -118,9 +117,9 @@ export const UpdateReservationDialog = ({
         updateData.special_requests = formData.specialRequests || null;
       }
 
-      // If nothing changed
+      // If nothing changed \\
       if (Object.keys(updateData).length === 0) {
-        toast.info("No changes detected");
+        toast.info("No changes detected !");
         onOpenChange(false);
         return;
       }
@@ -130,7 +129,7 @@ export const UpdateReservationDialog = ({
         data: updateData,
       });
 
-      toast.success("Reservation updated successfully!");
+      toast.success("Reservation updated successfully !");
       onOpenChange(false);
     } catch (err) {
       const error = err as { response?: { data?: { detail?: string } } };
@@ -205,7 +204,7 @@ export const UpdateReservationDialog = ({
             </select>
           </div>
 
-          {/* Number of Guests */}
+          {/* Guests number */}
           <div className="space-y-2">
             <Label htmlFor="guests" className="text-gray-300 flex items-center gap-2">
               <Users className="w-4 h-4 text-purple-400" />
@@ -225,7 +224,7 @@ export const UpdateReservationDialog = ({
             />
           </div>
 
-          {/* Table Selection */}
+          {/* Table Select */}
           <div className="space-y-2">
             <Label htmlFor="table" className="text-gray-300">
               Table

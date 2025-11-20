@@ -1,39 +1,8 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { axiosInstance } from "@/Axios/Axios";
+import type { ChangePasswordData, UpdateProfileData, UserProfile } from "@/Types/User/UserTypes";
 
-// Types
-export interface UserProfile {
-  id: number;
-  username: string;
-  email: string;
-  image_url: string | null;
-  phone: string | null;
-  address: string | null;
-  role: string;
-  is_active: boolean;
-  created_at: string;
-  favourite_products: number[];
-  orders: number[];
-  comments: number[];
-  cart: Record<string, unknown> | null;
-  reservations: number[];
-  payments: number[];
-}
-
-export interface UpdateProfileData {
-  username?: string;
-  email?: string;
-  image_url?: string;
-  phone?: string;
-  address?: string;
-}
-
-export interface ChangePasswordData {
-  current_password: string;
-  new_password: string;
-}
-
-// Get current user profile
+// Get current user profile \\
 export const useUserProfile = () => {
   return useQuery({
     queryKey: ["user", "profile"],
@@ -44,7 +13,7 @@ export const useUserProfile = () => {
   });
 };
 
-// Update user profile
+// Update user profile \\
 export const useUpdateProfile = () => {
   const queryClient = useQueryClient();
 
@@ -59,7 +28,7 @@ export const useUpdateProfile = () => {
   });
 };
 
-// Change password
+// Change password \\
 export const useChangePassword = () => {
   return useMutation({
     mutationFn: async (data: ChangePasswordData) => {

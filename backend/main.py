@@ -4,6 +4,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from starlette.responses import RedirectResponse
 from Database.Database import init_db, engine, sync_engine
 from contextlib import asynccontextmanager
+
 import os
 from dotenv import load_dotenv
 
@@ -13,12 +14,21 @@ from slowapi.errors import RateLimitExceeded
 from slowapi import _rate_limit_exceeded_handler
 
 
+from fastapi.responses import HTMLResponse
 
-### ADMIN DASHBOARD FOR MODELS ###
+
+#### SQLADMIN ADMIN DASHBOARD AUTHENTICATION ####
+from Utils.AdminAuthSqlAdmin.AdminAuthenticationSqlAdmin import AdminAuth
+#### SQLADMIN ADMIN DASHBOARD AUTHENTICATION ####
+
+
+
+### SQLADMIN ADMIN DASHBOARD FOR MODELS ###
 from sqladmin import Admin, ModelView
-### ADMIN DASHBOARD FOR MODELS ###
+### SQLADMIN ADMIN DASHBOARD FOR MODELS ###
 
-# Import models for SQLAdmin
+
+#### Import models for SQLAdmin Admin Dashboard ####
 from Models.USER.UserModel import User
 from Models.PRODUCT.Dessert.DessertModel import Dessert
 from Models.PRODUCT.Doner.DonerModel import Doner
@@ -34,10 +44,10 @@ from Models.ORDER.OrderItemModel import OrderItem
 from Models.CART.CartModel import Cart
 from Models.CART.CartItemModel import CartItem
 from Models.PAYMENT.PaymentModel import Payment
-# Import models for SQLAdmin
+#### Import models for SQLAdmin Admin Dashboard ####
 
 
-# Import Routes
+#### Import Application Routes ####
 from Routes.USER.UserRoutes import UserRouter
 from Routes.RESERVATION.TableRoutes import TableRouter
 from Routes.RESERVATION.ReservationRoutes import ReservationRouter
@@ -52,7 +62,7 @@ from Routes.CART.CartRoutes import CartRouter
 from Routes.ORDER.OrderRoutes import OrderRouter
 from Routes.PAYMENT.PaymentRoutes import PaymentRouter
 from Utils.ContactForm.ContactForm import ContactFormRouter
-# Import Routes
+#### Import Application Routes ####
 
 
 
@@ -60,9 +70,9 @@ from Utils.ContactForm.ContactForm import ContactFormRouter
 
 
 
-# GET .ENV VARIABLES
+# GET .ENV VARIABLES #
 load_dotenv()
-# GET .ENV VARIABLES
+# GET .ENV VARIABLES#
 
 
 # ENV VARIABLES #
@@ -75,16 +85,16 @@ PORT = os.getenv("PORT", 8000)
 
 
 
-# -----------------------------
-#  Lifespan Context Manager
-# -----------------------------
+# ----------------------------- #
+  #  Lifespan Context Manager #
+# -----------------------------#
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     print(f" Starting Server in {ENVIRONMENT} mode...")
     await init_db()
     print(" Database initialized and ready.")
     
-    # Optional: Seed admin users on startup (set SEED_ADMIN=true in .env)
+    # Seed admin users on startup (set SEED_ADMIN=true in .env if you want admin users to be seeded into database)
     if os.getenv("SEED_ADMIN", "false").lower() == "true":
         print(" Seeding admin users...")
         from Database.Seed.SeedAdminUser import seed_admin_users
@@ -94,7 +104,7 @@ async def lifespan(app: FastAPI):
         except Exception as e:
             print(f" Warning: Admin user seeding failed: {str(e)}")
     
-    # Optional: Seed products on startup (set SEED_PRODUCTS=true in .env)
+    # Seed products on startup (set SEED_PRODUCTS=true in .env if you want products to be seeded into database)
     if os.getenv("SEED_PRODUCTS", "false").lower() == "true":
         print(" Seeding products...")
         from Database.Seed.SeedAllProducts import seed_all_products
@@ -104,7 +114,7 @@ async def lifespan(app: FastAPI):
         except Exception as e:
             print(f" Warning: Product seeding failed: {str(e)}")
     
-    # Optional: Seed tables on startup (set SEED_TABLES=true in .env)
+    # Seed tables on startup (set SEED_TABLES=true in .env if you want tables to be seeded into database)
     if os.getenv("SEED_TABLES", "false").lower() == "true":
         print(" Seeding tables...")
         from Database.Seed.SeedTables import seed_tables
@@ -114,37 +124,45 @@ async def lifespan(app: FastAPI):
         except Exception as e:
             print(f" Warning: Table seeding failed: {str(e)}")
 
-    # Yield control to FastAPI (the app runs during this time)
     yield
 
-    print(" Shutting down Server...")
+    print(" Shutting down Server... ")
     await engine.dispose()
-    print(" Database connections closed.")
+    print(" Database connections closed ! ")
 
 
-# -----------------------------
-# FastAPI App Config
-# -----------------------------
+# ------------------------------- #
+# ----- FastAPI App Config ----- #
+# -------------------------------#
 app = FastAPI(
     title="Restaurant Service API",
     description="""
     Handles restaurant backend data.
-    Built with * *FastAPI + Async SQLAlchemy + Pydantic **.
+    Built using :
+    * *FastAPI
+    Async SQLAlchemy
+    Pydantic 
+    SqlAdmin
+    **.
     """,
     version="1.0.0",
     lifespan=lifespan,
 )
+# ------------------------------- #
+# ----- FastAPI App Config ----- #
+# -------------------------------#
 
 
 
-# -----------------------------
-# CORS Config
-# -----------------------------
+# ----------------------------- #
+######### CORS Config ###########
+# -----------------------------##
 origins = [
     "http://localhost:3000",
     "http://127.0.0.1:3000",
     # "https://frontend.yourapp.com",
 ]
+
 
 app.add_middleware(
     CORSMiddleware,
@@ -153,43 +171,49 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+# ----------------------------- #
+######### CORS Config ###########
+# -----------------------------##
 
-# Session middleware for admin authentication
-from starlette.middleware.sessions import SessionMiddleware
-app.add_middleware(
-    SessionMiddleware,
-    secret_key=os.getenv("JWT_SECRET_KEY") or os.getenv("SECRET_KEY", "your-secret-key-change-in-production")
-)
 
-# Rate limiter (slowapi) setup #
+#### Rate limiter for API requests (slowapi) setup ####
 app.state.limiter = limiter
 app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
 app.add_middleware(SlowAPIMiddleware)
-# Rate limiter (slowapi) setup #
+#### Rate limiter for API requests (slowapi) setup ####
 
 
 
-########## SQL ADMIN CONFIG ##########
-from Utils.AdminAuth.AdminAuth import AdminAuthBackend
 
-authentication_backend = AdminAuthBackend(
-    secret_key=os.getenv("JWT_SECRET_KEY", "your-secret-key")
-)
 
+################################
+# ----- SQL ADMIN CONFIG ----- #
+################################
+
+
+
+### Admin dashboard requires Admin user to log in ###
+authentication_backend = AdminAuth(secret_key=os.getenv("JWT_SECRET_KEY", "your-secret-key"))
+### Admin dashboard requires Admin user to log in ###
+
+
+### SQLAdmin initialization ###
 admin = Admin(
     app, 
     sync_engine,
-    authentication_backend=authentication_backend,
-    base_url="/admin",
-    title="Restaurant Admin Dashboard"
+    title="Restaurant Admin Dashboard",
+    authentication_backend=authentication_backend
 )
+### SQLAdmin initialization ###
 
-# SQLAdmin syntax: pass model as parameter in class definition
+
+### SQLAdmin : pass models into ModelView and as a parameter into classes ###
 class UserModelForAdmin(ModelView, model=User):
     column_list = [User.id, User.username, User.email, User.role]
     column_searchable_list = [User.username, User.email, User.role]
     column_filters = [User.username, User.email, User.role]
     column_sortable_list = [User.username, User.email, User.role]
+
 
 class TableModelForAdmin(ModelView,model=Table):
     column_list = [Table.id, Table.table_number, Table.capacity, Table.location, Table.is_available]
@@ -275,7 +299,10 @@ class PaymentModelForAdmin(ModelView, model=Payment):
     column_filters = [Payment.user_id, Payment.amount, Payment.currency, Payment.status, Payment.provider]
     column_sortable_list = [Payment.user_id, Payment.amount, Payment.currency, Payment.status, Payment.created_at]
 
+### SQLAdmin : pass models into ModelView and as a parameter into classes ###
 
+
+### SQLAdmin : add views for Models ###
 admin.add_view(UserModelForAdmin)
 admin.add_view(TableModelForAdmin)
 admin.add_view(ReservationModelForAdmin)
@@ -291,12 +318,16 @@ admin.add_view(CartModelForAdmin)
 admin.add_view(CartItemModelForAdmin)
 admin.add_view(PaymentModelForAdmin)
 admin.add_view(FavouriteProductModelForAdmin)
-
-########## SQL ADMIN CONFIG ##########
-
+### SQLAdmin : add views for Models ###
 
 
-### ROUTES ###
+################################
+# ----- SQL ADMIN CONFIG ----- #
+################################
+
+
+
+### APPLICATION ROUTES ###
 app.include_router(UserRouter, prefix="/api")
 app.include_router(TableRouter, prefix="/api")
 app.include_router(ReservationRouter, prefix="/api")
@@ -311,7 +342,7 @@ app.include_router(CartRouter, prefix="/api")
 app.include_router(OrderRouter, prefix="/api")
 app.include_router(PaymentRouter, prefix="/api")
 app.include_router(ContactFormRouter)
-### ROUTES ###
+### APPLICATION ROUTES ###
 
 
 
@@ -319,11 +350,11 @@ app.include_router(ContactFormRouter)
 
 
 
-# -----------------------------
-# Root + Health Endpoints
-# -----------------------------
-from fastapi.responses import HTMLResponse
+# ----------------------------------- #
+# ----- Root + Health Endpoints ----- #
+# ----------------------------------- #
 
+### Root Endpoint ###
 @app.get("/", response_class=HTMLResponse, include_in_schema=False)
 async def root():
     return """
@@ -332,42 +363,98 @@ async def root():
     <head>
         <title>Restaurant API</title>
         <style>
-            body { font-family: Arial, sans-serif; max-width: 800px; margin: 50px auto; padding: 20px; }
-            .card { border: 1px solid #ddd; border-radius: 8px; padding: 20px; margin: 20px 0; }
-            a { color: #0066cc; text-decoration: none; }
-            a:hover { text-decoration: underline; }
+            body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; max-width: 900px; margin: 40px auto; padding: 20px; background-color: #f5f7fa; color: #333; }
+            h1 { color: #2c3e50; text-align: center; margin-bottom: 40px; }
+            .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px; }
+            .card { background: white; border-radius: 12px; padding: 25px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); transition: transform 0.2s; }
+            .card:hover { transform: translateY(-5px); box-shadow: 0 8px 15px rgba(0,0,0,0.1); }
+            h2 { margin-top: 0; color: #3b82f6; border-bottom: 2px solid #ecf0f1; padding-bottom: 10px; }
+            p { color: #7f8c8d; line-height: 1.6; }
+            a { display: inline-block; margin-top: 10px; color: #3498db; text-decoration: none; font-weight: bold; font-size: 1.1em; }
+            a:hover { color: #2980b9; text-decoration: underline; }
+            .status { display: inline-block; padding: 5px 10px; border-radius: 15px; font-size: 0.85em; font-weight: bold; }
+            .status.online { background-color: #e8f8f5; color: #27ae60; }
         </style>
     </head>
     <body>
         <h1>🍽️ Restaurant Service API</h1>
-        <div class="card">
-            <h2>Admin Dashboard</h2>
-            <p>Access the admin dashboard to manage your restaurant:</p>
-            <p><a href="/admin" style="font-size: 18px;">→ Go to Admin Dashboard</a></p>
-            <p><small>Login with your admin credentials</small></p>
-        </div>
-        <div class="card">
-            <h2>API Documentation</h2>
-            <p><a href="/docs">→ Interactive API Docs (Swagger)</a></p>
-            <p><a href="/redoc">→ API Documentation (ReDoc)</a></p>
-        </div>
-        <div class="card">
-            <h2>Health Check</h2>
-            <p><a href="/health">→ Service Health Status</a></p>
+        
+        <div class="grid">
+            <div class="card">
+                <h2 style="text-transform: uppercase;">🚀 Frontend Application</h2>
+                <p>Visit the restaurant application as a customer</p>
+                <p><a href="http://localhost:3000" target="_blank">→ Open Application</a></p>
+            </div>
+
+            <div class="card">
+                <h2 style="text-transform: uppercase;">🛡️ Admin Dashboard</h2>
+                <p>Manage products, orders, and users.</p>
+                <p><a href="/admin" target="_blank">→ Go to Dashboard</a></p>
+                <p><small>Requires admin credentials</small></p>
+            </div>
+
+            <div class="card">
+                <h2 style="text-transform: uppercase;">📚 API Documentation</h2>
+                <p>Interactive documentation for developers.</p>
+                <p><a href="/docs" target="_blank">→ Swagger UI</a></p>
+                <p><a href="/redoc" target="_blank">→ ReDoc</a></p>
+            </div>
+
+            <div class="card">
+                <h2 style="text-transform: uppercase;">💓 System Status</h2>
+                <p>Current system health check.</p>
+                <p><a href="/health" target="_blank">→ Check Status</a></p>
+                <span class="status online">System Online</span>
+            </div>
         </div>
     </body>
     </html>
     """
+### Root Endpoint ###
 
-@app.get("/health", tags=["Monitoring"])
+
+
+### Health Check Endpoint ###
+@app.get("/health", tags=["Monitoring"], response_class=HTMLResponse)
 async def health_check():
-    return {"status": "healthy"}
+    return """
+    <!DOCTYPE html>
+    <html>
+    <head>
+        <title>System Health</title>
+        <style>
+            body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; background-color: #f0f2f5; }
+            .container { text-align: center; background: white; padding: 50px; border-radius: 15px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); }
+            .icon { font-size: 64px; margin-bottom: 20px; }
+            h1 { color: #27ae60; margin: 0 0 10px 0; }
+            p { color: #7f8c8d; margin-bottom: 30px; }
+            .links { display: flex; gap: 20px; justify-content: center; }
+            a { padding: 10px 20px; background-color: #3498db; color: white; text-decoration: none; border-radius: 5px; transition: background 0.2s; }
+            a:hover { background-color: #2980b9; }
+            a.secondary { background-color: #95a5a6; }
+            a.secondary:hover { background-color: #7f8c8d; }
+        </style>
+    </head>
+    <body>
+        <div class="container">
+            <div class="icon">✅</div>
+            <h1>System Healthy</h1>
+            <p>All systems are operational.</p>
+            <div class="links">
+                <a href="/">Back to Home</a>
+                <a href="/admin" class="secondary" style="background-color: #3498db;">Admin Panel</a>
+            </div>
+        </div>
+    </body>
+    </html>
+    """
+### Health Check Endpoint ###
 
 
 
-# -----------------------------
-# Entry Point
-# -----------------------------
+# ----------------------------- #
+        # Entry Point #
+# ----------------------------- #
 if __name__ == "__main__":
     uvicorn.run(
         "main:app",
