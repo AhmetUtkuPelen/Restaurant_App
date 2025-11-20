@@ -19,10 +19,13 @@ import { useMyFavourites, useAddFavourite, useRemoveFavourite } from "@/hooks/us
 import { toast } from "sonner";
 import { useNavigate } from "react-router-dom";
 import { useIsAuthenticated } from "@/Zustand/Auth/AuthState";
+import { ProductPagination } from "@/Components/ProductPagination";
 
 const Salads = () => {
   const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
   const [searchTerm, setSearchTerm] = useState("");
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 3;
 
   const navigate = useNavigate();
   const isAuthenticated = useIsAuthenticated();
@@ -64,37 +67,46 @@ const Salads = () => {
     salad.name.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
-   const handleAddToCart = (product: {
-     id: number;
-     name: string;
-     price: string;
-     final_price: string;
-     image_url: string;
-   }, category: string) => {
-     if (!isAuthenticated) {
-       toast.error("Please login to add items to cart !", {
-         description: "You need to be logged in to add items to your cart !",
-         action: {
-           label: "Login",
-           onClick: () => navigate("/login"),
-         },
-       });
-       return;
-     }
+  const totalPages = Math.ceil(filteredSalads.length / itemsPerPage);
+  const startIndex = (currentPage - 1) * itemsPerPage;
+  const paginatedSalads = filteredSalads.slice(startIndex, startIndex + itemsPerPage);
 
-     addToCart({
-       id: product.id,
-       name: product.name,
-       price: product.price,
-       final_price: product.final_price,
-       image_url: product.image_url,
-       category: category,
-     });
-     
-     toast.success("Added to cart!", {
-       description: `${product.name} added to your cart.`,
-     });
-   };
+  const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setSearchTerm(e.target.value);
+    setCurrentPage(1); // Reset to first page on search
+  };
+
+  const handleAddToCart = (product: {
+    id: number;
+    name: string;
+    price: string;
+    final_price: string;
+    image_url: string;
+  }, category: string) => {
+    if (!isAuthenticated) {
+      toast.error("Please login to add items to cart !", {
+        description: "You need to be logged in to add items to your cart !",
+        action: {
+          label: "Login",
+          onClick: () => navigate("/login"),
+        },
+      });
+      return;
+    }
+
+    addToCart({
+      id: product.id,
+      name: product.name,
+      price: product.price,
+      final_price: product.final_price,
+      image_url: product.image_url,
+      category: category,
+    });
+
+    toast.success("Added to cart!", {
+      description: `${product.name} added to your cart.`,
+    });
+  };
 
   return (
     <div className="min-h-screen bg-gray-900 text-white">
@@ -118,28 +130,26 @@ const Salads = () => {
                 type="text"
                 placeholder="Search salads..."
                 value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
+                onChange={handleSearchChange}
                 className="pl-10 bg-gray-900 border-gray-600 text-white placeholder-gray-400"
               />
             </div>
             <div className="flex border border-gray-600 rounded-lg overflow-hidden">
               <button
                 onClick={() => setViewMode("grid")}
-                className={`p-2 ${
-                  viewMode === "grid"
+                className={`p-2 ${viewMode === "grid"
                     ? "bg-blue-600 text-white"
                     : "bg-gray-700 text-gray-300"
-                }`}
+                  } `}
               >
                 <Grid3X3 className="w-5 h-5" />
               </button>
               <button
                 onClick={() => setViewMode("list")}
-                className={`p-2 ${
-                  viewMode === "list"
+                className={`p-2 ${viewMode === "list"
                     ? "bg-blue-600 text-white"
                     : "bg-gray-700 text-gray-300"
-                }`}
+                  } `}
               >
                 <List className="w-5 h-5" />
               </button>
@@ -169,174 +179,175 @@ const Salads = () => {
           )}
 
           {!isLoading && !error && filteredSalads.length > 0 && (
-            <div
-              className={`grid gap-6 ${
-                viewMode === "grid"
-                  ? "grid-cols-1 md:grid-cols-2 lg:grid-cols-3"
-                  : "grid-cols-1"
-              }`}
-            >
-              {filteredSalads.map((salad) => {
-                const saladData = salad as typeof salad & {
-                  image_url?: string;
-                  image?: string;
-                  is_front_page?: boolean;
-                  isPopular?: boolean;
-                  isVegan?: boolean;
-                  comments?: unknown[];
-                  reviews?: number;
-                  final_price?: string;
-                };
-                const hasDiscount =
-                  (salad as typeof salad & { discount_percentage?: string })
-                    .discount_percentage &&
-                  parseFloat(
+            <>
+              <div
+                className={`grid gap-6 ${viewMode === "grid"
+                    ? "grid-cols-1 md:grid-cols-2 lg:grid-cols-3"
+                    : "grid-cols-1"
+                  } `}
+              >
+                {paginatedSalads.map((salad) => {
+                  const saladData = salad as typeof salad & {
+                    image_url?: string;
+                    image?: string;
+                    is_front_page?: boolean;
+                    isPopular?: boolean;
+                    isVegan?: boolean;
+                    comments?: unknown[];
+                    reviews?: number;
+                    final_price?: string;
+                  };
+                  const hasDiscount =
                     (salad as typeof salad & { discount_percentage?: string })
-                      .discount_percentage || "0"
-                  ) > 0;
-                const price = parseFloat(String(salad.price || "0"));
-                const finalPrice = parseFloat(
-                  saladData.final_price || String(salad.price || "0")
-                );
+                      .discount_percentage &&
+                    parseFloat(
+                      (salad as typeof salad & { discount_percentage?: string })
+                        .discount_percentage || "0"
+                    ) > 0;
+                  const price = parseFloat(String(salad.price || "0"));
+                  const finalPrice = parseFloat(
+                    saladData.final_price || String(salad.price || "0")
+                  );
 
-                return (
-                  <Card
-                    key={salad.id}
-                    className={`bg-gray-800 border-gray-700 hover:border-blue-500 overflow-hidden hover:transform hover:scale-105 transition-all duration-300 ${
-                      viewMode === "list" ? "flex" : ""
-                    }`}
-                  >
-                    <div
-                      className={`relative ${
-                        viewMode === "list" ? "w-64 flex-shrink-0" : ""
-                      }`}
+                  return (
+                    <Card
+                      key={salad.id}
+                      className={`bg-gray-800 border-gray-700 hover:border-blue-500 overflow-hidden hover:transform hover:scale-105 transition-all duration-300 ${viewMode === "list" ? "flex" : ""
+                        } `}
                     >
-                      <img
-                        src={
-                          saladData.image_url ||
-                          saladData.image ||
-                          "https://via.placeholder.com/300x200/1f2937/ffffff?text=Salad"
-                        }
-                        alt={salad.name}
-                        className={`object-cover ${
-                          viewMode === "list" ? "w-full h-full" : "w-full h-48"
-                        }`}
-                      />
-                      {(saladData.is_front_page || saladData.isPopular) && (
-                        <div className="absolute top-2 left-2 bg-blue-600 text-white px-2 py-1 rounded-full text-xs font-medium">
-                          Popular
-                        </div>
-                      )}
-                      {((salad as typeof salad & { is_vegan?: boolean })
-                        .is_vegan ||
-                        saladData.isVegan) && (
-                        <div className="absolute top-2 right-2 bg-green-600 text-white px-2 py-1 rounded-full text-xs font-medium">
-                          Vegan
-                        </div>
-                      )}
-                      {hasDiscount && (
-                        <div className="absolute top-2 right-2 bg-red-600 text-white px-2 py-1 rounded-full text-xs font-medium">
-                          Sale
-                        </div>
-                      )}
-                      <div className="absolute bottom-2 left-2 bg-gray-900/80 text-white px-2 py-1 rounded-full text-xs">
-                        {salad.calories} cal
-                      </div>
-                    </div>
-
-                    <CardContent
-                      className={`p-6 ${viewMode === "list" ? "flex-1" : ""}`}
-                    >
-                      <div className="flex items-start justify-between mb-2">
-                        <h3 className="text-xl font-semibold text-white">
-                          {salad.name}
-                        </h3>
-                        <button className="text-gray-400 hover:text-red-400 transition-colors">
-                        </button>
-                      </div>
-
-                      <p className="text-gray-400 mb-3 text-sm">
-                        {salad.description}
-                      </p>
-
-                      <div className="flex items-center gap-2 mb-3">
-                        <div className="flex items-center">
-                          {[...Array(5)].map((_, i) => (
-                            <Star
-                              key={i}
-                              className={`w-4 h-4 ${
-                                i < 4
-                                  ? "text-yellow-400 fill-current"
-                                  : "text-gray-600"
-                              }`}
-                            />
-                          ))}
-                        </div>
-                        <span className="text-sm text-gray-400">
-                          4.5 (
-                          {(salad as typeof salad & { comments?: unknown[] })
-                            .comments?.length ||
-                            saladData.reviews ||
-                            0}{" "}
-                          reviews)
-                        </span>
-                      </div>
-
-                      <div className="flex items-center gap-2 mb-4">
-                        <span className="text-2xl font-bold text-blue-400">
-                          ${finalPrice.toFixed(2)}
-                        </span>
-                        {hasDiscount && (
-                          <span className="text-lg text-gray-500 line-through">
-                            ${price.toFixed(2)}
-                          </span>
-                        )}
-                      </div>
-
-                      <div className="flex gap-2 mb-3">
-   <Button 
-     className="flex-1 bg-blue-600 hover:bg-blue-700 text-white cursor-pointer"
-     onClick={() => handleAddToCart({
-       id: salad.id,
-       name: salad.name,
-       price: salad.price,
-       final_price: salad.final_price,
-       image_url: salad.image_url,
-     }, "salad")}
-   >
-                          <ShoppingCart className="w-4 h-4 mr-2" />
-                          Add to Cart
-                        </Button>
-                        <Link
-                          to={`/salads/${salad.id}`}
-                          className="px-4 py-2 bg-gray-700 hover:bg-gray-600 text-white rounded-lg transition-colors text-center"
-                        >
-                          View Details
-                        </Link>
-                      </div>
-
-                      <Button
-                        variant="outline"
-                        onClick={() => handleToggleFavourite(salad.id)}
-                        disabled={addFavouriteMutation.isPending || removeFavouriteMutation.isPending}
-                        className={`w-full transition-colors cursor-pointer ${
-                          isFavourite(salad.id)
-                            ? "border-red-400 bg-red-400 text-white hover:bg-red-500"
-                            : "border-red-400 text-red-400 hover:bg-red-400 hover:text-white"
-                        }`}
+                      <div
+                        className={`relative ${viewMode === "list" ? "w-64 flex-shrink-0" : ""
+                          } `}
                       >
-                        {(addFavouriteMutation.isPending || removeFavouriteMutation.isPending) ? (
-                          <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                        ) : (
-                          <Heart className={`w-4 h-4 mr-2 ${isFavourite(salad.id) ? "fill-current" : ""}`} />
+                        <img
+                          src={
+                            saladData.image_url ||
+                            saladData.image ||
+                            "https://via.placeholder.com/300x200/1f2937/ffffff?text=Salad"
+                          }
+                          alt={salad.name}
+                          className={`object-cover ${viewMode === "list" ? "w-full h-full" : "w-full h-48"
+                            } `}
+                        />
+                        {(saladData.is_front_page || saladData.isPopular) && (
+                          <div className="absolute top-2 left-2 bg-blue-600 text-white px-2 py-1 rounded-full text-xs font-medium">
+                            Popular
+                          </div>
                         )}
-                        {isFavourite(salad.id) ? "Remove from Favorites" : "Add to Favorites"}
-                      </Button>
-                    </CardContent>
-                  </Card>
-                );
-              })}
-            </div>
+                        {((salad as typeof salad & { is_vegan?: boolean })
+                          .is_vegan ||
+                          saladData.isVegan) && (
+                            <div className="absolute top-2 right-2 bg-green-600 text-white px-2 py-1 rounded-full text-xs font-medium">
+                              Vegan
+                            </div>
+                          )}
+                        {hasDiscount && (
+                          <div className="absolute top-2 right-2 bg-red-600 text-white px-2 py-1 rounded-full text-xs font-medium">
+                            Sale
+                          </div>
+                        )}
+                        <div className="absolute bottom-2 left-2 bg-gray-900/80 text-white px-2 py-1 rounded-full text-xs">
+                          {salad.calories} cal
+                        </div>
+                      </div>
+
+                      <CardContent
+                        className={`p-6 ${viewMode === "list" ? "flex-1" : ""} `}
+                      >
+                        <div className="flex items-start justify-between mb-2">
+                          <h3 className="text-xl font-semibold text-white">
+                            {salad.name}
+                          </h3>
+                          <button className="text-gray-400 hover:text-red-400 transition-colors">
+                          </button>
+                        </div>
+
+                        <p className="text-gray-400 mb-3 text-sm">
+                          {salad.description}
+                        </p>
+
+                        <div className="flex items-center gap-2 mb-3">
+                          <div className="flex items-center">
+                            {[...Array(5)].map((_, i) => (
+                              <Star
+                                key={i}
+                                className={`w-4 h-4 ${i < 4
+                                    ? "text-yellow-400 fill-current"
+                                    : "text-gray-600"
+                                  } `}
+                              />
+                            ))}
+                          </div>
+                          <span className="text-sm text-gray-400">
+                            4.5 (
+                            {(salad as typeof salad & { comments?: unknown[] })
+                              .comments?.length ||
+                              saladData.reviews ||
+                              0}{" "}
+                            reviews)
+                          </span>
+                        </div>
+
+                        <div className="flex items-center gap-2 mb-4">
+                          <span className="text-2xl font-bold text-blue-400">
+                            ${finalPrice.toFixed(2)}
+                          </span>
+                          {hasDiscount && (
+                            <span className="text-lg text-gray-500 line-through">
+                              ${price.toFixed(2)}
+                            </span>
+                          )}
+                        </div>
+
+                        <div className="flex gap-2 mb-3">
+                          <Button
+                            className="flex-1 bg-blue-600 hover:bg-blue-700 text-white cursor-pointer"
+                            onClick={() => handleAddToCart({
+                              id: salad.id,
+                              name: salad.name,
+                              price: salad.price,
+                              final_price: salad.final_price,
+                              image_url: salad.image_url,
+                            }, "salad")}
+                          >
+                            <ShoppingCart className="w-4 h-4 mr-2" />
+                            Add to Cart
+                          </Button>
+                          <Link
+                            to={`/salads/${salad.id}`}
+                            className="px-4 py-2 bg-gray-700 hover:bg-gray-600 text-white rounded-lg transition-colors text-center"
+                          >
+                            View Details
+                          </Link>
+                        </div>
+
+                        <Button
+                          variant="outline"
+                          onClick={() => handleToggleFavourite(salad.id)}
+                          disabled={addFavouriteMutation.isPending || removeFavouriteMutation.isPending}
+                          className={`w-full transition-colors cursor-pointer ${isFavourite(salad.id)
+                              ? "border-red-400 bg-red-400 text-white hover:bg-red-500"
+                              : "border-red-400 text-red-400 hover:bg-red-400 hover:text-white"
+                            } `}
+                        >
+                          {(addFavouriteMutation.isPending || removeFavouriteMutation.isPending) ? (
+                            <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                          ) : (
+                            <Heart className={`w-4 h-4 mr-2 ${isFavourite(salad.id) ? "fill-current" : ""} `} />
+                          )}
+                          {isFavourite(salad.id) ? "Remove from Favorites" : "Add to Favorites"}
+                        </Button>
+                      </CardContent>
+                    </Card>
+                  );
+                })}
+              </div>
+              <ProductPagination
+                currentPage={currentPage}
+                totalPages={totalPages}
+                onPageChange={setCurrentPage}
+              />
+            </>
           )}
         </div>
       </section>
