@@ -10,10 +10,3 @@ __pycache__
 __Tests__
 __test__
 __test_cache__
-
-*.png
-*.jpg
-*.jpeg
-*.gif
-.png
-react.png
