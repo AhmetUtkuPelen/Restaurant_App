@@ -11,9 +11,9 @@ __Tests__
 __test__
 __test_cache__
 
-
-uvicorn main:app --reload --host 127.0.0.1 --port 8000
-
-
-// EMOJIS \\
-UTILS ROUTE UTILS FILE
+*.png
+*.jpg
+*.jpeg
+*.gif
+.png
+react.png
