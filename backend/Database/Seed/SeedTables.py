@@ -39,14 +39,14 @@ async def seed_tables():
                 {"table_number": "P6", "capacity": 4, "location": TableLocation.PATIO},
                 
                 # Main Dining Room Tables (13-20) - Various sizes
-                {"table_number": "M1", "capacity": 2, "location": TableLocation.MAIN_DINING_ROOM},
+                {"table_number": "M1", "capacity": 6, "location": TableLocation.MAIN_DINING_ROOM},
                 {"table_number": "M2", "capacity": 4, "location": TableLocation.MAIN_DINING_ROOM},
                 {"table_number": "M3", "capacity": 6, "location": TableLocation.MAIN_DINING_ROOM},
                 {"table_number": "M4", "capacity": 8, "location": TableLocation.MAIN_DINING_ROOM},
                 {"table_number": "M5", "capacity": 4, "location": TableLocation.MAIN_DINING_ROOM},
                 {"table_number": "M6", "capacity": 4, "location": TableLocation.MAIN_DINING_ROOM},
                 {"table_number": "M7", "capacity": 6, "location": TableLocation.MAIN_DINING_ROOM},
-                {"table_number": "M8", "capacity": 2, "location": TableLocation.MAIN_DINING_ROOM},
+                {"table_number": "M8", "capacity": 10, "location": TableLocation.MAIN_DINING_ROOM},
             ]
             
             created_count = 0

@@ -40,7 +40,11 @@ export const ProductPagination = ({
                             <PaginationLink
                                 isActive={currentPage === page}
                                 onClick={() => onPageChange(page)}
-                                className="cursor-pointer"
+                                className={
+                                    currentPage === page
+                                        ? "bg-blue-600 text-white hover:bg-blue-700 hover:text-white cursor-pointer border-blue-600"
+                                        : "cursor-pointer hover:bg-gray-800 hover:text-white"
+                                }
                             >
                                 {page}
                             </PaginationLink>

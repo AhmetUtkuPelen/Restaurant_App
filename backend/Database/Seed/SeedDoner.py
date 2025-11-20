@@ -145,6 +145,38 @@ async def seed_doners():
                     "spice_level": SpiceLevel.MEDIUM,
                     "is_vegan": False,
                     "is_alergic": True
+                },
+                {
+                    "name": "Spicy Chicken Box",
+                    "description": "Spicy chicken doner meat served in a box with fries and salad",
+                    "category": "doner",
+                    "tags": ["chicken", "box", "spicy", "fries"],
+                    "price": Decimal('30.00'),
+                    "discount_percentage": Decimal('0.00'),
+                    "image_url": "https://www.jimcrowleybutchers.com/image/cache/catalog/products/shredded-chicken-spice-box-700x700.jpg",
+                    "is_active": True,
+                    "is_front_page": False,
+                    "size": DonerSize.MEDIUM,
+                    "meat_type": MeatType.CHICKEN,
+                    "spice_level": SpiceLevel.HOT,
+                    "is_vegan": False,
+                    "is_alergic": False
+                },
+                {
+                    "name": "Kids Mini Beef Doner",
+                    "description": "Small portion of mild beef doner, perfect for kids",
+                    "category": "doner",
+                    "tags": ["beef", "kids", "mini", "mild"],
+                    "price": Decimal('20.00'),
+                    "discount_percentage": Decimal('0.00'),
+                    "image_url": "https://www.miniaki.com/wp-content/uploads/2022/11/mini-kebab-1024x813.webp",
+                    "is_active": True,
+                    "is_front_page": False,
+                    "size": DonerSize.SMALL,
+                    "meat_type": MeatType.BEEF,
+                    "spice_level": SpiceLevel.MILD,
+                    "is_vegan": False,
+                    "is_alergic": False
                 }
             ]
             

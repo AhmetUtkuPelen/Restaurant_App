@@ -30,7 +30,6 @@ export const useFavouriteStore = create<FavouriteProductState>()(
           const exists = state.favourites.find((fav) => fav.id === product.id);
 
           if (exists) {
-            // If already in favourites, don't add again
             return state;
           }
 

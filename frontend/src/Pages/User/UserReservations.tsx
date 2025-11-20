@@ -189,8 +189,8 @@ const UserReservations = () => {
               <p className="text-gray-400 mb-6">
                 You haven't made any reservations. Book a table to get started!
               </p>
-              <Link to="/reservations">
-                <Button className="bg-blue-600 hover:bg-blue-700 text-white">
+              <Link to="/reservation">
+                <Button className="bg-blue-600 hover:bg-blue-700 text-white cursor-pointer">
                   Make a Reservation
                 </Button>
               </Link>

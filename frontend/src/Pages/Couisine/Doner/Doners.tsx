@@ -67,13 +67,14 @@ const Doners = () => {
     doner.name.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
+  // Pagination \\
   const totalPages = Math.ceil(filteredDoners.length / itemsPerPage);
   const startIndex = (currentPage - 1) * itemsPerPage;
   const paginatedDoners = filteredDoners.slice(startIndex, startIndex + itemsPerPage);
 
   const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setSearchTerm(e.target.value);
-    setCurrentPage(1); // Reset to first page on search
+    setCurrentPage(1);
   };
 
   const getSpiceLevelColor = (level: string) => {
@@ -192,8 +193,8 @@ const Doners = () => {
           {!isLoading && !error && filteredDoners.length > 0 && (
             <>
               <div className={`grid gap-6 ${viewMode === 'grid'
-                  ? 'grid-cols-1 md:grid-cols-2 lg:grid-cols-3'
-                  : 'grid-cols-1'
+                ? 'grid-cols-1 md:grid-cols-2 lg:grid-cols-3'
+                : 'grid-cols-1'
                 }`}>
                 {paginatedDoners.map((doner) => {
                   const donerData = doner as typeof doner & { discount_percentage?: string; final_price?: string; image_url?: string; image?: string; is_front_page?: boolean; isPopular?: boolean; originalPrice?: number; comments?: unknown[]; reviews?: number; spiceLevel?: string };
@@ -245,8 +246,8 @@ const Doners = () => {
                               <Star
                                 key={i}
                                 className={`w-4 h-4 ${i < 4
-                                    ? 'text-yellow-400 fill-current'
-                                    : 'text-gray-600'
+                                  ? 'text-yellow-400 fill-current'
+                                  : 'text-gray-600'
                                   }`}
                               />
                             ))}
@@ -294,8 +295,8 @@ const Doners = () => {
                           onClick={() => handleToggleFavourite(doner.id)}
                           disabled={addFavouriteMutation.isPending || removeFavouriteMutation.isPending}
                           className={`w-full transition-colors cursor-pointer ${isFavourite(doner.id)
-                              ? "border-red-400 bg-red-400 text-white hover:bg-red-500"
-                              : "border-red-400 text-red-400 hover:bg-red-400 hover:text-white"
+                            ? "border-red-400 bg-red-400 text-white hover:bg-red-500"
+                            : "border-red-400 text-red-400 hover:bg-red-400 hover:text-white"
                             }`}
                         >
                           {(addFavouriteMutation.isPending || removeFavouriteMutation.isPending) ? (

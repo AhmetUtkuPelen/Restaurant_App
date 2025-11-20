@@ -70,13 +70,14 @@ const Desserts = () => {
     dessert.name.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
+  // Pagination \\
   const totalPages = Math.ceil(filteredDesserts.length / itemsPerPage);
   const startIndex = (currentPage - 1) * itemsPerPage;
   const paginatedDesserts = filteredDesserts.slice(startIndex, startIndex + itemsPerPage);
 
   const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setSearchTerm(e.target.value);
-    setCurrentPage(1); // Reset to first page on search
+    setCurrentPage(1);
   };
 
   const handleAddToCart = (product: {
@@ -188,8 +189,8 @@ const Desserts = () => {
           {!isLoading && !error && filteredDesserts.length > 0 && (
             <>
               <div className={`grid gap-6 ${viewMode === 'grid'
-                  ? 'grid-cols-1 md:grid-cols-2 lg:grid-cols-3'
-                  : 'grid-cols-1'
+                ? 'grid-cols-1 md:grid-cols-2 lg:grid-cols-3'
+                : 'grid-cols-1'
                 }`}>
                 {paginatedDesserts.map((dessert) => {
                   const hasDiscount = parseFloat(dessert.discount_percentage || "0") > 0;
@@ -236,8 +237,8 @@ const Desserts = () => {
                               <Star
                                 key={i}
                                 className={`w-4 h-4 ${i < 4
-                                    ? 'text-yellow-400 fill-current'
-                                    : 'text-gray-600'
+                                  ? 'text-yellow-400 fill-current'
+                                  : 'text-gray-600'
                                   }`}
                               />
                             ))}
@@ -285,8 +286,8 @@ const Desserts = () => {
                           onClick={() => handleToggleFavourite(dessert.id)}
                           disabled={addFavouriteMutation.isPending || removeFavouriteMutation.isPending}
                           className={`w-full transition-colors cursor-pointer ${isFavourite(dessert.id)
-                              ? "border-red-400 bg-red-400 text-white hover:bg-red-500"
-                              : "border-red-400 text-red-400 hover:bg-red-400 hover:text-white"
+                            ? "border-red-400 bg-red-400 text-white hover:bg-red-500"
+                            : "border-red-400 text-red-400 hover:bg-red-400 hover:text-white"
                             }`}
                         >
                           {(addFavouriteMutation.isPending || removeFavouriteMutation.isPending) ? (

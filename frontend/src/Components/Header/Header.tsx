@@ -125,9 +125,8 @@ const Header = () => {
                   >
                     MENU
                     <ChevronDown
-                      className={`w-4 h-4 transition-transform ${
-                        isMenuDropdownOpen ? "rotate-180" : ""
-                      }`}
+                      className={`w-4 h-4 transition-transform ${isMenuDropdownOpen ? "rotate-180" : ""
+                        }`}
                     />
                   </Link>
                 </DropdownMenuTrigger>
@@ -270,7 +269,7 @@ const Header = () => {
 
         {/* Mobile Navigation */}
         {isMenuOpen && (
-          <nav className="lg:hidden mt-4 pb-4 border-t border-gray-700 pt-4">
+          <nav className="lg:hidden mt-4 pb-4 border-t border-gray-700 pt-4 relative z-50">
             <div className="flex flex-col space-y-3">
               {navigationLinks.map((link) => (
                 <Link
@@ -292,7 +291,7 @@ const Header = () => {
                     className="block text-gray-300 hover:text-blue-400 transition-colors py-2 pl-4"
                     onClick={() => setIsMenuOpen(false)}
                   >
-                      {category.name}
+                    {category.name}
                   </Link>
                 ))}
               </div>
@@ -354,21 +353,21 @@ const Header = () => {
                 ) : (
                   <>
                     {/* Login and Register for non-authenticated User */}
-                <Link to="/login">
-                  <Button
-                    variant="ghost"
-                    className="hover:bg-blue-400 flex items-center gap-2 cursor-pointer"
-                  >
-                    <LogIn className="w-4 h-4" />
-                    <span className="hidden md:inline">LOGIN</span>
-                  </Button>
-                </Link>
-                <Link to="/register">
-                  <Button className="hover:bg-blue-400 cursor-pointer flex items-center gap-2">
-                    <UserPlus className="w-4 h-4" />
-                    <span className="hidden md:inline">REGISTER</span>
-                  </Button>
-                </Link>
+                    <Link to="/login">
+                      <Button
+                        variant="ghost"
+                        className="hover:bg-blue-400 flex items-center gap-2 cursor-pointer"
+                      >
+                        <LogIn className="w-4 h-4" />
+                        <span className="hidden md:inline">LOGIN</span>
+                      </Button>
+                    </Link>
+                    <Link to="/register">
+                      <Button className="hover:bg-blue-400 cursor-pointer flex items-center gap-2">
+                        <UserPlus className="w-4 h-4" />
+                        <span className="hidden md:inline">REGISTER</span>
+                      </Button>
+                    </Link>
                   </>
                 )}
               </div>

@@ -137,6 +137,36 @@ async def seed_desserts():
                     "is_alergic": False,
                     "dessert_type": DessertType.CAKE,
                     "calories": 280
+                },
+                {
+                    "name": "New York Cheesecake",
+                    "description": "Classic creamy New York style cheesecake with a graham cracker crust",
+                    "category": "dessert",
+                    "tags": ["cheesecake", "creamy", "classic", "new york"],
+                    "price": Decimal('40.00'),
+                    "discount_percentage": Decimal('0.00'),
+                    "image_url": "https://img.taste.com.au/JykbG0mr/w643-h428-cfill-q90/taste/2016/11/new-york-cheesecake-40742-1.jpeg",
+                    "is_active": True,
+                    "is_front_page": False,
+                    "is_vegan": False,
+                    "is_alergic": True,
+                    "dessert_type": DessertType.CAKE,
+                    "calories": 400
+                },
+                {
+                    "name": "Fruit Tart",
+                    "description": "Fresh fruit tart with custard filling and a buttery pastry shell",
+                    "category": "dessert",
+                    "tags": ["fruit", "fresh", "tart", "pastry"],
+                    "price": Decimal('32.00'),
+                    "discount_percentage": Decimal('0.00'),
+                    "image_url": "https://hips.hearstapps.com/hmg-prod/images/fruit-tart-lead-65ef54d851e68.jpg?crop=1xw:1xh;center,top",
+                    "is_active": True,
+                    "is_front_page": False,
+                    "is_vegan": False,
+                    "is_alergic": True,
+                    "dessert_type": DessertType.PASTRY,
+                    "calories": 300
                 }
             ]
             

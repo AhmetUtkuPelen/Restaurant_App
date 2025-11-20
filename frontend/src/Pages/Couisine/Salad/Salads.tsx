@@ -67,13 +67,14 @@ const Salads = () => {
     salad.name.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
+  // Pagination \\
   const totalPages = Math.ceil(filteredSalads.length / itemsPerPage);
   const startIndex = (currentPage - 1) * itemsPerPage;
   const paginatedSalads = filteredSalads.slice(startIndex, startIndex + itemsPerPage);
 
   const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setSearchTerm(e.target.value);
-    setCurrentPage(1); // Reset to first page on search
+    setCurrentPage(1);
   };
 
   const handleAddToCart = (product: {
@@ -138,8 +139,8 @@ const Salads = () => {
               <button
                 onClick={() => setViewMode("grid")}
                 className={`p-2 ${viewMode === "grid"
-                    ? "bg-blue-600 text-white"
-                    : "bg-gray-700 text-gray-300"
+                  ? "bg-blue-600 text-white"
+                  : "bg-gray-700 text-gray-300"
                   } `}
               >
                 <Grid3X3 className="w-5 h-5" />
@@ -147,8 +148,8 @@ const Salads = () => {
               <button
                 onClick={() => setViewMode("list")}
                 className={`p-2 ${viewMode === "list"
-                    ? "bg-blue-600 text-white"
-                    : "bg-gray-700 text-gray-300"
+                  ? "bg-blue-600 text-white"
+                  : "bg-gray-700 text-gray-300"
                   } `}
               >
                 <List className="w-5 h-5" />
@@ -182,8 +183,8 @@ const Salads = () => {
             <>
               <div
                 className={`grid gap-6 ${viewMode === "grid"
-                    ? "grid-cols-1 md:grid-cols-2 lg:grid-cols-3"
-                    : "grid-cols-1"
+                  ? "grid-cols-1 md:grid-cols-2 lg:grid-cols-3"
+                  : "grid-cols-1"
                   } `}
               >
                 {paginatedSalads.map((salad) => {
@@ -272,8 +273,8 @@ const Salads = () => {
                               <Star
                                 key={i}
                                 className={`w-4 h-4 ${i < 4
-                                    ? "text-yellow-400 fill-current"
-                                    : "text-gray-600"
+                                  ? "text-yellow-400 fill-current"
+                                  : "text-gray-600"
                                   } `}
                               />
                             ))}
@@ -326,8 +327,8 @@ const Salads = () => {
                           onClick={() => handleToggleFavourite(salad.id)}
                           disabled={addFavouriteMutation.isPending || removeFavouriteMutation.isPending}
                           className={`w-full transition-colors cursor-pointer ${isFavourite(salad.id)
-                              ? "border-red-400 bg-red-400 text-white hover:bg-red-500"
-                              : "border-red-400 text-red-400 hover:bg-red-400 hover:text-white"
+                            ? "border-red-400 bg-red-400 text-white hover:bg-red-500"
+                            : "border-red-400 text-red-400 hover:bg-red-400 hover:text-white"
                             } `}
                         >
                           {(addFavouriteMutation.isPending || removeFavouriteMutation.isPending) ? (
