@@ -5,7 +5,7 @@ This is a mobile-friendly restaurant application built to manage online orders, 
 ## Technology Stack
 
 - **Front End**: TypeScript, React
-https://i.imgur.com/HP8BO3f.png
+![Front End Screenshot](https://i.imgur.com/HP8BO3f.png)
 - **Back End**: Python, FastAPI
 
 ## Features
