@@ -564,7 +564,7 @@ const Reservation = () => {
                     <Button
                       onClick={handleSubmitReservation}
                       disabled={!isStepValid(2) || createReservation.isPending}
-                      className="bg-blue-600 hover:bg-blue-700 text-white px-8 py-3 text-lg"
+                      className="bg-blue-600 hover:bg-blue-700 text-white px-8 py-3 text-lg cursor-pointer"
                     >
                       {createReservation.isPending ? (
                         <>

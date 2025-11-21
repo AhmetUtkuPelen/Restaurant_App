@@ -211,7 +211,7 @@ const CommentSection = ({ productId }: CommentSectionProps) => {
                 <Button
                   onClick={handleSubmitComment}
                   disabled={createCommentMutation.isPending || !newComment.trim()}
-                  className="bg-blue-600 hover:bg-blue-700 text-white"
+                  className="bg-blue-600 hover:bg-blue-700 text-white cursor-pointer"
                 >
                   {createCommentMutation.isPending ? (
                     <>

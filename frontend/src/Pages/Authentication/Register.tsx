@@ -329,7 +329,7 @@ const Register = () => {
               <Button
                 type="submit"
                 disabled={!isFormValid || isLoading}
-                className={`w-full h-12 text-lg font-medium ${
+                className={`w-full h-12 text-lg font-medium cursor-pointer ${
                   isFormValid && !isLoading
                     ? "bg-blue-600 hover:bg-blue-700 text-white"
                     : "bg-gray-700 text-gray-400 cursor-not-allowed"

@@ -12,7 +12,6 @@ import {
   ShoppingCart,
   User,
   Heart,
-  Settings,
   LogOut,
   ChevronDown,
   LogIn,
@@ -67,11 +66,6 @@ const Header = () => {
       name: "Reservations",
       href: "/userReservations",
       icon: <UtensilsCrossed className="w-4 h-4" />,
-    },
-    {
-      name: "Settings",
-      href: "/settings",
-      icon: <Settings className="w-4 h-4" />,
     },
   ];
 

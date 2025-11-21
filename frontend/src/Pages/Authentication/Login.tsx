@@ -126,7 +126,7 @@ const Login = () => {
               <Button
                 type="submit"
                 disabled={isLoading}
-                className="w-full bg-blue-600 hover:bg-blue-700 disabled:bg-gray-600 text-white h-12 text-lg font-medium"
+                className="w-full cursor-pointer bg-blue-600 hover:bg-blue-700 disabled:bg-gray-600 text-white h-12 text-lg font-medium"
               >
                 {isLoading ? "LOGGING IN..." : "LOGIN"}
                 {!isLoading && <ArrowRight className="h-5 w-5 ml-2" />}

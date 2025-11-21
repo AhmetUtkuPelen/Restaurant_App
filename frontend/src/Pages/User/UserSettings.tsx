@@ -263,7 +263,7 @@ const UserSettings = () => {
                     <div className="space-y-2">
                       <Label
                         htmlFor="username"
-                        className="text-gray-700 font-medium"
+                        className="text-blue-500 font-bold text-md"
                       >
                         Username
                       </Label>
@@ -280,7 +280,7 @@ const UserSettings = () => {
                     <div className="space-y-2">
                       <Label
                         htmlFor="email"
-                        className="text-gray-700 font-medium"
+                        className="text-blue-500 font-bold text-md"
                       >
                         Email Address
                       </Label>
@@ -298,7 +298,7 @@ const UserSettings = () => {
                     <div className="space-y-2">
                       <Label
                         htmlFor="phone"
-                        className="text-gray-700 font-medium"
+                        className="text-blue-500 font-bold text-md"
                       >
                         Phone Number
                       </Label>
@@ -316,7 +316,7 @@ const UserSettings = () => {
                     <div className="space-y-2 md:col-span-2">
                       <Label
                         htmlFor="address"
-                        className="text-gray-700 font-medium"
+                        className="text-blue-500 font-bold text-md"
                       >
                         Address
                       </Label>

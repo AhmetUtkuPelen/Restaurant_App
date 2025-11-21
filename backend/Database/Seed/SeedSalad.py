@@ -137,7 +137,7 @@ async def seed_salads():
                     "tags": ["spinach", "strawberry", "goat-cheese", "sweet"],
                     "price": Decimal('33.00'),
                     "discount_percentage": Decimal('8.00'),
-                    "image_url": "https://pinchandswirl.com/wp-content/uploads/2021/04/Spinach-Strawberry-Walnut-Salad.jpg",
+                    "image_url": "https://www.whollytasteful.com/wp-content/uploads/2021/05/IMG_3455-copy-683x1024.jpg",
                     "is_active": True,
                     "is_front_page": False,
                     "is_vegan": False,

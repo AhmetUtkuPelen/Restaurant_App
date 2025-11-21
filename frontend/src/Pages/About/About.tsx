@@ -12,7 +12,7 @@ const About = () => {
             About Delicious Bites
           </h1>
           <p className="text-xl text-gray-300 leading-relaxed">
-            Bringing authentic Mediterranean flavors to your table since 1995
+            Bringing authentic flavors to your table since 1995
           </p>
         </div>
       </section>
@@ -24,14 +24,7 @@ const About = () => {
             <div>
               <h2 className="text-4xl font-bold mb-6 text-blue-400">Our Story</h2>
               <p className="text-gray-300 mb-6 leading-relaxed">
-                Delicious Bites was founded in 1995 with a simple mission: to bring the authentic tastes 
-                of the Mediterranean to our community. What started as a small family restaurant has grown 
-                into a beloved dining destination, but we've never forgotten our roots.
-              </p>
-              <p className="text-gray-300 mb-6 leading-relaxed">
-                Our recipes have been passed down through generations, combining traditional cooking methods 
-                with the freshest local ingredients. Every dish tells a story of heritage, passion, and 
-                dedication to culinary excellence.
+                I failed to find something cool to write here. Forgive me.
               </p>
               <div className="flex flex-wrap gap-4">
                 <div className="flex items-center gap-2 text-blue-400">

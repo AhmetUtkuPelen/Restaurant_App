@@ -102,7 +102,7 @@ const Profile = () => {
             </DialogTrigger>
             <DialogContent className="max-w-5xl max-h-[90vh] overflow-y-auto">
               <DialogHeader>
-                <DialogTitle>Account Settings</DialogTitle>
+                <DialogTitle className="text-blue-600 font-bold text-lg">Account Settings</DialogTitle>
               </DialogHeader>
               <UserSettings />
             </DialogContent>
@@ -129,7 +129,7 @@ const Profile = () => {
                   <CardHeader className="bg-white border-b border-gray-100">
                     <div className="flex items-center justify-between">
                       <div>
-                        <CardTitle className="text-xl text-gray-900">
+                        <CardTitle className="text-xl font-bold text-blue-500">
                           Profile Information
                         </CardTitle>
                         <CardDescription className="text-gray-600">
@@ -188,7 +188,7 @@ const Profile = () => {
                               <Mail className="h-5 w-5 text-gray-400" />
                             </div>
                             <div>
-                              <p className="text-sm font-medium text-gray-700">
+                              <p className="text-sm font-bold text-blue-500">
                                 Email Address
                               </p>
                               <p className="text-gray-900">
@@ -202,7 +202,7 @@ const Profile = () => {
                               <Phone className="h-5 w-5 text-gray-400" />
                             </div>
                             <div>
-                              <p className="text-sm font-medium text-gray-700">
+                              <p className="text-sm font-bold text-blue-500">
                                 Phone Number
                               </p>
                               <p className="text-gray-900">
@@ -218,7 +218,7 @@ const Profile = () => {
                               <MapPin className="h-5 w-5 text-gray-400" />
                             </div>
                             <div>
-                              <p className="text-sm font-medium text-gray-700">
+                              <p className="text-sm font-bold text-blue-500">
                                 Address
                               </p>
                               <p className="text-gray-900">
@@ -232,7 +232,7 @@ const Profile = () => {
                               <Calendar className="h-5 w-5 text-gray-400" />
                             </div>
                             <div>
-                              <p className="text-sm font-medium text-gray-700">
+                              <p className="text-sm font-bold text-blue-500">
                                 Member Since
                               </p>
                               <p className="text-gray-900">

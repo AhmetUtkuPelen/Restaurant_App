@@ -137,7 +137,7 @@ async def seed_kebabs():
                     "tags": ["urfa", "traditional", "mild", "yogurt"],
                     "price": Decimal('52.00'),
                     "discount_percentage": Decimal('0.00'),
-                    "image_url": "https://cdn.yemek.com/mnresize/1250/833/uploads/2019/01/ev-usulu-urfa-kebabi-yemekcom.jpg",
+                    "image_url": "https://www.kulturportali.gov.tr/repoKulturPortali/small/SehirRehberi//TurkMutfagi/20180502144204772_Urfa%20Ciger%20Kebabi.JPG?format=jpg&quality=50",
                     "is_active": True,
                     "is_front_page": False,
                     "size": KebabSize.MEDIUM,

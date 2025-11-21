@@ -169,7 +169,7 @@ async def seed_doners():
                     "tags": ["beef", "kids", "mini", "mild"],
                     "price": Decimal('20.00'),
                     "discount_percentage": Decimal('0.00'),
-                    "image_url": "https://www.miniaki.com/wp-content/uploads/2022/11/mini-kebab-1024x813.webp",
+                    "image_url": "https://www.shutterstock.com/image-photo/delicious-doner-kebab-pocket-veal-260nw-2318974659.jpg",
                     "is_active": True,
                     "is_front_page": False,
                     "size": DonerSize.SMALL,

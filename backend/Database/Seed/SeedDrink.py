@@ -77,7 +77,7 @@ async def seed_drinks():
                     "tags": ["ayran", "yogurt", "traditional", "healthy"],
                     "price": Decimal('10.00'),
                     "discount_percentage": Decimal('0.00'),
-                    "image_url": "https://cdn.yemek.com/mnresize/1250/833/uploads/2023/10/ayran-sunum-yemekcom.jpg",
+                    "image_url": "https://enjoyburgerhouse.com/wp-content/uploads/2024/07/ayran-768x768.png",
                     "is_active": True,
                     "is_front_page": True,
                     "size": DrinkSize.MEDIUM,
