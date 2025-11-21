@@ -38,7 +38,6 @@ class ContactMessage(BaseModel):
         if not v or v.strip() == "":
             raise ValueError("First name is required")
         
-        # Allow letters, spaces, hyphens, and apostrophes (for names like "Mary-Jane" or "O'Brien" and bla bla)
         if not all(c.isalpha() or c in " -'" for c in v):
             raise ValueError("First name must contain only letters, spaces, hyphens, or apostrophes")
         
@@ -50,7 +49,6 @@ class ContactMessage(BaseModel):
         if not v or v.strip() == "":
             raise ValueError("Last name is required")
         
-        # Allow letters, spaces, hyphens, and apostrophes (for names like "Mary-Jane" or "O'Brien" and bla bla)
         if not all(c.isalpha() or c in " -'" for c in v):
             raise ValueError("Last name must contain only letters, spaces, hyphens, or apostrophes")
         
