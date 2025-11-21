@@ -1,4 +1,3 @@
-# Models/Product/Doner/Doner.py
 from sqlalchemy import Column, Integer, String, Float, ForeignKey, Boolean, CheckConstraint, JSON
 from sqlalchemy import Enum as SAEnum
 from sqlalchemy.dialects.postgresql import ARRAY

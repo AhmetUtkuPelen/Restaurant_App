@@ -3,6 +3,7 @@ from sqlalchemy.orm import relationship, validates
 from Database.Database import Base
 from Utils.Enums.Enums import OrderStatus
 from sqlalchemy import Enum as SAEnum
+from datetime import datetime
 from Models.PAYMENT.PaymentModel import payment_orders
 
 class Order(Base):
@@ -44,7 +45,6 @@ class Order(Base):
     @validates('status')
     def validate_status(self, key, value):
         if value == OrderStatus.COMPLETED and not self.completed_at:
-            from datetime import datetime
             self.completed_at = datetime.utcnow()
         return value
 

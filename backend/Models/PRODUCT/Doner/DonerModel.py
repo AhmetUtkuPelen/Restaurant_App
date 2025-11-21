@@ -1,4 +1,3 @@
-# Models/Product/Doner/Doner.py
 from sqlalchemy import Column, Integer, String, Float, ForeignKey, Boolean, CheckConstraint, JSON
 from sqlalchemy.orm import relationship
 from Models.PRODUCT.BaseProduct.BaseProductModel import Product

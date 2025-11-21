@@ -13,7 +13,7 @@ from Models.RESERVATION.ReservationModel import Reservation
 from Models.USER.UserModel import User
 from Schemas.PAYMENT.PaymentSchemas import PaymentCreate, PaymentUpdate
 from Utils.Enums.Enums import PaymentStatus, OrderStatus, ReservationStatus
-
+from Models.PAYMENT.PaymentModel import payment_orders
 
 class PaymentControllers:
     
@@ -158,7 +158,6 @@ class PaymentControllers:
             
             #### Link orders to payment using the association table ####
             if orders:
-                from Models.PAYMENT.PaymentModel import payment_orders
                 for order in orders:
                     stmt = payment_orders.insert().values(
                         payment_id=new_payment.id,

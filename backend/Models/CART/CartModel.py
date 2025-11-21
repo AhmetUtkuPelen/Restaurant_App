@@ -1,6 +1,7 @@
 from Database.Database import Base
 from sqlalchemy import Column, Integer, ForeignKey, DateTime, func, Boolean, UniqueConstraint
 from sqlalchemy.orm import relationship
+from decimal import Decimal
 
 class Cart(Base):
     __tablename__ = "carts"
@@ -33,7 +34,6 @@ class Cart(Base):
 
     @property
     def total_price(self):
-        from decimal import Decimal
         return sum(
             (item.product.final_price * Decimal(item.quantity)) 
             for item in self.cart_items 

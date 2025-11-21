@@ -45,6 +45,10 @@ This is a mobile-friendly restaurant application built to manage online orders, 
 
   ![Contact2](https://i.imgur.com/MtnorS1.png)
 
+  ![Contact3](https://i.imgur.com/emEcN1J.png)
+
+  ![Contact4](https://i.imgur.com/8rmcmoJ.png)
+
   <br/>
 
 ### User Account

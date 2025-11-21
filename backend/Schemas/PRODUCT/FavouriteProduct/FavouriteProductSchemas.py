@@ -14,7 +14,7 @@ class FavouriteProductBase(BaseModel):
 ### Favourite Product Create Schema ###
 class FavouriteProductCreate(BaseModel):
     model_config = model_conf
-    product_id: int  # user_id will come from authenticated user
+    product_id: int
 
 
 ### Favourite Ptoduct Read Schema ###
