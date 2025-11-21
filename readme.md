@@ -7,6 +7,9 @@ This is a mobile-friendly restaurant application built to manage online orders, 
 - **Front End**: TypeScript, React
 ![Typescript](https://i.imgur.com/HP8BO3f.png)
 ![React](https://i.imgur.com/Ha6uiN6.png)
+
+
+
 - **Back End**: Python, FastAPI
 ![Python](https://i.imgur.com/syp9c3K.png)
 ![FastApi](https://i.imgur.com/wTJaBu7.png)
